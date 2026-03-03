@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    /**
+     * Login por sesión (cookie). No se devuelve token; la sesión se mantiene por cookie.
+     */
     public function login(Request $request)
     {
         $validated = $request->validate([
@@ -16,19 +17,17 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
-
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
+        if (! Auth::attempt($validated)) {
             return response()->json([
                 'message' => 'Credenciales inválidas',
             ], 401);
         }
 
-        $user->api_token = Str::random(60);
-        $user->save();
+        $request->session()->regenerate();
+
+        $user = $request->user();
 
         return response()->json([
-            'token' => $user->api_token,
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -37,9 +36,21 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Cerrar sesión e invalidar la cookie de sesión.
+     */
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return response()->json(['message' => 'Sesión cerrada']);
+    }
+
     public function me(Request $request)
     {
-        $user = $request->attributes->get('auth_user');
+        $user = $request->user();
 
         return response()->json([
             'user' => $user ? [

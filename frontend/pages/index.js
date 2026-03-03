@@ -15,14 +15,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await api.post('/login', { email, password });
-      const { token, user } = response.data;
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_token', token);
+      await api.get('/sanctum/csrf-cookie');
+      const response = await api.post('/api/login', { email, password });
+      const { user } = response.data;
+      if (typeof window !== 'undefined' && user) {
         localStorage.setItem('auth_user', JSON.stringify(user));
       }
-
       router.push('/dashboard');
     } catch (err) {
       setError(

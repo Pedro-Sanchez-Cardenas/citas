@@ -8,7 +8,7 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->attributes->get('auth_user');
+        $user = $request->user();
 
         return response()->json([
             'message' => 'Bienvenido al dashboard',

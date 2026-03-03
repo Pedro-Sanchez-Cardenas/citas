@@ -12,21 +12,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-      router.replace('/');
-      return;
-    }
-
     const fetchData = async () => {
       try {
-        const response = await api.get('/dashboard');
+        const response = await api.get('/api/dashboard');
         setUser(response.data.user);
         setCards(response.data.cards || []);
       } catch (err) {
         setError('No se pudo cargar el dashboard. Vuelve a iniciar sesión.');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_user');
+        }
         router.replace('/');
       } finally {
         setLoading(false);
@@ -36,12 +31,15 @@ export default function DashboardPage() {
     fetchData();
   }, [router]);
 
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_user');
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/logout');
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('auth_user');
+      }
+      router.push('/');
     }
-    router.push('/');
   };
 
   if (loading) {
