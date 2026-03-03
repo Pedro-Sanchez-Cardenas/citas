@@ -51,14 +51,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="relative min-h-screen flex bg-slate-950 text-slate-100">
+    <div className="relative h-screen flex overflow-hidden bg-slate-950 text-slate-100">
       {/* halos de fondo */}
       <div className="pointer-events-none absolute inset-0 opacity-70">
         <div className="absolute -top-32 left-10 h-56 w-56 rounded-full bg-gradient-to-br from-teal-400/22 via-cyan-400/10 to-transparent blur-3xl" />
         <div className="absolute bottom-[-7rem] right-0 h-80 w-80 rounded-full bg-gradient-to-tr from-emerald-400/18 via-slate-900 to-transparent blur-3xl" />
       </div>
 
-      <aside className="relative z-10 flex w-64 flex-col border-r border-slate-800/90 bg-slate-950/80 px-5 pb-5 pt-6 backdrop-blur-2xl">
+      <aside className="relative z-10 flex h-full w-64 flex-col border-r border-slate-800/90 bg-slate-950/80 px-5 pb-5 pt-6 backdrop-blur-2xl">
         <div className="mb-6 flex items-center gap-3 border-b border-slate-800/80 pb-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_25px_rgba(8,47,73,0.9)]">
             🗓
@@ -124,7 +124,7 @@ export default function DashboardPage() {
         </div>
       </aside>
 
-      <main className="relative z-10 flex-1 px-6 py-8 sm:px-10">
+      <main className="relative z-10 flex-1 overflow-y-auto px-6 py-8 sm:px-10">
         <header className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
