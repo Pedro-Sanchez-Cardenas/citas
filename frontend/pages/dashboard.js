@@ -51,73 +51,112 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-950 text-slate-100">
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
-        <div className="px-6 py-5 border-b border-slate-800">
-          <h2 className="text-lg font-semibold">Citas</h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Panel de administración
-          </p>
+    <div className="relative min-h-screen flex bg-slate-950 text-slate-100">
+      {/* halos de fondo */}
+      <div className="pointer-events-none absolute inset-0 opacity-70">
+        <div className="absolute -top-32 left-10 h-56 w-56 rounded-full bg-gradient-to-br from-teal-400/22 via-cyan-400/10 to-transparent blur-3xl" />
+        <div className="absolute bottom-[-7rem] right-0 h-80 w-80 rounded-full bg-gradient-to-tr from-emerald-400/18 via-slate-900 to-transparent blur-3xl" />
+      </div>
+
+      <aside className="relative z-10 flex w-64 flex-col border-r border-slate-800/90 bg-slate-950/80 px-5 pb-5 pt-6 backdrop-blur-2xl">
+        <div className="mb-6 flex items-center gap-3 border-b border-slate-800/80 pb-4">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_25px_rgba(8,47,73,0.9)]">
+            🗓
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold tracking-tight text-slate-50">
+              Citas Pro Beauty
+            </h2>
+            <p className="text-[11px] text-slate-400">
+              Agenda profesional para negocios de belleza
+            </p>
+          </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-2 text-sm">
-          <button className="w-full flex items-center gap-2 rounded-lg px-3 py-2 bg-slate-800 text-slate-50">
-            <span>📅</span>
-            <span>Citas de hoy</span>
+        <nav className="flex-1 space-y-1.5 text-sm">
+          <button className="group relative flex w-full items-center gap-2 rounded-xl bg-slate-900/90 px-3 py-2.5 text-slate-50 shadow-[0_0_0_1px_rgba(15,23,42,0.8)]">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-500/15 text-base text-teal-200">
+              📅
+            </span>
+            <span className="text-[13px] font-medium tracking-tight">
+              Agenda de hoy
+            </span>
+            <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-400" />
           </button>
-          <button className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/70">
-            <span>👥</span>
-            <span>Pacientes</span>
+          <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800/60 text-base">
+              👥
+            </span>
+            <span className="text-[13px] font-medium tracking-tight">
+              Clientes
+            </span>
           </button>
-          <button className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/70">
-            <span>📊</span>
-            <span>Reportes</span>
+          <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800/60 text-base">
+              📊
+            </span>
+            <span className="text-[13px] font-medium tracking-tight">
+              Reportes
+            </span>
           </button>
         </nav>
 
-        <div className="px-4 py-4 border-t border-slate-800 text-xs text-slate-400">
-          <div className="mb-2">
-            <div className="font-medium text-slate-200">
-              {user?.name ?? 'Usuario'}
+        <div className="mt-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-3 text-[11px] text-slate-400">
+          <div className="mb-2 flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-[11px] font-medium text-slate-100">
+              {user?.name?.[0]?.toUpperCase() ?? 'U'}
             </div>
-            <div className="truncate">{user?.email}</div>
+            <div className="min-w-0">
+              <div className="truncate text-xs font-medium text-slate-100">
+                {user?.name ?? 'Usuario'}
+              </div>
+              <div className="truncate text-[11px] text-slate-400">
+                {user?.email}
+              </div>
+            </div>
           </div>
           <button
             onClick={handleLogout}
-            className="inline-flex items-center justify-center rounded-md border border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-800"
+            className="mt-1 inline-flex w-full items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-200 transition hover:bg-slate-800/90"
           >
             Cerrar sesión
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 p-8">
-        <header className="flex items-center justify-between mb-6">
+      <main className="relative z-10 flex-1 px-6 py-8 sm:px-10">
+        <header className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Resumen general de tus citas.
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
+              Panel de belleza
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Resumen de tus citas, servicios y actividad reciente del salón, barbería o spa.
             </p>
           </div>
         </header>
 
         {error && (
-          <div className="mb-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+          <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
             {error}
           </div>
         )}
 
-        <section className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
           {cards.map((card) => (
             <div
               key={card.title}
-              className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 shadow-md shadow-slate-900/40"
+              className="group rounded-2xl bg-gradient-to-br from-slate-800/80 via-slate-900/80 to-slate-950/90 p-[1px] shadow-[0_18px_40px_rgba(15,23,42,0.85)]"
             >
-              <div className="text-xs uppercase tracking-wide text-slate-400 mb-2">
-                {card.title}
-              </div>
-              <div className="text-2xl font-semibold text-white">
-                {card.value}
+              <div className="flex h-full flex-col justify-between rounded-2xl bg-slate-950/80 p-4 transition group-hover:bg-slate-950">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+                    {card.title}
+                  </div>
+                </div>
+                <div className="text-2xl font-semibold text-slate-50">
+                  {card.value}
+                </div>
               </div>
             </div>
           ))}
