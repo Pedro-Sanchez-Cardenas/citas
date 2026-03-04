@@ -43,7 +43,7 @@ export default function LoginForm() {
             Acceso privado para tu negocio de belleza.
           </p>
         </div>
-        <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_30px_rgba(34,211,238,0.55)]">
+        <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_30px_rgba(34,211,238,0.55)]">
           🗓
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-teal-500 via-cyan-500 to-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_16px_45px_rgba(8,47,73,0.9)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-teal-500 via-cyan-500 to-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_16px_45px_rgba(8,47,73,0.9)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {loading ? 'Entrando...' : 'Iniciar sesión'}
         </button>

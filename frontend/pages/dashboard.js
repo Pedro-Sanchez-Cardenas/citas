@@ -78,7 +78,7 @@ export default function DashboardPage() {
         {cards.map((card) => (
           <div
             key={card.title}
-            className="group rounded-2xl bg-gradient-to-br from-slate-800/80 via-slate-900/80 to-slate-950/90 p-[1px] shadow-[0_18px_40px_rgba(15,23,42,0.85)]"
+            className="group rounded-2xl bg-linear-to-br from-slate-800/80 via-slate-900/80 to-slate-950/90 p-px shadow-[0_18px_40px_rgba(15,23,42,0.85)]"
           >
             <div className="flex h-full flex-col justify-between rounded-2xl bg-slate-950/80 p-4 transition group-hover:bg-slate-950">
               <div className="mb-2 flex items-center justify-between gap-2">

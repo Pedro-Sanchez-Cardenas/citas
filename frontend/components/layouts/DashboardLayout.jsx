@@ -2,13 +2,13 @@ export default function DashboardLayout({ user, onLogout, children }) {
   return (
     <div className="relative h-screen flex overflow-hidden bg-slate-950 text-slate-100">
       <div className="pointer-events-none absolute inset-0 opacity-70">
-        <div className="absolute -top-32 left-10 h-56 w-56 rounded-full bg-gradient-to-br from-teal-400/22 via-cyan-400/10 to-transparent blur-3xl" />
-        <div className="absolute bottom-[-7rem] right-0 h-80 w-80 rounded-full bg-gradient-to-tr from-emerald-400/18 via-slate-900 to-transparent blur-3xl" />
+        <div className="absolute -top-32 left-10 h-56 w-56 rounded-full bg-linear-to-br from-teal-400/22 via-cyan-400/10 to-transparent blur-3xl" />
+        <div className="absolute -bottom-28 right-0 h-80 w-80 rounded-full bg-linear-to-tr from-emerald-400/18 via-slate-900 to-transparent blur-3xl" />
       </div>
 
       <aside className="relative z-10 flex h-full w-64 flex-col border-r border-slate-800/90 bg-slate-950/80 px-5 pb-5 pt-6 backdrop-blur-2xl">
         <div className="mb-6 flex items-center gap-3 border-b border-slate-800/80 pb-4">
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_25px_rgba(8,47,73,0.9)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_25px_rgba(8,47,73,0.9)]">
             🗓
           </div>
           <div>
@@ -29,7 +29,7 @@ export default function DashboardLayout({ user, onLogout, children }) {
             <span className="text-[13px] font-medium tracking-tight">
               Agenda de hoy
             </span>
-            <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-gradient-to-b from-teal-400 to-cyan-400" />
+            <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-linear-to-b from-teal-400 to-cyan-400" />
           </button>
           <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50">
             <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800/60 text-base">
