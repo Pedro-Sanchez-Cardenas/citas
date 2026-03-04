@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import api from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginForm() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,10 +20,10 @@ export default function LoginForm() {
       await api.get('/sanctum/csrf-cookie');
       const response = await api.post('/api/login', { email, password });
       const { user } = response.data;
-      if (typeof window !== 'undefined' && user) {
-        localStorage.setItem('auth_user', JSON.stringify(user));
+      if (user) {
+        login(user);
+        router.push('/dashboard');
       }
-      router.push('/dashboard');
     } catch (err) {
       setError(
         err.response?.data?.message ||

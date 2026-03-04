@@ -1,52 +1,46 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import api from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user, loading: authLoading, logout } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
   const [cards, setCards] = useState([]);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    if (!localStorage.getItem('auth_user')) {
+    if (!authLoading && !user) {
       setLoading(false);
       router.replace('/');
       return;
     }
+    if (!user) return;
 
     const fetchData = async () => {
       try {
         const response = await api.get('/api/dashboard');
-        setUser(response.data.user);
         setCards(response.data.cards || []);
       } catch (err) {
         setError('No se pudo cargar el dashboard. Vuelve a iniciar sesión.');
-        localStorage.removeItem('auth_user');
-        router.replace('/');
+        logout();
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [router]);
+  }, [user, authLoading, router, logout]);
 
-  const handleLogout = async () => {
-    try {
-      await api.post('/api/logout');
-    } finally {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_user');
-      }
-      router.push('/');
-    }
-  };
+  if (!authLoading && !user) {
+    return null;
+  }
 
-  if (loading) {
+  const isLoading = authLoading || loading;
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-300">
         Cargando dashboard...
@@ -55,7 +49,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={handleLogout}>
+    <DashboardLayout user={user} onLogout={logout}>
       <header className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
