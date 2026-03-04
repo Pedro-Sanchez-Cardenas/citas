@@ -13,6 +13,58 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  frontend:
+    build:
+      context: ./frontend
+    container_name: citas-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    expose:
+      - 3000
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ""
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+  traefik:
+    image: traefik:v3.6.9
+    container_name: citas-traefik
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"    # Entrada web para la app
+      - "8081:8080"  # Dashboard de Traefik (solo desarrollo)
+      - "8082:8082"  # Endpoint de métricas Prometheus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      # EntryPoint dedicado a métricas (Prometheus)
+      - "--entrypoints.metrics.address=:8082"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      # Tracing vía OpenTelemetry (OTLP)
+      - "--tracing.otlp=true"
+      - "--tracing.serviceName=citas-traefik"
+      - "--tracing.sampleRate=1.0"
+
+  # Backend expuesto a través de Traefik en /api y /sanctum
   backend:
     build:
       context: ./backend
@@ -35,40 +87,18 @@ services:
       # Cache y sesión en local (sin MySQL en cada request)
       CACHE_STORE: file
       SESSION_DRIVER: cookie
-      # API para React: CORS y Sanctum SPA (origen del frontend vía nginx)
+      # API para React: CORS y Sanctum SPA (origen del frontend vía Traefik)
       FRONTEND_URL: http://localhost:8080
       SANCTUM_STATEFUL_DOMAINS: "localhost:8080"
     volumes:
       - ./backend:/var/www
       # vendor en volumen propio: I/O rápido (evita lentitud del bind mount en Windows)
       - backend_vendor:/var/www/vendor
-
-  frontend:
-    build:
-      context: ./frontend
-    container_name: citas-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    expose:
-      - 3000
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: ""
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-
-  nginx:
-    image: nginx:alpine
-    container_name: citas-nginx
-    restart: unless-stopped
-    depends_on:
-      - frontend
-      - backend
-    ports:
-      - "8080:80"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/sanctum`)"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
 volumes:
   db_data:
