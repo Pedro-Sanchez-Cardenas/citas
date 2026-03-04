@@ -2,27 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
+use App\Services\DashboardService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        protected DashboardService $dashboardService
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $data = $this->dashboardService->getDashboardData($user);
 
         return response()->json([
-            'message' => 'Bienvenido al dashboard',
-            'user' => $user ? [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ] : null,
-            'cards' => [
-                ['title' => 'Citas de hoy', 'value' => 5],
-                ['title' => 'Pacientes activos', 'value' => 124],
-                ['title' => 'Citas canceladas', 'value' => 2],
-            ],
+            'message' => $data['message'],
+            'user' => $data['user'] ? new UserResource($data['user']) : null,
+            'cards' => $data['cards'],
         ]);
     }
 }
-

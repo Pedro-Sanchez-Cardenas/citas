@@ -10,6 +10,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let onUnauthorized = () => {};
+
+export function setUnauthorizedHandler(handler) {
+  onUnauthorized = typeof handler === 'function' ? handler : () => {};
+}
+
 function getCookie(name) {
   if (typeof document === 'undefined') return null;
   const value = `; ${document.cookie}`;
@@ -25,5 +31,15 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      onUnauthorized();
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

@@ -2,63 +2,60 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Resources\UserResource;
+use App\Services\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /**
-     * Login por sesión (cookie). No se devuelve token; la sesión se mantiene por cookie.
-     */
-    public function login(Request $request)
-    {
-        $validated = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+    public function __construct(
+        protected AuthService $authService
+    ) {}
 
-        if (! Auth::attempt($validated)) {
+    /**
+     * Login por sesión (cookie). SPA con Sanctum.
+     */
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        $result = $this->authService->attemptLogin(
+            $validated['email'],
+            $validated['password'],
+            $request
+        );
+
+        if ($result['user'] === null) {
             return response()->json([
-                'message' => 'Credenciales inválidas',
+                'message' => $result['message'] ?? 'Credenciales inválidas',
             ], 401);
         }
 
-        $request->session()->regenerate();
-
-        $user = $request->user();
-
         return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ],
+            'user' => new UserResource($result['user']),
         ]);
     }
 
     /**
      * Cerrar sesión e invalidar la cookie de sesión.
      */
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $this->authService->logout($request);
 
         return response()->json(['message' => 'Sesión cerrada']);
     }
 
-    public function me(Request $request)
+    /**
+     * Usuario autenticado actual (para SPA).
+     */
+    public function me(Request $request): JsonResponse
     {
-        $user = $request->user();
+        $user = $this->authService->currentUser();
 
         return response()->json([
-            'user' => $user ? [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-            ] : null,
+            'user' => $user ? new UserResource($user) : null,
         ]);
     }
 }
-

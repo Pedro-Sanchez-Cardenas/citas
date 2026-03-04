@@ -1,20 +1,10 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
-import api from '@/lib/api';
+import api, { setUnauthorizedHandler } from '@/lib/api';
 
 const AuthContext = createContext(null);
 
 const AUTH_STORAGE_KEY = 'auth_user';
-
-function getStoredUser() {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
 
 function setStoredUser(user) {
   if (typeof window === 'undefined') return;
@@ -34,6 +24,14 @@ export function AuthProvider({ children }) {
     setUserState(nextUser);
     setStoredUser(nextUser);
   }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      setUserState(null);
+      setStoredUser(null);
+      router.replace('/');
+    });
+  }, [router]);
 
   useEffect(() => {
     let cancelled = false;
