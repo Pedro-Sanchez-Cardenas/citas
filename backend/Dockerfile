@@ -17,14 +17,15 @@ WORKDIR /var/www
 # Copiamos Composer desde la imagen oficial
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
-# Instalamos dependencias de Laravel durante el build (sin ejecutar scripts de Artisan)
-COPY composer.json ./
-RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --prefer-dist --no-scripts
+# Instalamos dependencias de Laravel en modo desarrollo (incluye dev y sin optimizar autoload)
+COPY composer.json composer.lock* ./
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install --no-interaction --prefer-dist --no-scripts
 
 # Copiamos el resto del proyecto (incluye artisan)
 COPY . .
 
 EXPOSE 8000
 
+# Desarrollo: sin config/route cache para que cambios en .env y rutas se apliquen al vuelo
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
 

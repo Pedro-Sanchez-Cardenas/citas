@@ -20,8 +20,8 @@ services:
     restart: unless-stopped
     depends_on:
       - mysql
-    ports:
-      - "8000:8000"
+    expose:
+      - 8000
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -32,8 +32,16 @@ services:
       DB_DATABASE: citas
       DB_USERNAME: citas
       DB_PASSWORD: citas
+      # Cache y sesión en local (sin MySQL en cada request)
+      CACHE_STORE: file
+      SESSION_DRIVER: cookie
+      # API para React: CORS y Sanctum SPA (origen del frontend vía nginx)
+      FRONTEND_URL: http://localhost:8080
+      SANCTUM_STATEFUL_DOMAINS: "localhost:8080"
     volumes:
       - ./backend:/var/www
+      # vendor en volumen propio: I/O rápido (evita lentitud del bind mount en Windows)
+      - backend_vendor:/var/www/vendor
 
   frontend:
     build:
@@ -42,12 +50,10 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "3000:3000"
+    expose:
+      - 3000
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
-      WATCHPACK_POLLING: "true"
-      CHOKIDAR_USEPOLLING: "true"
+      NEXT_PUBLIC_API_BASE_URL: ""
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -66,4 +72,4 @@ services:
 
 volumes:
   db_data:
-
+  backend_vendor:

@@ -12,6 +12,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (!localStorage.getItem('auth_user')) {
+      setLoading(false);
+      router.replace('/');
+      return;
+    }
 
     const fetchData = async () => {
       try {
@@ -20,9 +25,7 @@ export default function DashboardPage() {
         setCards(response.data.cards || []);
       } catch (err) {
         setError('No se pudo cargar el dashboard. Vuelve a iniciar sesión.');
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_user');
-        }
+        localStorage.removeItem('auth_user');
         router.replace('/');
       } finally {
         setLoading(false);
@@ -59,7 +62,8 @@ export default function DashboardPage() {
             Panel de belleza
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Resumen de tus citas, servicios y actividad reciente del salón, barbería o spa.
+            Resumen de tus citas, servicios y actividad reciente del salón,
+            barbería o spa.
           </p>
         </div>
       </header>
@@ -92,4 +96,3 @@ export default function DashboardPage() {
     </DashboardLayout>
   );
 }
-

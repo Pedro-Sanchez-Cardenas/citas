@@ -1,9 +1,6 @@
-import React from 'react';
-
 export default function DashboardLayout({ user, onLogout, children }) {
   return (
     <div className="relative h-screen flex overflow-hidden bg-slate-950 text-slate-100">
-      {/* halos de fondo */}
       <div className="pointer-events-none absolute inset-0 opacity-70">
         <div className="absolute -top-32 left-10 h-56 w-56 rounded-full bg-gradient-to-br from-teal-400/22 via-cyan-400/10 to-transparent blur-3xl" />
         <div className="absolute bottom-[-7rem] right-0 h-80 w-80 rounded-full bg-gradient-to-tr from-emerald-400/18 via-slate-900 to-transparent blur-3xl" />
@@ -81,4 +78,3 @@ export default function DashboardLayout({ user, onLogout, children }) {
     </div>
   );
 }
-
