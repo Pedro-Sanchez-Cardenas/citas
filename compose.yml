@@ -64,7 +64,6 @@ services:
       - "--tracing.serviceName=citas-traefik"
       - "--tracing.sampleRate=1.0"
 
-  # Backend expuesto a través de Traefik en /api y /sanctum
   backend:
     build:
       context: ./backend
@@ -92,7 +91,6 @@ services:
       SANCTUM_STATEFUL_DOMAINS: "localhost:8080"
     volumes:
       - ./backend:/var/www
-      # vendor en volumen propio: I/O rápido (evita lentitud del bind mount en Windows)
       - backend_vendor:/var/www/vendor
     labels:
       - "traefik.enable=true"
