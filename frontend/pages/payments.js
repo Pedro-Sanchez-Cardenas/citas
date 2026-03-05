@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchPayments } from '@/lib/api/payments';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, Input, Select, Table } from '@/components/ui';
 
 function formatDate(value) {
   if (!value) return '—';
@@ -169,43 +169,60 @@ export default function PaymentsPage() {
           </p>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Fecha</th>
-                <th className="px-4 py-3 font-medium">Cliente</th>
-                <th className="px-4 py-3 font-medium">Método</th>
-                <th className="px-4 py-3 font-medium">Monto</th>
-                <th className="px-4 py-3 font-medium">Referencia</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPayments.map((pay) => (
-                <tr
-                  key={pay.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
-                >
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {formatDate(pay.paid_at || pay.created_at)}
-                  </td>
-                  <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                    {pay.client_name || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {pay.method || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {formatMoney(pay.amount, pay.currency)}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {pay.reference || '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={[
+            { key: 'date', header: 'Fecha' },
+            { key: 'client', header: 'Cliente' },
+            { key: 'method', header: 'Método' },
+            { key: 'amount', header: 'Monto' },
+            { key: 'reference', header: 'Referencia' },
+          ]}
+          items={filteredPayments}
+          getItemKey={(pay) => pay.id}
+          renderCell={(pay, key) => {
+            if (key === 'date') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatDate(pay.paid_at || pay.created_at)}
+                </span>
+              );
+            }
+
+            if (key === 'client') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {pay.client_name || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'method') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {pay.method || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'amount') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatMoney(pay.amount, pay.currency)}
+                </span>
+              );
+            }
+
+            if (key === 'reference') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {pay.reference || '—'}
+                </span>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

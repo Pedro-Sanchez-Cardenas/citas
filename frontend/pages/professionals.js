@@ -8,7 +8,7 @@ import {
   updateProfessional,
   deleteProfessional,
 } from '@/lib/api/professionals';
-import { Button, Input, Select, Checkbox, Modal } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
 
 function formatMoneyFromCents(amountCents, currency = 'USD') {
   if (amountCents == null) return '—';
@@ -399,94 +399,106 @@ export default function ProfessionalsPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Profesional</th>
-                <th className="px-4 py-3 font-medium">Contacto</th>
-                <th className="px-4 py-3 font-medium">Comisión</th>
-                <th className="px-4 py-3 font-medium">Salario base</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProfessionals.map((prof) => (
-                <tr
-                  key={prof.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'professional', header: 'Profesional' },
+            { key: 'contact', header: 'Contacto' },
+            { key: 'commission', header: 'Comisión' },
+            { key: 'salary', header: 'Salario base' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredProfessionals}
+          getItemKey={(prof) => prof.id}
+          renderCell={(prof, key) => {
+            if (key === 'professional') {
+              return (
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-50">
+                  <span
+                    className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-700/80"
+                    style={{ backgroundColor: prof.color || '#0f172a' }}
+                  />
+                  <span>{prof.name}</span>
+                </div>
+              );
+            }
+
+            if (key === 'contact') {
+              return (
+                <div className="space-y-0.5 text-xs text-slate-400">
+                  {prof.email && <div>{prof.email}</div>}
+                  {prof.phone && (
+                    <div className="text-slate-500">{prof.phone}</div>
+                  )}
+                  {!prof.email && !prof.phone && '—'}
+                </div>
+              );
+            }
+
+            if (key === 'commission') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {prof.commission_rate != null ? `${prof.commission_rate}%` : '—'}
+                </span>
+              );
+            }
+
+            if (key === 'salary') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatMoneyFromCents(prof.base_salary_cents)}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    prof.is_active
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
+                  }`}
                 >
-                  <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-700/80"
-                        style={{ backgroundColor: prof.color || '#0f172a' }}
-                      />
-                      <span>{prof.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    <div className="space-y-0.5">
-                      {prof.email && <div>{prof.email}</div>}
-                      {prof.phone && (
-                        <div className="text-slate-500">{prof.phone}</div>
-                      )}
-                      {!prof.email && !prof.phone && '—'}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {prof.commission_rate != null
-                      ? `${prof.commission_rate}%`
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {formatMoneyFromCents(prof.base_salary_cents)}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                        prof.is_active
-                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
-                      }`}
-                    >
-                      <span
-                        className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                          prof.is_active ? 'bg-emerald-400' : 'bg-slate-500'
-                        }`}
-                      />
-                      {prof.is_active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="subtle"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => openEditModal(prof)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => handleDeleteProfessional(prof.id)}
-                        disabled={deletingId === prof.id}
-                      >
-                        {deletingId === prof.id ? 'Eliminando...' : 'Eliminar'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  <span
+                    className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                      prof.is_active ? 'bg-emerald-400' : 'bg-slate-500'
+                    }`}
+                  />
+                  {prof.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(prof)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteProfessional(prof.id)}
+                    disabled={deletingId === prof.id}
+                  >
+                    {deletingId === prof.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

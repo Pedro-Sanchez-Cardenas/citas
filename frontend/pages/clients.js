@@ -8,7 +8,7 @@ import {
   updateClient,
   deleteClient,
 } from '@/lib/api/clients';
-import { Button, Input, Textarea, Select, Modal } from '@/components/ui';
+import { Button, Input, Textarea, Select, Modal, Table } from '@/components/ui';
 
 function ClientFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [name, setName] = useState(initialData?.name ?? '');
@@ -371,69 +371,82 @@ export default function ClientsPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Contacto</th>
-                <th className="px-4 py-3 font-medium">Cumpleaños</th>
-                <th className="px-4 py-3 font-medium">Estilista preferido</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredClients.map((client) => (
-                <tr
-                  key={client.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
-                >
-                  <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                    {client.name}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    <div className="space-y-0.5">
-                      {client.email && <div>{client.email}</div>}
-                      {client.phone && (
-                        <div className="text-slate-500">{client.phone}</div>
-                      )}
-                      {!client.email && !client.phone && '—'}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {client.birthday || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {client.preferred_stylist || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="subtle"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => openEditModal(client)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => handleDeleteClient(client.id)}
-                        disabled={deletingId === client.id}
-                      >
-                        {deletingId === client.id ? 'Eliminando...' : 'Eliminar'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={[
+            { key: 'name', header: 'Nombre' },
+            { key: 'contact', header: 'Contacto' },
+            { key: 'birthday', header: 'Cumpleaños' },
+            { key: 'preferred', header: 'Estilista preferido' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredClients}
+          getItemKey={(client) => client.id}
+          renderCell={(client, key) => {
+            if (key === 'name') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {client.name}
+                </span>
+              );
+            }
+
+            if (key === 'contact') {
+              return (
+                <div className="space-y-0.5 text-xs text-slate-400">
+                  {client.email && <div>{client.email}</div>}
+                  {client.phone && (
+                    <div className="text-slate-500">{client.phone}</div>
+                  )}
+                  {!client.email && !client.phone && '—'}
+                </div>
+              );
+            }
+
+            if (key === 'birthday') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {client.birthday || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'preferred') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {client.preferred_stylist || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(client)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteClient(client.id)}
+                    disabled={deletingId === client.id}
+                  >
+                    {deletingId === client.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

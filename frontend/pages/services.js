@@ -9,7 +9,7 @@ import {
   deleteService,
 } from '@/lib/api/services';
 import { fetchServiceCategories } from '@/lib/api/serviceCategories';
-import { Button, Input, Select, Checkbox, Modal } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
 
 function formatPriceFromCents(priceCents, currency = 'USD') {
   if (priceCents == null) return '—';
@@ -401,89 +401,107 @@ export default function ServicesPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Código</th>
-                <th className="px-4 py-3 font-medium">Duración</th>
-                <th className="px-4 py-3 font-medium">Precio</th>
-                <th className="px-4 py-3 font-medium">Categoría</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredServices.map((service) => {
-                const category =
-                  service.service_category ??
-                  categoryById.get(service.service_category_id);
-                return (
-                  <tr
-                    key={service.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'name', header: 'Nombre' },
+            { key: 'code', header: 'Código' },
+            { key: 'duration', header: 'Duración' },
+            { key: 'price', header: 'Precio' },
+            { key: 'category', header: 'Categoría' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredServices}
+          getItemKey={(service) => service.id}
+          renderCell={(service, key) => {
+            const category =
+              service.service_category ??
+              categoryById.get(service.service_category_id);
+
+            if (key === 'name') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {service.name}
+                </span>
+              );
+            }
+
+            if (key === 'code') {
+              return <span className="text-xs text-slate-400">{service.code}</span>;
+            }
+
+            if (key === 'duration') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {service.duration_minutes} min
+                </span>
+              );
+            }
+
+            if (key === 'price') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatPriceFromCents(service.price_cents, service.currency)}
+                </span>
+              );
+            }
+
+            if (key === 'category') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {category?.name ?? '—'}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    service.is_active
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
+                  }`}
+                >
+                  <span
+                    className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                      service.is_active ? 'bg-emerald-400' : 'bg-slate-500'
+                    }`}
+                  />
+                  {service.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(service)}
                   >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {service.name}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {service.code}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {service.duration_minutes} min
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {formatPriceFromCents(service.price_cents, service.currency)}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {category?.name ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                          service.is_active
-                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
-                        }`}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            service.is_active ? 'bg-emerald-400' : 'bg-slate-500'
-                          }`}
-                        />
-                        {service.is_active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="subtle"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => openEditModal(service)}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => handleDeleteService(service.id)}
-                          disabled={deletingId === service.id}
-                        >
-                          {deletingId === service.id ? 'Eliminando...' : 'Eliminar'}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteService(service.id)}
+                    disabled={deletingId === service.id}
+                  >
+                    {deletingId === service.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

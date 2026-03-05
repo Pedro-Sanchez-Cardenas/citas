@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/appointments';
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchServices } from '@/lib/api/services';
-import { Button, Input, Textarea, Select, Checkbox, Modal } from '@/components/ui';
+import { Button, Input, Textarea, Select, Checkbox, Modal, Table } from '@/components/ui';
 
 const STATUS_OPTIONS = [
   { value: 'scheduled', label: 'Agendada' },
@@ -482,107 +482,127 @@ export default function AppointmentsPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Cliente</th>
-                <th className="px-4 py-3 font-medium">Profesional</th>
-                <th className="px-4 py-3 font-medium">Servicio</th>
-                <th className="px-4 py-3 font-medium">Horario</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAppointments.map((appt) => {
-                const professional = professionalById.get(appt.professional_id);
-                const service = serviceById.get(appt.service_id);
-                const statusDef = STATUS_OPTIONS.find(
-                  (opt) => opt.value === appt.status
-                );
-                return (
-                  <tr
-                    key={appt.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'client', header: 'Cliente' },
+            { key: 'professional', header: 'Profesional' },
+            { key: 'service', header: 'Servicio' },
+            { key: 'schedule', header: 'Horario' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredAppointments}
+          getItemKey={(appt) => appt.id}
+          renderCell={(appt, key) => {
+            const professional = professionalById.get(appt.professional_id);
+            const service = serviceById.get(appt.service_id);
+            const statusDef = STATUS_OPTIONS.find(
+              (opt) => opt.value === appt.status
+            );
+
+            if (key === 'client') {
+              return (
+                <div className="space-y-0.5">
+                  <div className="text-sm font-medium text-slate-50">
+                    {appt.client_name}
+                  </div>
+                  <div className="text-xs text-slate-400">
+                    {appt.client_phone || appt.client_email || '—'}
+                  </div>
+                </div>
+              );
+            }
+
+            if (key === 'professional') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {professional?.name ?? '—'}
+                </span>
+              );
+            }
+
+            if (key === 'service') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {service?.name ?? '—'}
+                </span>
+              );
+            }
+
+            if (key === 'schedule') {
+              return (
+                <div className="space-y-0.5 text-xs text-slate-400">
+                  <div>{formatDateTime(appt.start_at)}</div>
+                  <div className="text-slate-500">
+                    {formatDateTime(appt.end_at)}
+                  </div>
+                </div>
+              );
+            }
+
+            if (key === 'status') {
+              const isCancelled =
+                appt.status === 'cancelled' || appt.status === 'no_show';
+              const isAttended = appt.status === 'attended';
+              const isConfirmed = appt.status === 'confirmed';
+
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    isCancelled
+                      ? 'bg-red-500/15 text-red-200 border border-red-500/40'
+                      : isAttended
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      : isConfirmed
+                      ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40'
+                      : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
+                  }`}
+                >
+                  <span
+                    className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                      isCancelled
+                        ? 'bg-red-400'
+                        : isAttended
+                        ? 'bg-emerald-400'
+                        : isConfirmed
+                        ? 'bg-sky-400'
+                        : 'bg-slate-500'
+                    }`}
+                  />
+                  {statusDef?.label ?? 'Sin estado'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(appt)}
                   >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      <div className="space-y-0.5">
-                        <div>{appt.client_name}</div>
-                        <div className="text-xs text-slate-400">
-                          {appt.client_phone || appt.client_email || '—'}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {professional?.name ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {service?.name ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      <div className="space-y-0.5">
-                        <div>{formatDateTime(appt.start_at)}</div>
-                        <div className="text-slate-500">
-                          {formatDateTime(appt.end_at)}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                          appt.status === 'cancelled' || appt.status === 'no_show'
-                            ? 'bg-red-500/15 text-red-200 border border-red-500/40'
-                            : appt.status === 'attended'
-                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                            : appt.status === 'confirmed'
-                            ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40'
-                            : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
-                        }`}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            appt.status === 'cancelled' || appt.status === 'no_show'
-                              ? 'bg-red-400'
-                              : appt.status === 'attended'
-                              ? 'bg-emerald-400'
-                              : appt.status === 'confirmed'
-                              ? 'bg-sky-400'
-                              : 'bg-slate-500'
-                          }`}
-                        />
-                        {statusDef?.label ?? 'Sin estado'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="subtle"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => openEditModal(appt)}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => handleDeleteAppointment(appt.id)}
-                          disabled={deletingId === appt.id}
-                        >
-                          {deletingId === appt.id ? 'Eliminando...' : 'Eliminar'}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteAppointment(appt.id)}
+                    disabled={deletingId === appt.id}
+                  >
+                    {deletingId === appt.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

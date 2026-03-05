@@ -8,7 +8,7 @@ import {
   deleteBlock,
 } from '@/lib/api/blocks';
 import { fetchProfessionals } from '@/lib/api/professionals';
-import { Button, Input, Select, Modal, Textarea } from '@/components/ui';
+import { Button, Input, Select, Modal, Textarea, Table } from '@/components/ui';
 
 function formatDateTime(value) {
   if (!value) return '—';
@@ -337,63 +337,81 @@ export default function BlocksPage() {
           </p>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Profesional</th>
-                <th className="px-4 py-3 font-medium">Inicio</th>
-                <th className="px-4 py-3 font-medium">Fin</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium">Motivo</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredBlocks.map((b) => {
-                const professional =
-                  b.professional ??
-                  professionalById.get(b.professional_id);
-                return (
-                  <tr
-                    key={b.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'professional', header: 'Profesional' },
+            { key: 'start', header: 'Inicio' },
+            { key: 'end', header: 'Fin' },
+            { key: 'type', header: 'Tipo' },
+            { key: 'reason', header: 'Motivo' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredBlocks}
+          getItemKey={(b) => b.id}
+          renderCell={(b, key) => {
+            const professional =
+              b.professional ?? professionalById.get(b.professional_id);
+
+            if (key === 'professional') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {professional?.name ?? 'General'}
+                </span>
+              );
+            }
+
+            if (key === 'start') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatDateTime(b.start_at)}
+                </span>
+              );
+            }
+
+            if (key === 'end') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatDateTime(b.end_at)}
+                </span>
+              );
+            }
+
+            if (key === 'type') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {b.type || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'reason') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {b.reason || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteBlock(b.id)}
+                    disabled={deletingId === b.id}
                   >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {professional?.name ?? 'General'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {formatDateTime(b.start_at)}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {formatDateTime(b.end_at)}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {b.type || '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {b.reason || '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => handleDeleteBlock(b.id)}
-                          disabled={deletingId === b.id}
-                        >
-                          {deletingId === b.id ? 'Eliminando...' : 'Eliminar'}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    {deletingId === b.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

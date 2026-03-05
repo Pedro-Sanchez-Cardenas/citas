@@ -5,4 +5,5 @@ export { default as Modal } from './Modal';
 export { default as Checkbox } from './Checkbox';
 export { default as Radio } from './Radio';
 export { default as Select } from './Select';
+export { default as Table } from './Table';
 

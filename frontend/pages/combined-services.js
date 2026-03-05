@@ -9,7 +9,7 @@ import {
   deleteCombinedService,
 } from '@/lib/api/combinedServices';
 import { fetchServices } from '@/lib/api/services';
-import { Button, Input, Select, Checkbox, Modal } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
 
 function CombinedServiceFormModal({
   open,
@@ -467,86 +467,102 @@ export default function CombinedServicesPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Código</th>
-                <th className="px-4 py-3 font-medium">Duración total</th>
-                <th className="px-4 py-3 font-medium">Servicios incluidos</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCombined.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'name', header: 'Nombre' },
+            { key: 'code', header: 'Código' },
+            { key: 'duration', header: 'Duración total' },
+            { key: 'items', header: 'Servicios incluidos' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredCombined}
+          getItemKey={(item) => item.id}
+          renderCell={(item, key) => {
+            if (key === 'name') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {item.name}
+                </span>
+              );
+            }
+
+            if (key === 'code') {
+              return <span className="text-xs text-slate-400">{item.code}</span>;
+            }
+
+            if (key === 'duration') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {item.total_duration_minutes
+                    ? `${item.total_duration_minutes} min`
+                    : '—'}
+                </span>
+              );
+            }
+
+            if (key === 'items') {
+              const servicesText =
+                Array.isArray(item.items) && item.items.length > 0
+                  ? item.items
+                      .map((ci) => ci.service?.name ?? `Servicio #${ci.service_id}`)
+                      .join(', ')
+                  : '—';
+              return (
+                <span className="text-xs text-slate-400 wrap-break-word">
+                  {servicesText}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    item.is_active
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
+                  }`}
                 >
-                  <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                    {item.name}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {item.code}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {item.total_duration_minutes
-                      ? `${item.total_duration_minutes} min`
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {Array.isArray(item.items) && item.items.length > 0
-                      ? item.items
-                          .map((ci) => ci.service?.name ?? `Servicio #${ci.service_id}`)
-                          .join(', ')
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                        item.is_active
-                          ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                          : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
-                      }`}
-                    >
-                      <span
-                        className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                          item.is_active ? 'bg-emerald-400' : 'bg-slate-500'
-                        }`}
-                      />
-                      {item.is_active ? 'Activo' : 'Inactivo'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="subtle"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => openEditModal(item)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => handleDelete(item.id)}
-                        disabled={deletingId === item.id}
-                      >
-                        {deletingId === item.id ? 'Eliminando...' : 'Eliminar'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  <span
+                    className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                      item.is_active ? 'bg-emerald-400' : 'bg-slate-500'
+                    }`}
+                  />
+                  {item.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(item)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDelete(item.id)}
+                    disabled={deletingId === item.id}
+                  >
+                    {deletingId === item.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

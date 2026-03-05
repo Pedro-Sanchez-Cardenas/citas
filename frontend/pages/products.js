@@ -8,7 +8,7 @@ import {
   updateProduct,
   deleteProduct,
 } from '@/lib/api/products';
-import { Button, Input, Select, Checkbox, Modal } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
 
 function formatMoneyFromCents(amountCents) {
   if (amountCents == null) return '—';
@@ -385,83 +385,107 @@ export default function ProductsPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">SKU</th>
-                <th className="px-4 py-3 font-medium">Categoría</th>
-                <th className="px-4 py-3 font-medium">Unidad</th>
-                <th className="px-4 py-3 font-medium">Costo</th>
-                <th className="px-4 py-3 font-medium">Precio</th>
-                <th className="px-4 py-3 font-medium">Tipo</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product) => (
-                <tr
-                  key={product.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'name', header: 'Nombre' },
+            { key: 'sku', header: 'SKU' },
+            { key: 'category', header: 'Categoría' },
+            { key: 'unit', header: 'Unidad' },
+            { key: 'cost', header: 'Costo' },
+            { key: 'price', header: 'Precio' },
+            { key: 'type', header: 'Tipo' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredProducts}
+          getItemKey={(product) => product.id}
+          renderCell={(product, key) => {
+            if (key === 'name') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {product.name}
+                </span>
+              );
+            }
+
+            if (key === 'sku') {
+              return (
+                <span className="text-xs text-slate-400">{product.sku}</span>
+              );
+            }
+
+            if (key === 'category') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {product.category || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'unit') {
+              return (
+                <span className="text-xs text-slate-400">{product.unit}</span>
+              );
+            }
+
+            if (key === 'cost') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatMoneyFromCents(product.cost_cents)}
+                </span>
+              );
+            }
+
+            if (key === 'price') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatMoneyFromCents(product.price_cents)}
+                </span>
+              );
+            }
+
+            if (key === 'type') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    product.is_reusable
+                      ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40'
+                      : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                  }`}
                 >
-                  <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                    {product.name}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {product.sku}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {product.category || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {product.unit}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {formatMoneyFromCents(product.cost_cents)}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {formatMoneyFromCents(product.price_cents)}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                        product.is_reusable
-                          ? 'bg-sky-500/15 text-sky-300 border border-sky-500/40'
-                          : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                      }`}
-                    >
-                      {product.is_reusable ? 'Reutilizable' : 'Consumible'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="subtle"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => openEditModal(product)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => handleDeleteProduct(product.id)}
-                        disabled={deletingId === product.id}
-                      >
-                        {deletingId === product.id ? 'Eliminando...' : 'Eliminar'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  {product.is_reusable ? 'Reutilizable' : 'Consumible'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(product)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteProduct(product.id)}
+                    disabled={deletingId === product.id}
+                  >
+                    {deletingId === product.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

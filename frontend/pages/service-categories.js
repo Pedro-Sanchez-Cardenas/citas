@@ -8,7 +8,7 @@ import {
   updateServiceCategory,
   deleteServiceCategory,
 } from '@/lib/api/serviceCategories';
-import { Button, Input, Textarea, Modal } from '@/components/ui';
+import { Button, Input, Textarea, Modal, Table } from '@/components/ui';
 
 function CategoryFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [name, setName] = useState(initialData?.name ?? '');
@@ -283,55 +283,60 @@ export default function ServiceCategoriesPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Descripción</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategories.map((cat) => (
-                <tr
-                  key={cat.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
-                >
-                  <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                    {cat.name}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {cat.description || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex items-center justify-end gap-2">
-                      <Button
-                        type="button"
-                        variant="subtle"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => openEditModal(cat)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        className="text-[11px]"
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        disabled={deletingId === cat.id}
-                      >
-                        {deletingId === cat.id ? 'Eliminando...' : 'Eliminar'}
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={[
+            { key: 'name', header: 'Nombre' },
+            { key: 'description', header: 'Descripción' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredCategories}
+          getItemKey={(cat) => cat.id}
+          renderCell={(cat, key) => {
+            if (key === 'name') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {cat.name}
+                </span>
+              );
+            }
+
+            if (key === 'description') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {cat.description || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(cat)}
+                  >
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteCategory(cat.id)}
+                    disabled={deletingId === cat.id}
+                  >
+                    {deletingId === cat.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

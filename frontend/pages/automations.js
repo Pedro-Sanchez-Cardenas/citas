@@ -8,7 +8,7 @@ import {
   updateAutomation,
   deleteAutomation,
 } from '@/lib/api/automations';
-import { Button, Input, Select, Checkbox, Modal, Textarea } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Textarea, Table } from '@/components/ui';
 
 const TRIGGER_OPTIONS = [
   { value: 'appointment_reminder', label: 'Recordatorio de cita' },
@@ -377,77 +377,84 @@ export default function AutomationsPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Nombre</th>
-                <th className="px-4 py-3 font-medium">Disparador</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAutomations.map((auto) => {
-                const triggerLabel =
-                  TRIGGER_OPTIONS.find((t) => t.value === auto.trigger)?.label ??
-                  auto.trigger;
-                return (
-                  <tr
-                    key={auto.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'name', header: 'Nombre' },
+            { key: 'trigger', header: 'Disparador' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredAutomations}
+          getItemKey={(auto) => auto.id}
+          renderCell={(auto, key) => {
+            const triggerLabel =
+              TRIGGER_OPTIONS.find((t) => t.value === auto.trigger)?.label ??
+              auto.trigger;
+
+            if (key === 'name') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {auto.name}
+                </span>
+              );
+            }
+
+            if (key === 'trigger') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {triggerLabel}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    auto.is_active
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
+                  }`}
+                >
+                  <span
+                    className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                      auto.is_active ? 'bg-emerald-400' : 'bg-slate-500'
+                    }`}
+                  />
+                  {auto.is_active ? 'Activa' : 'Inactiva'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(auto)}
                   >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {auto.name}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {triggerLabel}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                          auto.is_active
-                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
-                        }`}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            auto.is_active ? 'bg-emerald-400' : 'bg-slate-500'
-                          }`}
-                        />
-                        {auto.is_active ? 'Activa' : 'Inactiva'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="subtle"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => openEditModal(auto)}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => handleDeleteAutomation(auto.id)}
-                          disabled={deletingId === auto.id}
-                        >
-                          {deletingId === auto.id ? 'Eliminando...' : 'Eliminar'}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteAutomation(auto.id)}
+                    disabled={deletingId === auto.id}
+                  >
+                    {deletingId === auto.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

@@ -7,7 +7,7 @@ import {
   fetchProfessionalsReport,
   fetchServicesReport,
 } from '@/lib/api/reports';
-import { Button, Select } from '@/components/ui';
+import { Button, Select, Table } from '@/components/ui';
 
 export default function ReportsPage() {
   const router = useRouter();
@@ -172,70 +172,91 @@ export default function ReportsPage() {
           </div>
         </section>
       ) : activeTab === 'professionals' ? (
-        <section className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Profesional</th>
-                <th className="px-4 py-3 font-medium">Citas</th>
-                <th className="px-4 py-3 font-medium">Ingresos</th>
-                <th className="px-4 py-3 font-medium">Ticket promedio</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(professionalsReport) &&
-                professionalsReport.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
-                  >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {row.name}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.appointments_count ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.revenue_formatted ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.average_ticket_formatted ?? '—'}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <section className="mt-2">
+          <Table
+            columns={[
+              { key: 'name', header: 'Profesional' },
+              { key: 'appointments', header: 'Citas' },
+              { key: 'revenue', header: 'Ingresos' },
+              { key: 'ticket', header: 'Ticket promedio' },
+            ]}
+            items={Array.isArray(professionalsReport) ? professionalsReport : []}
+            getItemKey={(row) => row.id}
+            renderCell={(row, key) => {
+              if (key === 'name') {
+                return (
+                  <span className="text-sm font-medium text-slate-50">
+                    {row.name}
+                  </span>
+                );
+              }
+
+              if (key === 'appointments') {
+                return (
+                  <span className="text-xs text-slate-400">
+                    {row.appointments_count ?? '—'}
+                  </span>
+                );
+              }
+
+              if (key === 'revenue') {
+                return (
+                  <span className="text-xs text-slate-400">
+                    {row.revenue_formatted ?? '—'}
+                  </span>
+                );
+              }
+
+              if (key === 'ticket') {
+                return (
+                  <span className="text-xs text-slate-400">
+                    {row.average_ticket_formatted ?? '—'}
+                  </span>
+                );
+              }
+
+              return null;
+            }}
+          />
         </section>
       ) : (
-        <section className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Servicio</th>
-                <th className="px-4 py-3 font-medium">Citas</th>
-                <th className="px-4 py-3 font-medium">Ingresos</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Array.isArray(servicesReport) &&
-                servicesReport.map((row) => (
-                  <tr
-                    key={row.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
-                  >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {row.name}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.appointments_count ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.revenue_formatted ?? '—'}
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+        <section className="mt-2">
+          <Table
+            columns={[
+              { key: 'name', header: 'Servicio' },
+              { key: 'appointments', header: 'Citas' },
+              { key: 'revenue', header: 'Ingresos' },
+            ]}
+            items={Array.isArray(servicesReport) ? servicesReport : []}
+            getItemKey={(row) => row.id}
+            renderCell={(row, key) => {
+              if (key === 'name') {
+                return (
+                  <span className="text-sm font-medium text-slate-50">
+                    {row.name}
+                  </span>
+                );
+              }
+
+              if (key === 'appointments') {
+                return (
+                  <span className="text-xs text-slate-400">
+                    {row.appointments_count ?? '—'}
+                  </span>
+                );
+              }
+
+              if (key === 'revenue') {
+                return (
+                  <span className="text-xs text-slate-400">
+                    {row.revenue_formatted ?? '—'}
+                  </span>
+                );
+              }
+
+              return null;
+            }}
+          />
         </section>
       )}
     </DashboardLayout>

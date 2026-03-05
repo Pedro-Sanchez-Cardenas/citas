@@ -9,7 +9,7 @@ import {
   deleteWorkingHour,
 } from '@/lib/api/workingHours';
 import { fetchProfessionals } from '@/lib/api/professionals';
-import { Button, Input, Select, Checkbox, Modal } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
 
 const WEEKDAYS = [
   'Domingo',
@@ -396,88 +396,102 @@ export default function WorkingHoursPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Día</th>
-                <th className="px-4 py-3 font-medium">Profesional</th>
-                <th className="px-4 py-3 font-medium">Horario</th>
-                <th className="px-4 py-3 font-medium">Vigencia</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredHours.map((row) => {
-                const professional =
-                  row.professional ??
-                  professionalById.get(row.professional_id);
-                return (
-                  <tr
-                    key={row.id}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'weekday', header: 'Día' },
+            { key: 'professional', header: 'Profesional' },
+            { key: 'time', header: 'Horario' },
+            { key: 'range', header: 'Vigencia' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredHours}
+          getItemKey={(row) => row.id}
+          renderCell={(row, key) => {
+            const professional =
+              row.professional ?? professionalById.get(row.professional_id);
+
+            if (key === 'weekday') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {WEEKDAYS[row.weekday ?? 0]}
+                </span>
+              );
+            }
+
+            if (key === 'professional') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {professional?.name ?? 'Horario general'}
+                </span>
+              );
+            }
+
+            if (key === 'time') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {row.start_time} - {row.end_time}
+                </span>
+              );
+            }
+
+            if (key === 'range') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {row.effective_from || 'Desde siempre'}{' '}
+                  {row.effective_until ? `→ ${row.effective_until}` : ''}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    row.is_active
+                      ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
+                  }`}
+                >
+                  <span
+                    className={`mr-1 h-1.5 w-1.5 rounded-full ${
+                      row.is_active ? 'bg-emerald-400' : 'bg-slate-500'
+                    }`}
+                  />
+                  {row.is_active ? 'Activo' : 'Inactivo'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openEditModal(row)}
                   >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {WEEKDAYS[row.weekday ?? 0]}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {professional?.name ?? 'Horario general'}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.start_time} - {row.end_time}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.effective_from || 'Desde siempre'}{' '}
-                      {row.effective_until
-                        ? `→ ${row.effective_until}`
-                        : ''}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                          row.is_active
-                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                            : 'bg-slate-800/80 text-slate-300 border border-slate-700/80'
-                        }`}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            row.is_active ? 'bg-emerald-400' : 'bg-slate-500'
-                          }`}
-                        />
-                        {row.is_active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="subtle"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => openEditModal(row)}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="danger"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => handleDeleteHour(row.id)}
-                          disabled={deletingId === row.id}
-                        >
-                          {deletingId === row.id ? 'Eliminando...' : 'Eliminar'}
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    Editar
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="danger"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => handleDeleteHour(row.id)}
+                    disabled={deletingId === row.id}
+                  >
+                    {deletingId === row.id ? 'Eliminando...' : 'Eliminar'}
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

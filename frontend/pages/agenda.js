@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchAgendaDay, fetchAgendaWeek } from '@/lib/api/agenda';
-import { Button, Input, Select, Checkbox } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Table } from '@/components/ui';
 
 function formatHour(value) {
   if (!value) return '';
@@ -227,47 +227,69 @@ export default function AgendaPage() {
           ))}
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-xs md:text-sm">
-            <thead className="bg-slate-900/80 text-left uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Profesional</th>
-                <th className="px-4 py-3 font-medium">Día</th>
-                <th className="px-4 py-3 font-medium">Hora</th>
-                <th className="px-4 py-3 font-medium">Cliente</th>
-                <th className="px-4 py-3 font-medium">Servicio</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {agendaItems.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-t border-slate-800/80 hover:bg-slate-900/70"
-                >
-                  <td className="px-4 py-3 align-top text-xs text-slate-200">
-                    {item.professional_name}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {item.day_label || item.date}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {formatHour(item.start_at)} - {formatHour(item.end_at)}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-200">
-                    {item.client_name}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {item.service_name || '—'}
-                  </td>
-                  <td className="px-4 py-3 align-top text-xs text-slate-400">
-                    {item.status || '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table
+          columns={[
+            { key: 'professional', header: 'Profesional' },
+            { key: 'day', header: 'Día' },
+            { key: 'time', header: 'Hora' },
+            { key: 'client', header: 'Cliente' },
+            { key: 'service', header: 'Servicio' },
+            { key: 'status', header: 'Estado' },
+          ]}
+          items={agendaItems}
+          getItemKey={(item) => item.id}
+          renderCell={(item, key) => {
+            if (key === 'professional') {
+              return (
+                <span className="text-xs text-slate-200">
+                  {item.professional_name}
+                </span>
+              );
+            }
+
+            if (key === 'day') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {item.day_label || item.date}
+                </span>
+              );
+            }
+
+            if (key === 'time') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {formatHour(item.start_at)} - {formatHour(item.end_at)}
+                </span>
+              );
+            }
+
+            if (key === 'client') {
+              return (
+                <span className="text-xs text-slate-200">
+                  {item.client_name}
+                </span>
+              );
+            }
+
+            if (key === 'service') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {item.service_name || '—'}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {item.status || '—'}
+                </span>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );

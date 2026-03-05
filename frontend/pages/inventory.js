@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
-import { Button, Input, Select, Modal } from '@/components/ui';
+import { Button, Input, Select, Modal, Table } from '@/components/ui';
 
 function InventoryAdjustModal({ open, onClose, onSubmit, initialData, loading }) {
   const [quantity, setQuantity] = useState('');
@@ -264,68 +264,85 @@ export default function InventoryPage() {
           </p>
         </div>
       ) : (
-        <div className="mt-2 overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-950/70 shadow-[0_18px_40px_rgba(15,23,42,0.85)]">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-900/80 text-left text-xs uppercase tracking-[0.16em] text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">Producto</th>
-                <th className="px-4 py-3 font-medium">Sucursal</th>
-                <th className="px-4 py-3 font-medium">Cantidad</th>
-                <th className="px-4 py-3 font-medium">Mínimo</th>
-                <th className="px-4 py-3 font-medium">Estado</th>
-                <th className="px-4 py-3 font-medium text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStocks.map((row) => {
-                const belowMin = Number(row.quantity) <= Number(row.min_quantity);
-                return (
-                  <tr
-                    key={`${row.branch_id}-${row.product_id}`}
-                    className="border-t border-slate-800/80 hover:bg-slate-900/70"
+        <Table
+          columns={[
+            { key: 'product', header: 'Producto' },
+            { key: 'branch', header: 'Sucursal' },
+            { key: 'quantity', header: 'Cantidad' },
+            { key: 'min', header: 'Mínimo' },
+            { key: 'status', header: 'Estado' },
+            { key: 'actions', header: 'Acciones', align: 'right' },
+          ]}
+          items={filteredStocks}
+          getItemKey={(row) => `${row.branch_id}-${row.product_id}`}
+          renderCell={(row, key) => {
+            const belowMin = Number(row.quantity) <= Number(row.min_quantity);
+
+            if (key === 'product') {
+              return (
+                <span className="text-sm font-medium text-slate-50">
+                  {row.product_name}
+                </span>
+              );
+            }
+
+            if (key === 'branch') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {row.branch_name}
+                </span>
+              );
+            }
+
+            if (key === 'quantity') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {row.quantity} {row.unit}
+                </span>
+              );
+            }
+
+            if (key === 'min') {
+              return (
+                <span className="text-xs text-slate-400">
+                  {row.min_quantity} {row.unit}
+                </span>
+              );
+            }
+
+            if (key === 'status') {
+              return (
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
+                    belowMin
+                      ? 'bg-red-500/15 text-red-200 border border-red-500/40'
+                      : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
+                  }`}
+                >
+                  {belowMin ? 'Reponer stock' : 'Stock saludable'}
+                </span>
+              );
+            }
+
+            if (key === 'actions') {
+              return (
+                <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => openAdjustModal(row)}
                   >
-                    <td className="px-4 py-3 align-top text-sm font-medium text-slate-50">
-                      {row.product_name}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.branch_name}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.quantity} {row.unit}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs text-slate-400">
-                      {row.min_quantity} {row.unit}
-                    </td>
-                    <td className="px-4 py-3 align-top text-xs">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
-                          belowMin
-                            ? 'bg-red-500/15 text-red-200 border border-red-500/40'
-                            : 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                        }`}
-                      >
-                        {belowMin ? 'Reponer stock' : 'Stock saludable'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 align-top">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="subtle"
-                          size="sm"
-                          className="text-[11px]"
-                          onClick={() => openAdjustModal(row)}
-                        >
-                          Ajustar
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    Ajustar
+                  </Button>
+                </div>
+              );
+            }
+
+            return null;
+          }}
+        />
       )}
     </DashboardLayout>
   );
