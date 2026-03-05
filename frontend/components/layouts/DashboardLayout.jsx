@@ -1,4 +1,95 @@
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+
 export default function DashboardLayout({ user, onLogout, children }) {
+  const router = useRouter();
+
+  const navItems = [
+    {
+      label: 'Dashboard',
+      href: '/dashboard',
+      icon: '🏠',
+    },
+    {
+      label: 'Agenda',
+      href: '/agenda',
+      icon: '📅',
+    },
+    {
+      label: 'Citas',
+      href: '/appointments',
+      icon: '📝',
+    },
+    {
+      label: 'Clientes',
+      href: '/clients',
+      icon: '👥',
+    },
+    {
+      label: 'Profesionales',
+      href: '/professionals',
+      icon: '💇',
+    },
+    {
+      label: 'Servicios',
+      href: '/services',
+      icon: '✨',
+    },
+    {
+      label: 'Servicios combinados',
+      href: '/combined-services',
+      icon: '💫',
+    },
+    {
+      label: 'Relaciones de servicio',
+      href: '/service-relations',
+      icon: '🔗',
+    },
+    {
+      label: 'Categorías',
+      href: '/service-categories',
+      icon: '🧩',
+    },
+    {
+      label: 'Productos',
+      href: '/products',
+      icon: '🧴',
+    },
+    {
+      label: 'Inventario',
+      href: '/inventory',
+      icon: '📦',
+    },
+    {
+      label: 'Pagos',
+      href: '/payments',
+      icon: '💳',
+    },
+    {
+      label: 'Horarios',
+      href: '/working-hours',
+      icon: '⏰',
+    },
+    {
+      label: 'Bloqueos',
+      href: '/blocks',
+      icon: '🚫',
+    },
+    {
+      label: 'Automatizaciones',
+      href: '/automations',
+      icon: '⚙️',
+    },
+    {
+      label: 'Reportes',
+      href: '/reports',
+      icon: '📊',
+    },
+  ];
+
+  const isActive = (href) =>
+    router.pathname === href || router.pathname.startsWith(`${href}/`);
+
   return (
     <div className="relative h-screen flex overflow-hidden bg-slate-950 text-slate-100">
       <div className="pointer-events-none absolute inset-0 opacity-70">
@@ -22,31 +113,34 @@ export default function DashboardLayout({ user, onLogout, children }) {
         </div>
 
         <nav className="flex-1 space-y-1.5 text-sm">
-          <button className="group relative flex w-full items-center gap-2 rounded-xl bg-slate-900/90 px-3 py-2.5 text-slate-50 shadow-[0_0_0_1px_rgba(15,23,42,0.8)]">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-500/15 text-base text-teal-200">
-              📅
-            </span>
-            <span className="text-[13px] font-medium tracking-tight">
-              Agenda de hoy
-            </span>
-            <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-linear-to-b from-teal-400 to-cyan-400" />
-          </button>
-          <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800/60 text-base">
-              👥
-            </span>
-            <span className="text-[13px] font-medium tracking-tight">
-              Clientes
-            </span>
-          </button>
-          <button className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-slate-300 transition hover:bg-slate-900/80 hover:text-slate-50">
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-slate-800/60 text-base">
-              📊
-            </span>
-            <span className="text-[13px] font-medium tracking-tight">
-              Reportes
-            </span>
-          </button>
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`group relative flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-[13px] font-medium tracking-tight transition ${
+                  active
+                    ? 'bg-slate-900/90 text-slate-50 shadow-[0_0_0_1px_rgba(15,23,42,0.8)]'
+                    : 'text-slate-300 hover:bg-slate-900/80 hover:text-slate-50'
+                }`}
+              >
+                <span
+                  className={`flex h-6 w-6 items-center justify-center rounded-lg text-base ${
+                    active
+                      ? 'bg-teal-500/15 text-teal-200'
+                      : 'bg-slate-800/60'
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                <span>{item.label}</span>
+                {active && (
+                  <span className="absolute inset-y-1 left-0 w-0.5 rounded-full bg-linear-to-b from-teal-400 to-cyan-400" />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="mt-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-3 text-[11px] text-slate-400">

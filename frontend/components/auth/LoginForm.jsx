@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { fetchCsrfCookie, loginRequest } from '@/lib/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button, Input } from '@/components/ui';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -57,40 +58,32 @@ export default function LoginForm() {
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-            Correo electrónico
-          </label>
-          <input
+          <Input
+            label="Correo electrónico"
+            id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/50"
             placeholder="tu@correo.com"
             required
           />
         </div>
 
         <div>
-          <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-            Contraseña
-          </label>
-          <input
+          <Input
+            label="Contraseña"
+            id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/50"
             placeholder="********"
             required
           />
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full inline-flex items-center justify-center rounded-2xl bg-linear-to-r from-teal-500 via-cyan-500 to-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-[0_16px_45px_rgba(8,47,73,0.9)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70"
-        >
+        <Button type="submit" disabled={loading} size="full">
           {loading ? 'Entrando...' : 'Iniciar sesión'}
-        </button>
+        </Button>
       </form>
 
       <p className="mt-6 text-center text-[11px] text-slate-500">
