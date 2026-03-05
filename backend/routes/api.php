@@ -21,6 +21,7 @@ use App\Http\Controllers\ServiceMaterialController;
 use App\Http\Controllers\ClientMediaController;
 use App\Http\Controllers\TimeBlockController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BusinessSetupController;
 
 Route::post('/login', [AuthController::class, 'login'])
@@ -30,14 +31,17 @@ Route::post('/logout', [AuthController::class, 'logout']);
 // Rutas públicas para reservas online (por negocio)
 Route::prefix('public/{business}')->group(function () {
     Route::get('/services', [PublicBookingController::class, 'services']);
+    Route::get('/professionals', [PublicBookingController::class, 'professionals']);
     Route::get('/availability', [PublicBookingController::class, 'availability']);
     Route::post('/book', [PublicBookingController::class, 'book']);
 });
 
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+    Route::patch('/me', [AuthController::class, 'updateProfile']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/business-setup', [BusinessSetupController::class, 'show']);
+    Route::get('/branches', [BranchController::class, 'index']);
 
     Route::prefix('agenda')->group(function () {
         Route::get('/day', [AgendaController::class, 'day']);

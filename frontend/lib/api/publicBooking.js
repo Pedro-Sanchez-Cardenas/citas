@@ -10,6 +10,14 @@ export async function fetchPublicServices(businessIdOrSlug, params = {}) {
   return response.data?.data ?? response.data ?? [];
 }
 
+export async function fetchPublicProfessionals(businessIdOrSlug, params = {}) {
+  const response = await api.get(
+    `${BASE_PATH}/${businessIdOrSlug}/professionals`,
+    { params }
+  );
+  return response.data?.data ?? response.data ?? [];
+}
+
 export async function fetchPublicAvailability(businessIdOrSlug, params = {}) {
   const response = await api.get(
     `${BASE_PATH}/${businessIdOrSlug}/availability`,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Models\Business;
+use App\Models\Professional;
 use App\Services\AppointmentService;
 use App\Services\CalendarService;
 use Carbon\CarbonImmutable;
@@ -34,6 +35,19 @@ class PublicBookingController extends Controller
             ->get();
 
         return response()->json($services);
+    }
+
+    public function professionals(string $businessSlug, Request $request): JsonResponse
+    {
+        $business = $this->findBusinessOrFail($businessSlug);
+
+        $professionals = Professional::query()
+            ->where('business_id', $business->id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'branch_id']);
+
+        return response()->json($professionals);
     }
 
     public function availability(string $businessSlug, Request $request): JsonResponse

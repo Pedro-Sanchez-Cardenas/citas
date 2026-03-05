@@ -7,6 +7,9 @@ import {
   createClient,
   updateClient,
   deleteClient,
+  fetchClientHistory,
+  uploadClientMedia,
+  deleteClientMedia,
 } from '@/lib/api/clients';
 import { Button, Input, Textarea, Select, Modal, Table } from '@/components/ui';
 
@@ -158,6 +161,192 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }) {
   );
 }
 
+function formatDateTime(value) {
+  if (!value) return '—';
+  try {
+    const d = new Date(value);
+    return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+  } catch {
+    return value;
+  }
+}
+
+function ClientDetailModal({ open, onClose, client, onClientUpdated }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState('history');
+  const [mediaUrl, setMediaUrl] = useState('');
+  const [mediaNotes, setMediaNotes] = useState('');
+  const [mediaType, setMediaType] = useState('other');
+  const [uploading, setUploading] = useState(false);
+  const [deletingMediaId, setDeletingMediaId] = useState(null);
+
+  useEffect(() => {
+    if (!open || !client?.id) return;
+    let cancelled = false;
+    setLoading(true);
+    setData(null);
+    fetchClientHistory(client.id)
+      .then((res) => {
+        if (!cancelled) setData(res);
+      })
+      .catch(() => {
+        if (!cancelled) setData({ client, appointments: [], media: [] });
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [open, client?.id]);
+
+  const handleUploadMedia = async (e) => {
+    e.preventDefault();
+    if (!client?.id || !mediaUrl.trim()) return;
+    setUploading(true);
+    try {
+      await uploadClientMedia(client.id, { url: mediaUrl.trim(), notes: mediaNotes.trim() || null, type: mediaType });
+      const next = await fetchClientHistory(client.id);
+      setData(next);
+      setMediaUrl('');
+      setMediaNotes('');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteMedia = async (mediaId) => {
+    if (!window.confirm('¿Eliminar este medio?')) return;
+    setDeletingMediaId(mediaId);
+    try {
+      await deleteClientMedia(mediaId);
+      setData((prev) => prev ? { ...prev, media: (prev.media || []).filter((m) => m.id !== mediaId) } : null);
+    } finally {
+      setDeletingMediaId(null);
+    }
+  };
+
+  const clientData = data?.client ?? client;
+  const appointments = data?.appointments ?? [];
+  const media = data?.media ?? [];
+
+  return (
+    <Modal open={open} onClose={onClose} title="Detalle del cliente" description="" size="lg">
+      {loading ? (
+        <div className="py-8 text-center text-sm text-slate-400">Cargando...</div>
+      ) : (
+        <>
+          <div className="mb-4 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+            <p className="text-sm font-semibold text-slate-50">{clientData?.name}</p>
+            {(clientData?.email || clientData?.phone) && (
+              <p className="mt-1 text-xs text-slate-400">
+                {[clientData?.email, clientData?.phone].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+
+          <div className="mb-3 flex gap-2 border-b border-slate-800/80">
+            <button
+              type="button"
+              onClick={() => setTab('history')}
+              className={`px-3 py-2 text-xs font-medium ${tab === 'history' ? 'border-b-2 border-teal-500 text-teal-300' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              Historial de citas
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab('media')}
+              className={`px-3 py-2 text-xs font-medium ${tab === 'media' ? 'border-b-2 border-teal-500 text-teal-300' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              Medios
+            </button>
+          </div>
+
+          {tab === 'history' && (
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {appointments.length === 0 ? (
+                <p className="text-xs text-slate-500">Sin citas registradas.</p>
+              ) : (
+                appointments.map((a) => (
+                  <div
+                    key={a.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs"
+                  >
+                    <span className="text-slate-200">{formatDateTime(a.start_at)}</span>
+                    <span className="text-slate-400">{a.service?.name ?? a.combined_service?.name ?? '—'}</span>
+                    <span className="text-slate-400">{a.professional?.name ?? '—'}</span>
+                    <span className={`rounded-full px-2 py-0.5 text-[11px] ${a.status === 'attended' ? 'bg-emerald-500/20 text-emerald-300' : a.status === 'cancelled' ? 'bg-red-500/20 text-red-300' : 'bg-slate-700 text-slate-300'}`}>
+                      {a.status ?? '—'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {tab === 'media' && (
+            <div className="space-y-4">
+              <form onSubmit={handleUploadMedia} className="flex flex-wrap items-end gap-2 rounded-xl border border-slate-800/80 bg-slate-950/60 p-3">
+                <Input
+                  label="URL"
+                  id="media-url"
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  placeholder="https://..."
+                  required
+                />
+                <Select
+                  label="Tipo"
+                  id="media-type"
+                  value={mediaType}
+                  onChange={(e) => setMediaType(e.target.value)}
+                >
+                  <option value="before">Antes</option>
+                  <option value="after">Después</option>
+                  <option value="other">Otro</option>
+                </Select>
+                <Input
+                  label="Notas"
+                  id="media-notes"
+                  value={mediaNotes}
+                  onChange={(e) => setMediaNotes(e.target.value)}
+                  placeholder="Opcional"
+                />
+                <Button type="submit" size="sm" disabled={uploading}>
+                  {uploading ? 'Subiendo...' : 'Añadir'}
+                </Button>
+              </form>
+              <div className="max-h-48 overflow-y-auto space-y-2">
+                {media.length === 0 ? (
+                  <p className="text-xs text-slate-500">Sin medios.</p>
+                ) : (
+                  media.map((m) => (
+                    <div key={m.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs">
+                      <a href={m.url} target="_blank" rel="noopener noreferrer" className="truncate text-teal-300 hover:underline">
+                        {m.url}
+                      </a>
+                      <span className="text-slate-500">{m.type}</span>
+                      <Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        className="text-[10px]"
+                        onClick={() => handleDeleteMedia(m.id)}
+                        disabled={deletingMediaId === m.id}
+                      >
+                        Eliminar
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </Modal>
+  );
+}
+
 export default function ClientsPage() {
   const router = useRouter();
   const { user, loading: authLoading, logout } = useAuth();
@@ -170,6 +359,7 @@ export default function ClientsPage() {
   const [modalLoading, setModalLoading] = useState(false);
   const [selectedClient, setSelectedClient] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
+  const [detailClient, setDetailClient] = useState(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -290,6 +480,11 @@ export default function ClientsPage() {
 
   return (
     <DashboardLayout user={user} onLogout={logout}>
+      <ClientDetailModal
+        open={!!detailClient}
+        onClose={() => setDetailClient(null)}
+        client={detailClient}
+      />
       <ClientFormModal
         open={modalOpen}
         onClose={() => {
@@ -421,6 +616,15 @@ export default function ClientsPage() {
             if (key === 'actions') {
               return (
                 <div className="flex items-center justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="subtle"
+                    size="sm"
+                    className="text-[11px]"
+                    onClick={() => setDetailClient(client)}
+                  >
+                    Ver detalle
+                  </Button>
                   <Button
                     type="button"
                     variant="subtle"

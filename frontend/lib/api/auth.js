@@ -18,3 +18,8 @@ export async function logoutRequest() {
   return api.post('/api/logout');
 }
 
+export async function updateProfileRequest(payload) {
+  const response = await api.patch('/api/me', payload);
+  return response.data?.user ?? response.data;
+}
+

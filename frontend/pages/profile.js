@@ -3,13 +3,22 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchBusinessSetup } from '@/lib/api/businessSetup';
+import { updateProfileRequest } from '@/lib/api/auth';
+import { Button, Input } from '@/components/ui';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, loading: authLoading, logout } = useAuth();
+  const { user, loading: authLoading, logout, setUser } = useAuth();
   const [setup, setSetup] = useState(null);
   const [loadingSetup, setLoadingSetup] = useState(true);
   const [error, setError] = useState('');
+  const [profileName, setProfileName] = useState(user?.name ?? '');
+  const [profileEmail, setProfileEmail] = useState(user?.email ?? '');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileSuccess, setProfileSuccess] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -32,6 +41,47 @@ export default function ProfilePage() {
 
     load();
   }, [user, authLoading, router]);
+
+  useEffect(() => {
+    if (user) {
+      setProfileName(user.name ?? '');
+      setProfileEmail(user.email ?? '');
+    }
+  }, [user]);
+
+  const handleSubmitProfile = async (e) => {
+    e.preventDefault();
+    setProfileSaving(true);
+    setError('');
+    setProfileSuccess(false);
+    try {
+      const payload = {};
+      if (profileName.trim() !== (user?.name ?? '')) payload.name = profileName.trim();
+      if (profileEmail.trim() !== (user?.email ?? '')) payload.email = profileEmail.trim();
+      if (newPassword.trim()) {
+        payload.current_password = currentPassword;
+        payload.password = newPassword;
+        payload.password_confirmation = newPasswordConfirm;
+      }
+      if (Object.keys(payload).length === 0) {
+        setProfileSaving(false);
+        return;
+      }
+      const updatedUser = await updateProfileRequest(payload);
+      setUser(updatedUser);
+      setCurrentPassword('');
+      setNewPassword('');
+      setNewPasswordConfirm('');
+      setProfileSuccess(true);
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          'No se pudo actualizar el perfil. Revisa los datos.'
+      );
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   if (!authLoading && !user) {
     return null;
@@ -74,7 +124,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <div className="space-y-3 text-xs text-slate-300">
+          <div className="mb-4 space-y-3 text-xs text-slate-300">
             <div>
               <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
                 Negocio
@@ -85,11 +135,59 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Aquí más adelante puedes agregar el formulario editable de perfil */}
-          <p className="mt-4 text-[11px] text-slate-500">
-            Próximamente: edición de datos personales, contraseña y
-            preferencias.
-          </p>
+          <form onSubmit={handleSubmitProfile} className="space-y-3">
+            <Input
+              label="Nombre"
+              id="profile-name"
+              value={profileName}
+              onChange={(e) => setProfileName(e.target.value)}
+              placeholder="Tu nombre"
+            />
+            <Input
+              label="Correo electrónico"
+              id="profile-email"
+              type="email"
+              value={profileEmail}
+              onChange={(e) => setProfileEmail(e.target.value)}
+              placeholder="correo@ejemplo.com"
+            />
+            <p className="text-[11px] text-slate-500">
+              Para cambiar la contraseña, rellena los tres campos siguientes.
+            </p>
+            <Input
+              label="Contraseña actual"
+              id="profile-current-password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
+            <Input
+              label="Nueva contraseña"
+              id="profile-password"
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="new-password"
+            />
+            <Input
+              label="Confirmar nueva contraseña"
+              id="profile-password-confirm"
+              type="password"
+              value={newPasswordConfirm}
+              onChange={(e) => setNewPasswordConfirm(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="new-password"
+            />
+            {profileSuccess && (
+              <p className="text-xs text-emerald-300">Perfil actualizado correctamente.</p>
+            )}
+            <Button type="submit" size="sm" disabled={profileSaving}>
+              {profileSaving ? 'Guardando...' : 'Guardar cambios'}
+            </Button>
+          </form>
         </section>
 
         {/* Onboarding negocio */}

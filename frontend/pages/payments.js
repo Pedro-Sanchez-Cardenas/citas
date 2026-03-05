@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchPayments } from '@/lib/api/payments';
-import { Button, Input, Select, Table } from '@/components/ui';
+import { fetchPayments, createPayment } from '@/lib/api/payments';
+import { fetchBranches } from '@/lib/api/branches';
+import { fetchAppointments } from '@/lib/api/appointments';
+import { fetchClients } from '@/lib/api/clients';
+import { Button, Input, Select, Table, Modal } from '@/components/ui';
 
 function formatDate(value) {
   if (!value) return '—';
@@ -22,6 +25,187 @@ function formatMoney(amount, currency = 'USD') {
   return `${symbol}${Number(amount).toFixed(2)}`;
 }
 
+const PAYMENT_METHODS = ['efectivo', 'tarjeta', 'transferencia', 'otro'];
+const PAYMENT_STATUS = ['pending', 'paid', 'failed', 'refunded'];
+
+function PaymentFormModal({ open, onClose, onSubmit, loading, branches, appointments, clients }) {
+  const [branchId, setBranchId] = useState('');
+  const [appointmentId, setAppointmentId] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [method, setMethod] = useState('efectivo');
+  const [amount, setAmount] = useState('');
+  const [tip, setTip] = useState('');
+  const [currency, setCurrency] = useState('USD');
+  const [status, setStatus] = useState('paid');
+  const [reference, setReference] = useState('');
+
+  useEffect(() => {
+    if (open) {
+      setBranchId('');
+      setAppointmentId('');
+      setClientId('');
+      setMethod('efectivo');
+      setAmount('');
+      setTip('');
+      setCurrency('USD');
+      setStatus('paid');
+      setReference('');
+    }
+  }, [open]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const amountCents = amount && !Number.isNaN(Number(amount)) ? Math.round(Number(amount) * 100) : 0;
+    const tipCents = tip && !Number.isNaN(Number(tip)) ? Math.round(Number(tip) * 100) : 0;
+    const payload = {
+      branch_id: Number(selectedAppointment?.branch_id ?? branchId),
+      appointment_id: appointmentId ? Number(appointmentId) : null,
+      client_id: clientId ? Number(clientId) : null,
+      method,
+      amount_cents: amountCents,
+      tip_cents: tipCents || null,
+      currency: currency || 'USD',
+      status,
+      provider_payment_id: reference || null,
+    };
+    onSubmit(payload);
+  };
+
+  const selectedAppointment = useMemo(
+    () => appointments.find((a) => String(a.id) === String(appointmentId)),
+    [appointments, appointmentId]
+  );
+  const effectiveBranchId = selectedAppointment?.branch_id ?? branchId;
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title="Registrar pago"
+      description="Registra un pago asociado a una cita o a un cliente."
+      size="lg"
+    >
+      <form className="mt-1 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmit}>
+        <Select
+          label="Sucursal"
+          id="payment-branch"
+          value={selectedAppointment ? selectedAppointment.branch_id : branchId}
+          onChange={(e) => setBranchId(e.target.value)}
+          required
+          disabled={!!selectedAppointment}
+        >
+          <option value="">Selecciona sucursal</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </Select>
+
+        <Select
+          label="Cita (opcional)"
+          id="payment-appointment"
+          value={appointmentId}
+          onChange={(e) => {
+            setAppointmentId(e.target.value);
+            if (e.target.value) setClientId('');
+          }}
+        >
+          <option value="">Sin asociar a cita</option>
+          {appointments.slice(0, 100).map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.client_name} — {a.start_at ? new Date(a.start_at).toLocaleString() : ''}
+            </option>
+          ))}
+        </Select>
+
+        {!appointmentId && (
+          <Select
+            label="Cliente (opcional)"
+            id="payment-client"
+            value={clientId}
+            onChange={(e) => setClientId(e.target.value)}
+          >
+            <option value="">Sin asociar a cliente</option>
+            {clients.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </Select>
+        )}
+
+        <Select
+          label="Método de pago"
+          id="payment-method"
+          value={method}
+          onChange={(e) => setMethod(e.target.value)}
+          required
+        >
+          {PAYMENT_METHODS.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </Select>
+
+        <Input
+          label="Monto"
+          id="payment-amount"
+          type="number"
+          min={0}
+          step="0.01"
+          required
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="0.00"
+        />
+
+        <Input
+          label="Propina (opcional)"
+          id="payment-tip"
+          type="number"
+          min={0}
+          step="0.01"
+          value={tip}
+          onChange={(e) => setTip(e.target.value)}
+          placeholder="0.00"
+        />
+
+        <Select
+          label="Estado"
+          id="payment-status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value)}
+        >
+          {PAYMENT_STATUS.map((s) => (
+            <option key={s} value={s}>
+              {s === 'paid' ? 'Pagado' : s === 'pending' ? 'Pendiente' : s === 'failed' ? 'Fallido' : 'Reembolsado'}
+            </option>
+          ))}
+        </Select>
+
+        <Input
+          label="Referencia (opcional)"
+          id="payment-reference"
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          placeholder="Número de transacción, folio..."
+        />
+
+        <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
+          <Button type="button" variant="subtle" size="sm" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button type="submit" size="sm" disabled={loading}>
+            {loading ? 'Guardando...' : 'Registrar pago'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
 export default function PaymentsPage() {
   const router = useRouter();
   const { user, loading: authLoading, logout } = useAuth();
@@ -31,6 +215,11 @@ export default function PaymentsPage() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [methodFilter, setMethodFilter] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [branches, setBranches] = useState([]);
+  const [appointments, setAppointments] = useState([]);
+  const [clients, setClients] = useState([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -50,7 +239,8 @@ export default function PaymentsPage() {
       try {
         const data = await fetchPayments();
         if (!cancelled) {
-          setPayments(Array.isArray(data) ? data : []);
+          const list = data?.data ?? (Array.isArray(data) ? data : []);
+          setPayments(list);
         }
       } catch (err) {
         if (!cancelled) {
@@ -73,6 +263,45 @@ export default function PaymentsPage() {
       cancelled = true;
     };
   }, [user, logout]);
+
+  useEffect(() => {
+    if (!user || !modalOpen) return;
+    let cancelled = false;
+    async function loadFormData() {
+      try {
+        const [branchesData, appointmentsData, clientsData] = await Promise.all([
+          fetchBranches(),
+          fetchAppointments(),
+          fetchClients(),
+        ]);
+        if (!cancelled) {
+          setBranches(Array.isArray(branchesData) ? branchesData : []);
+          setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
+          setClients(Array.isArray(clientsData) ? clientsData : []);
+        }
+      } catch {
+        if (!cancelled) setError('No se pudieron cargar sucursales, citas o clientes.');
+      }
+    }
+    loadFormData();
+    return () => { cancelled = true; };
+  }, [user, modalOpen]);
+
+  const handleSubmitPayment = async (payload) => {
+    setModalLoading(true);
+    setError('');
+    try {
+      const created = await createPayment(payload);
+      setPayments((prev) => [created, ...(Array.isArray(prev) ? prev : [])]);
+      setModalOpen(false);
+    } catch (err) {
+      setError(
+        err?.response?.data?.message || 'No se pudo registrar el pago.'
+      );
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   const filteredPayments = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -105,15 +334,28 @@ export default function PaymentsPage() {
 
   return (
     <DashboardLayout user={user} onLogout={logout}>
+      <PaymentFormModal
+        open={modalOpen}
+        onClose={() => !modalLoading && setModalOpen(false)}
+        onSubmit={handleSubmitPayment}
+        loading={modalLoading}
+        branches={branches}
+        appointments={appointments}
+        clients={clients}
+      />
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
             Pagos
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            Consulta el historial de pagos registrados en el sistema.
+            Consulta y registra pagos asociados a citas o clientes.
           </p>
         </div>
+        <Button type="button" onClick={() => setModalOpen(true)} size="md">
+          <span className="mr-2 text-base">＋</span>
+          Registrar pago
+        </Button>
       </header>
 
       <section className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-center">
