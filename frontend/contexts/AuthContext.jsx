@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import api, { setUnauthorizedHandler } from '@/lib/api';
+import { fetchCurrentUser, logoutRequest } from '@/lib/api/auth';
 
 const AuthContext = createContext(null);
 
@@ -38,8 +39,7 @@ export function AuthProvider({ children }) {
 
     async function checkAuth() {
       try {
-        const response = await api.get('/api/me');
-        const userFromApi = response.data?.user ?? null;
+        const userFromApi = await fetchCurrentUser();
         if (!cancelled) {
           setUserState(userFromApi);
           setStoredUser(userFromApi);
@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
 
   const logout = useCallback(async () => {
     try {
-      await api.post('/api/logout');
+      await logoutRequest();
     } finally {
       setUserState(null);
       setStoredUser(null);

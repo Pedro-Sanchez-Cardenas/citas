@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import api from '@/lib/api';
+import { fetchCsrfCookie, loginRequest } from '@/lib/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginForm() {
@@ -17,9 +17,8 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
-      await api.get('/sanctum/csrf-cookie');
-      const response = await api.post('/api/login', { email, password });
-      const { user } = response.data;
+      await fetchCsrfCookie();
+      const { user } = await loginRequest({ email, password });
       if (user) {
         login(user);
         router.push('/dashboard');

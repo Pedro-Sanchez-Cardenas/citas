@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import api from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
+import { fetchDashboardCards } from '@/lib/api/dashboard';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,8 +22,8 @@ export default function DashboardPage() {
 
     const fetchData = async () => {
       try {
-        const response = await api.get('/api/dashboard');
-        setCards(response.data.cards || []);
+        const cardsFromApi = await fetchDashboardCards();
+        setCards(cardsFromApi);
       } catch (err) {
         setError('No se pudo cargar el dashboard. Vuelve a iniciar sesión.');
         logout();
