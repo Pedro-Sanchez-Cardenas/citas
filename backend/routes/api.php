@@ -21,6 +21,7 @@ use App\Http\Controllers\ServiceMaterialController;
 use App\Http\Controllers\ClientMediaController;
 use App\Http\Controllers\TimeBlockController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\BusinessSetupController;
 
 Route::post('/login', [AuthController::class, 'login'])
     ->middleware('throttle:5,1');
@@ -36,6 +37,7 @@ Route::prefix('public/{business}')->group(function () {
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
+    Route::get('/business-setup', [BusinessSetupController::class, 'show']);
 
     Route::prefix('agenda')->group(function () {
         Route::get('/day', [AgendaController::class, 'day']);
