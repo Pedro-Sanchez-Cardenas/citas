@@ -1,0 +1,43 @@
+FROM php:8.3-cli
+
+# Dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    zip \
+    curl \
+    libzip-dev \
+    libonig-dev \
+    libpng-dev \
+    libxml2-dev \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        mbstring \
+        zip \
+        pcntl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Instalar composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+# Cache de dependencias (--no-scripts porque artisan aún no existe)
+COPY composer.json composer.lock* ./
+
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
+    --no-interaction \
+    --prefer-dist \
+    --no-scripts
+
+# Copiar código de la app (incluye .env.example, pero no vendor/.env por .dockerignore)
+COPY . .
+
+# Asegurar que Laravel tenga un .env basado en .env.example si no existe
+RUN php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+# Ejecutar scripts de Composer que requieren artisan (package:discover, etc.)
+RUN COMPOSER_ALLOW_SUPERUSER=1 composer run-script post-autoload-dump --no-interaction
+
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

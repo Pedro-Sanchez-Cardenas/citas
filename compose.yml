@@ -3,70 +3,50 @@ services:
     image: mysql:8.0
     container_name: citas-mysql
     restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: citas
       MYSQL_USER: citas
       MYSQL_PASSWORD: citas
-    ports:
-      - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    networks:
+      - citas-network
 
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile.dev
     container_name: citas-frontend
     restart: unless-stopped
     depends_on:
       - backend
     expose:
       - 3000
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: ""
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - /app/.next
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ""
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-
-  traefik:
-    image: traefik:v3.6.9
-    container_name: citas-traefik
-    restart: unless-stopped
-    depends_on:
-      - frontend
-      - backend
-    ports:
-      - "8080:80"    # Entrada web para la app
-      - "8081:8080"  # Dashboard de Traefik (solo desarrollo)
-      - "8082:8082"  # Endpoint de métricas Prometheus
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      # EntryPoint dedicado a métricas (Prometheus)
-      - "--entrypoints.metrics.address=:8082"
-      - "--metrics.prometheus=true"
-      - "--metrics.prometheus.entryPoint=metrics"
-      - "--metrics.prometheus.addEntryPointsLabels=true"
-      - "--metrics.prometheus.addRoutersLabels=true"
-      - "--metrics.prometheus.addServicesLabels=true"
-      # Tracing vía OpenTelemetry (OTLP)
-      - "--tracing.otlp=true"
-      - "--tracing.serviceName=citas-traefik"
-      - "--tracing.sampleRate=1.0"
+      - "traefik.docker.network=citas-network"
+    networks:
+      - citas-network
 
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile.dev
     container_name: citas-backend
     restart: unless-stopped
     depends_on:
@@ -76,28 +56,66 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
-      APP_URL: http://localhost:8000
+      APP_KEY: "base64:2fl+Ktvk2VF4bB3R2j2gR2lL5xY5xY5xY5xY5xY5xY5xY="
+      APP_URL: http://localhost:8080
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
       DB_DATABASE: citas
       DB_USERNAME: citas
       DB_PASSWORD: citas
-      # Cache y sesión en local (sin MySQL en cada request)
       CACHE_STORE: file
       SESSION_DRIVER: cookie
-      # API para React: CORS y Sanctum SPA (origen del frontend vía Traefik)
       FRONTEND_URL: http://localhost:8080
-      SANCTUM_STATEFUL_DOMAINS: "localhost:8080"
+      SANCTUM_STATEFUL_DOMAINS: localhost:8080
     volumes:
       - ./backend:/var/www
       - backend_vendor:/var/www/vendor
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/sanctum`)"
+      - "traefik.http.routers.backend.priority=100"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
+      - "traefik.docker.network=citas-network"
+    networks:
+      - citas-network
+
+  traefik:
+    image: traefik:v3.6.9
+    container_name: citas-traefik
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"     # App (frontend + API vía /api y /sanctum)
+      - "8081:8080"  # Dashboard Traefik (solo desarrollo)
+      - "8082:8082"  # Métricas Prometheus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=citas-network"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.metrics.address=:8082"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--tracing.otlp=true"
+      - "--tracing.serviceName=citas-traefik"
+      - "--tracing.sampleRate=1.0"
+    networks:
+      - citas-network
 
 volumes:
   db_data:
   backend_vendor:
+
+networks:
+  citas-network:

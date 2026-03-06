@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*
+
+# Dependencias
+vendor
+node_modules
+
+# Laravel runtime files
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+bootstrap/cache/*
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Tests / coverage
+phpunit.xml
+coverage
+tests
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+
+# Logs
+*.log
+
+# Frontend builds (si usas vite dentro de laravel)
+public/build
+public/hot
+
+# Misc
+npm-debug.log
+yarn-error.log
