@@ -19,7 +19,7 @@ export default function Modal({ open, title, description, children, onClose, siz
 	const maxWidth = size === 'sm' ? 'max-w-sm' : size === 'lg' ? 'max-w-2xl' : 'max-w-md';
 
 	const modal = (
-		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+		<div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80 backdrop-blur-xl">
 			<div
 				className={clsx(
 					'w-full rounded-2xl border border-slate-800 bg-slate-950/95 p-6 shadow-2xl',
