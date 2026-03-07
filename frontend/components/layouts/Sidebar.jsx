@@ -112,7 +112,10 @@ export default function Sidebar({
 		return (
 			<>
 				<div
-					className="fixed inset-0 z-40 bg-slate-950/70 transition-opacity duration-300 lg:hidden"
+					className={clsx(
+						'fixed inset-0 z-40 bg-slate-950/70 transition-opacity duration-300 lg:hidden',
+						open ? 'opacity-100' : 'pointer-events-none opacity-0'
+					)}
 					aria-hidden
 					onClick={onClose}
 				/>
