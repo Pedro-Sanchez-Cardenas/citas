@@ -1,4 +1,4 @@
-import api from '../api';
+import api from '@/lib/api';
 
 export async function fetchInventoryStocks(params = {}) {
   const response = await api.get('/api/inventory/stocks', { params });
