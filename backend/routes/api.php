@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BillingController;
+use Laravel\Cashier\Http\Controllers\WebhookController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
@@ -24,6 +26,9 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BusinessSetupController;
 
+// Webhook Stripe (sin auth, Cashier valida firma con STRIPE_WEBHOOK_SECRET)
+Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('cashier.webhook');
+
 Route::post('/login', [AuthController::class, 'login'])
     ->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout']);
@@ -42,6 +47,15 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/business-setup', [BusinessSetupController::class, 'show']);
     Route::get('/branches', [BranchController::class, 'index']);
+
+    // Billing (Stripe Cashier): planes, estado, checkout, portal, addons, usuarios extra
+    Route::get('/billing/plans', [BillingController::class, 'plans']);
+    Route::get('/billing/status', [BillingController::class, 'status']);
+    Route::post('/billing/checkout', [BillingController::class, 'checkout']);
+    Route::post('/billing/portal', [BillingController::class, 'billingPortal']);
+    Route::post('/billing/addons/{addonSlug}', [BillingController::class, 'addAddon']);
+    Route::delete('/billing/addons/{addonSlug}', [BillingController::class, 'removeAddon']);
+    Route::put('/billing/extra-users', [BillingController::class, 'setExtraUsers']);
 
     Route::prefix('agenda')->group(function () {
         Route::get('/day', [AgendaController::class, 'day']);
