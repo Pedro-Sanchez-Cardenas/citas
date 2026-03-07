@@ -1,4 +1,4 @@
-import api from './index';
+import api from '../api';
 
 const BASE_PATH = '/api/branches';
 

@@ -4,7 +4,7 @@
 .gitattributes
 
 # Docker
-Dockerfile
+Dockerfile*
 docker-compose.yml
 docker-compose.*
 
@@ -19,6 +19,8 @@ storage/framework/sessions/*
 storage/framework/testing/*
 storage/framework/views/*
 bootstrap/cache/*
+
+*.md
 
 # Environment
 .env
@@ -38,10 +40,6 @@ Thumbs.db
 
 # Logs
 *.log
-
-# Frontend builds (si usas vite dentro de laravel)
-public/build
-public/hot
 
 # Misc
 npm-debug.log
