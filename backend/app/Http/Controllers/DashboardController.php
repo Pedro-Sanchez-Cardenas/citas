@@ -16,6 +16,7 @@ class DashboardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $user?->load('business');
         $data = $this->dashboardService->getDashboardData($user);
 
         return response()->json([

@@ -5,23 +5,58 @@ import { useState, useMemo } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
-const NAV_ITEMS = [
-	{ label: 'Dashboard', href: '/dashboard', icon: '🏠' },
-	{ label: 'Agenda', href: '/agenda', icon: '📅' },
-	{ label: 'Citas', href: '/appointments', icon: '📝' },
-	{ label: 'Clientes', href: '/clients', icon: '👥' },
-	{ label: 'Profesionales', href: '/professionals', icon: '💇' },
-	{ label: 'Servicios', href: '/services', icon: '✨' },
-	{ label: 'Servicios combinados', href: '/combined-services', icon: '💫' },
-	{ label: 'Relaciones de servicio', href: '/service-relations', icon: '🔗' },
-	{ label: 'Categorías', href: '/service-categories', icon: '🧩' },
-	{ label: 'Productos', href: '/products', icon: '🧴' },
-	{ label: 'Inventario', href: '/inventory', icon: '📦' },
-	{ label: 'Pagos', href: '/payments', icon: '💳' },
-	{ label: 'Horarios', href: '/working-hours', icon: '⏰' },
-	{ label: 'Bloqueos', href: '/blocks', icon: '🚫' },
-	{ label: 'Automatizaciones', href: '/automations', icon: '⚙️' },
-	{ label: 'Reportes', href: '/reports', icon: '📊' },
+const NAV_SECTIONS = [
+	{
+		label: 'Principal',
+		items: [
+			{ label: 'Dashboard', href: '/dashboard', icon: '🏠' },
+			{ label: 'Agenda', href: '/agenda', icon: '📅' },
+			{ label: 'Citas', href: '/appointments', icon: '📝' },
+		],
+	},
+	{
+		label: 'Clientes y equipo',
+		items: [
+			{ label: 'Clientes', href: '/clients', icon: '👥' },
+			{ label: 'Profesionales', href: '/professionals', icon: '💇' },
+		],
+	},
+	{
+		label: 'Servicios y catálogo',
+		items: [
+			{ label: 'Servicios', href: '/services', icon: '✨' },
+			{ label: 'Servicios combinados', href: '/combined-services', icon: '💫' },
+			{ label: 'Relaciones de servicio', href: '/service-relations', icon: '🔗' },
+			{ label: 'Categorías', href: '/service-categories', icon: '🧩' },
+			{ label: 'Productos', href: '/products', icon: '🧴' },
+			{ label: 'Inventario', href: '/inventory', icon: '📦' },
+		],
+	},
+	{
+		label: 'Calendario',
+		items: [
+			{ label: 'Horarios', href: '/working-hours', icon: '⏰' },
+			{ label: 'Bloqueos', href: '/blocks', icon: '🚫' },
+		],
+	},
+	{
+		label: 'Finanzas',
+		items: [
+			{ label: 'Pagos', href: '/payments', icon: '💳' },
+		],
+	},
+	{
+		label: 'Reportes',
+		items: [
+			{ label: 'Reportes', href: '/reports', icon: '📊' },
+		],
+	},
+	{
+		label: 'Configuración',
+		items: [
+			{ label: 'Automatizaciones', href: '/automations', icon: '⚙️' },
+		],
+	},
 ];
 
 export default function DashboardLayout({ user, onLogout, children }) {
@@ -40,6 +75,13 @@ export default function DashboardLayout({ user, onLogout, children }) {
 				onClick: () => {
 					closeSidebar();
 					router.push('/profile');
+				},
+			},
+			{
+				label: 'Facturación',
+				onClick: () => {
+					closeSidebar();
+					router.push('/billing');
 				},
 			},
 			{ divider: true },
@@ -62,7 +104,7 @@ export default function DashboardLayout({ user, onLogout, children }) {
 					variant="desktop"
 					user={user}
 					userMenuOptions={userMenuOptions}
-					navItems={NAV_ITEMS}
+					navSections={NAV_SECTIONS}
 					isActive={isActive}
 				/>
 			</div>
@@ -72,7 +114,7 @@ export default function DashboardLayout({ user, onLogout, children }) {
 				variant="mobile"
 				user={user}
 				userMenuOptions={userMenuOptions}
-				navItems={NAV_ITEMS}
+				navSections={NAV_SECTIONS}
 				isActive={isActive}
 				open={sidebarOpen}
 				onClose={closeSidebar}

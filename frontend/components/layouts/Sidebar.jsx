@@ -10,10 +10,42 @@ const BRAND = {
 	icon: '🗓',
 };
 
+function NavLink({ item, isActive, onClose }) {
+	const active = isActive(item.href);
+	return (
+		<Link
+			href={item.href}
+			onClick={onClose}
+			className={clsx(
+				'group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200',
+				active
+					? 'bg-slate-800/90 text-slate-50 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)]'
+					: 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-100'
+			)}
+		>
+			<span
+				className={clsx(
+					'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-base transition-colors',
+					active ? 'bg-teal-500/20 text-teal-300' : 'bg-slate-800/80 text-slate-400 group-hover:bg-slate-700/80'
+				)}
+			>
+				{item.icon}
+			</span>
+			<span className="truncate">{item.label}</span>
+			{active && (
+				<span
+					className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full bg-linear-to-b from-teal-400 to-cyan-400"
+					aria-hidden
+				/>
+			)}
+		</Link>
+	);
+}
+
 export default function Sidebar({
 	user,
 	userMenuOptions = [],
-	navItems,
+	navSections = [],
 	isActive,
 	onClose,
 	open = false,
@@ -37,39 +69,24 @@ export default function Sidebar({
 			</div>
 
 			{/* Navigation */}
-			<nav className="flex-1 space-y-0.5 overflow-y-auto py-4 pr-1" aria-label="Navegación principal">
-				{navItems.map((item) => {
-					const active = isActive(item.href);
-					return (
-						<Link
-							key={item.href}
-							href={item.href}
-							onClick={onClose}
-							className={clsx(
-								'group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200',
-								active
-									? 'bg-slate-800/90 text-slate-50 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.08)]'
-									: 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-100'
-							)}
-						>
-							<span
-								className={clsx(
-									'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-base transition-colors',
-									active ? 'bg-teal-500/20 text-teal-300' : 'bg-slate-800/80 text-slate-400 group-hover:bg-slate-700/80'
-								)}
-							>
-								{item.icon}
-							</span>
-							<span className="truncate">{item.label}</span>
-							{active && (
-								<span
-									className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full bg-linear-to-b from-teal-400 to-cyan-400"
-									aria-hidden
+			<nav className="flex-1 space-y-6 overflow-y-auto py-4 pr-1" aria-label="Navegación principal">
+				{navSections.map((section) => (
+					<div key={section.label}>
+						<h3 className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+							{section.label}
+						</h3>
+						<div className="space-y-0.5">
+							{section.items.map((item) => (
+								<NavLink
+									key={item.href}
+									item={item}
+									isActive={isActive}
+									onClose={onClose}
 								/>
-							)}
-						</Link>
-					);
-				})}
+							))}
+						</div>
+					</div>
+				))}
 			</nav>
 
 			{/* User card */}

@@ -16,6 +16,10 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'business' => $this->whenLoaded('business', fn () => [
+                'id' => $this->business->id,
+                'name' => $this->business->name,
+            ]),
         ];
     }
 }

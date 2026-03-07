@@ -34,6 +34,8 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $result['user']->load('business');
+
         return response()->json([
             'user' => new UserResource($result['user']),
         ]);
@@ -55,6 +57,7 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $this->authService->currentUser();
+        $user?->load('business');
 
         return response()->json([
             'user' => $user ? new UserResource($user) : null,
@@ -81,7 +84,7 @@ class AuthController extends Controller
         $user->save();
 
         return response()->json([
-            'user' => new UserResource($user->fresh()),
+            'user' => new UserResource($user->fresh(['business'])),
         ]);
     }
 }

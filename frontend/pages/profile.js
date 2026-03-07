@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -132,6 +133,14 @@ export default function ProfilePage() {
               <p className="mt-1 text-sm">
                 {user?.business?.name ?? 'Sin negocio asignado'}
               </p>
+            </div>
+            <div>
+              <Link
+                href="/billing"
+                className="text-teal-400 hover:text-teal-300 underline underline-offset-2"
+              >
+                Gestionar facturación →
+              </Link>
             </div>
           </div>
 
