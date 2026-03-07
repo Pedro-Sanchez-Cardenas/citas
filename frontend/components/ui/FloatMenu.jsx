@@ -104,8 +104,6 @@ export default function FloatMenu({ children, options = [], placement = 'bottom-
 		setOpen(false);
 	};
 
-	if (typeof document === 'undefined') return null;
-
 	const menuContent = open && (
 		<div
 			ref={menuRef}
@@ -144,7 +142,7 @@ export default function FloatMenu({ children, options = [], placement = 'bottom-
 			<div ref={triggerRef} onClick={handleTriggerClick} className="cursor-pointer" aria-haspopup="menu" aria-expanded={open}>
 				{children}
 			</div>
-			{createPortal(menuContent, document.body)}
+			{typeof document !== 'undefined' && createPortal(menuContent, document.body)}
 		</div>
 	);
 }
