@@ -18,7 +18,7 @@ export default function Navbar({
 	return (
 		<header
 			className={clsx(
-				'sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-slate-800/80 bg-slate-950/90 px-4 backdrop-blur-xl sm:px-5',
+				'sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-slate-800/80 bg-slate-950 px-4 sm:px-5',
 				className
 			)}
 			role="banner"
@@ -35,7 +35,7 @@ export default function Navbar({
 					</svg>
 				</button>
 				<div className="flex min-w-0 flex-1 items-center gap-2">
-					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-500 text-base shadow-lg shadow-teal-500/20 ring-1 ring-white/10">
+					<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-teal-500 to-cyan-500 text-base shadow-lg shadow-teal-500/20 ring-1 ring-white/10">
 						{BRAND.icon}
 					</div>
 					<div className="min-w-0">

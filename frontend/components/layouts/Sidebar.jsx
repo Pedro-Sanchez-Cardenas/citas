@@ -25,7 +25,7 @@ export default function Sidebar({
 		<>
 			{/* Logo / Brand */}
 			<div className="flex shrink-0 items-center gap-3 border-b border-slate-800/80 pb-4">
-				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-xl shadow-lg shadow-teal-500/20 ring-1 ring-white/10">
+				<div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-cyan-500 text-xl shadow-lg shadow-teal-500/20 ring-1 ring-white/10">
 					{BRAND.icon}
 				</div>
 				<div className="min-w-0">
@@ -37,7 +37,7 @@ export default function Sidebar({
 			</div>
 
 			{/* Navigation */}
-			<nav className="flex-1 space-y-0.5 overflow-y-auto py-4 pr-1 scrollbar-thin" aria-label="Navegación principal">
+			<nav className="flex-1 space-y-0.5 overflow-y-auto py-4 pr-1" aria-label="Navegación principal">
 				{navItems.map((item) => {
 					const active = isActive(item.href);
 					return (
@@ -63,7 +63,7 @@ export default function Sidebar({
 							<span className="truncate">{item.label}</span>
 							{active && (
 								<span
-									className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full bg-gradient-to-b from-teal-400 to-cyan-400"
+									className="absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full bg-linear-to-b from-teal-400 to-cyan-400"
 									aria-hidden
 								/>
 							)}
@@ -112,13 +112,13 @@ export default function Sidebar({
 		return (
 			<>
 				<div
-					className="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
+					className="fixed inset-0 z-40 bg-slate-950/70 transition-opacity duration-300 lg:hidden"
 					aria-hidden
 					onClick={onClose}
 				/>
 				<aside
 					className={clsx(
-						'fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col bg-slate-950/95 px-4 pb-6 pt-6 shadow-2xl ring-1 ring-slate-800/80 backdrop-blur-xl transition-transform duration-300 ease-out lg:hidden',
+						'fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col bg-slate-950 px-4 pb-6 pt-6 shadow-2xl ring-1 ring-slate-800/80 transition-transform duration-300 ease-out lg:hidden',
 						open ? 'translate-x-0' : '-translate-x-full'
 					)}
 					aria-label="Menú de navegación"
@@ -143,7 +143,7 @@ export default function Sidebar({
 
 	return (
 		<aside
-			className="flex h-full w-64 flex-col border-r border-slate-800/80 bg-slate-950/90 px-3 pb-5 pt-6 backdrop-blur-xl"
+			className="flex h-full w-64 flex-col border-r border-slate-800/80 bg-slate-950 px-3 pb-5 pt-6"
 			aria-label="Barra lateral"
 		>
 			{content}
