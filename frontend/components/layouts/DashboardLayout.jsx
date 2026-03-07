@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
+import { FloatMenu } from '@/components/ui';
 
 export default function DashboardLayout({ user, onLogout, children }) {
 	const router = useRouter();
@@ -147,32 +148,42 @@ export default function DashboardLayout({ user, onLogout, children }) {
 					})}
 				</nav>
 
-				<div className="mt-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-3 text-[11px] text-slate-400">
-					<div className="mb-2 flex items-center gap-2">
-						<div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-[11px] font-medium text-slate-100">
-							{user?.name?.[0]?.toUpperCase() ?? 'U'}
-						</div>
-						<div className="min-w-0">
-							<div className="truncate text-xs font-medium text-slate-100">
-								{user?.name ?? 'Usuario'}
+				<div className="relative mt-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-3 text-[11px] text-slate-400">
+					<div className="flex items-start justify-between gap-2">
+						<div className="flex min-w-0 flex-1 items-center gap-2">
+							<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-medium text-slate-100">
+								{user?.name?.[0]?.toUpperCase() ?? 'U'}
 							</div>
-							<div className="truncate text-[11px] text-slate-400">{user?.email}</div>
+							<div className="min-w-0">
+								<div className="truncate text-xs font-medium text-slate-100">
+									{user?.name ?? 'Usuario'}
+								</div>
+								<div className="truncate text-[11px] text-slate-400">{user?.email}</div>
+							</div>
 						</div>
-					</div>
-					<div className="mt-2 flex flex-col gap-1.5">
-						<Link
-							href="/profile"
-							onClick={closeSidebar}
-							className="inline-flex w-full items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-200 transition hover:bg-slate-800/90"
+						<FloatMenu
+							placement="top-end"
+							className="shrink-0"
+							options={[
+								{
+									label: 'Ver perfil',
+									onClick: () => {
+										closeSidebar();
+										router.push('/profile');
+									},
+								},
+								{ divider: true },
+								{ label: 'Cerrar sesión', onClick: onLogout },
+							]}
 						>
-							Ver perfil
-						</Link>
-						<button
-							onClick={onLogout}
-							className="inline-flex w-full items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-200 transition hover:bg-slate-800/90"
-						>
-							Cerrar sesión
-						</button>
+							<button
+								type="button"
+								className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-800/80 hover:text-slate-200"
+								aria-label="Opciones de cuenta"
+							>
+								⋮
+							</button>
+						</FloatMenu>
 					</div>
 				</div>
 			</aside>
@@ -276,34 +287,44 @@ export default function DashboardLayout({ user, onLogout, children }) {
 								})}
 							</nav>
 
-							<div className="mt-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-3 text-[11px] text-slate-400">
-								<div className="mb-2 flex items-center gap-2">
-									<div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-800 text-[11px] font-medium text-slate-100">
-										{user?.name?.[0]?.toUpperCase() ?? 'U'}
-									</div>
-									<div className="min-w-0">
-										<div className="truncate text-xs font-medium text-slate-100">
-											{user?.name ?? 'Usuario'}
+							<div className="relative mt-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-3 text-[11px] text-slate-400">
+								<div className="flex items-start justify-between gap-2">
+									<div className="flex min-w-0 flex-1 items-center gap-2">
+										<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-medium text-slate-100">
+											{user?.name?.[0]?.toUpperCase() ?? 'U'}
 										</div>
-										<div className="truncate text-[11px] text-slate-400">
-											{user?.email}
+										<div className="min-w-0">
+											<div className="truncate text-xs font-medium text-slate-100">
+												{user?.name ?? 'Usuario'}
+											</div>
+											<div className="truncate text-[11px] text-slate-400">
+												{user?.email}
+											</div>
 										</div>
 									</div>
-								</div>
-								<div className="mt-2 flex flex-col gap-1.5">
-									<Link
-										href="/profile"
-										onClick={closeSidebar}
-										className="inline-flex w-full items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-200 transition hover:bg-slate-800/90"
+									<FloatMenu
+										placement="top-end"
+										className="shrink-0"
+										options={[
+											{
+												label: 'Ver perfil',
+												onClick: () => {
+													closeSidebar();
+													router.push('/profile');
+												},
+											},
+											{ divider: true },
+											{ label: 'Cerrar sesión', onClick: onLogout },
+										]}
 									>
-										Ver perfil
-									</Link>
-									<button
-										onClick={onLogout}
-										className="inline-flex w-full items-center justify-center rounded-xl border border-slate-700/80 bg-slate-900/60 px-3 py-1.5 text-[11px] font-medium text-slate-200 transition hover:bg-slate-800/90"
-									>
-										Cerrar sesión
-									</button>
+										<button
+											type="button"
+											className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-800/80 hover:text-slate-200"
+											aria-label="Opciones de cuenta"
+										>
+											⋮
+										</button>
+									</FloatMenu>
 								</div>
 							</div>
 						</aside>
