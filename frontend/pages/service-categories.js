@@ -8,7 +8,7 @@ import {
   updateServiceCategory,
   deleteServiceCategory,
 } from '@/lib/api/serviceCategories';
-import { Button, Input, Textarea, Modal, Table } from '@/components/ui';
+import { Button, Input, Textarea, Modal, Table, FloatMenu } from '@/components/ui';
 
 function CategoryFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [name, setName] = useState(initialData?.name ?? '');
@@ -310,26 +310,23 @@ export default function ServiceCategoriesPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(cat)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Editar', onClick: () => openEditModal(cat) },
+                      { divider: true },
+                      {
+                        label: deletingId === cat.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteCategory(cat.id),
+                        disabled: deletingId === cat.id,
+                      },
+                    ]}
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteCategory(cat.id)}
-                    disabled={deletingId === cat.id}
-                  >
-                    {deletingId === cat.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

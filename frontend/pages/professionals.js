@@ -8,7 +8,7 @@ import {
   updateProfessional,
   deleteProfessional,
 } from '@/lib/api/professionals';
-import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 
 function formatMoneyFromCents(amountCents, currency = 'USD') {
   if (amountCents == null) return '—';
@@ -472,26 +472,23 @@ export default function ProfessionalsPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(prof)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Editar', onClick: () => openEditModal(prof) },
+                      { divider: true },
+                      {
+                        label: deletingId === prof.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteProfessional(prof.id),
+                        disabled: deletingId === prof.id,
+                      },
+                    ]}
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteProfessional(prof.id)}
-                    disabled={deletingId === prof.id}
-                  >
-                    {deletingId === prof.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

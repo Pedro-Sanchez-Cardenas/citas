@@ -9,7 +9,7 @@ import {
   deleteWorkingHour,
 } from '@/lib/api/workingHours';
 import { fetchProfessionals } from '@/lib/api/professionals';
-import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 
 const WEEKDAYS = [
   'Domingo',
@@ -465,26 +465,23 @@ export default function WorkingHoursPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(row)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Editar', onClick: () => openEditModal(row) },
+                      { divider: true },
+                      {
+                        label: deletingId === row.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteHour(row.id),
+                        disabled: deletingId === row.id,
+                      },
+                    ]}
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteHour(row.id)}
-                    disabled={deletingId === row.id}
-                  >
-                    {deletingId === row.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

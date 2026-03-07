@@ -9,7 +9,7 @@ import {
   deleteCombinedService,
 } from '@/lib/api/combinedServices';
 import { fetchServices } from '@/lib/api/services';
-import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 
 function CombinedServiceFormModal({
   open,
@@ -536,26 +536,23 @@ export default function CombinedServicesPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(item)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Editar', onClick: () => openEditModal(item) },
+                      { divider: true },
+                      {
+                        label: deletingId === item.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDelete(item.id),
+                        disabled: deletingId === item.id,
+                      },
+                    ]}
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDelete(item.id)}
-                    disabled={deletingId === item.id}
-                  >
-                    {deletingId === item.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

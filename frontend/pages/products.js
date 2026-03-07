@@ -8,7 +8,7 @@ import {
   updateProduct,
   deleteProduct,
 } from '@/lib/api/products';
-import { Button, Input, Select, Checkbox, Modal, Table } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 
 function formatMoneyFromCents(amountCents) {
   if (amountCents == null) return '—';
@@ -459,26 +459,23 @@ export default function ProductsPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(product)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Editar', onClick: () => openEditModal(product) },
+                      { divider: true },
+                      {
+                        label: deletingId === product.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteProduct(product.id),
+                        disabled: deletingId === product.id,
+                      },
+                    ]}
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteProduct(product.id)}
-                    disabled={deletingId === product.id}
-                  >
-                    {deletingId === product.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

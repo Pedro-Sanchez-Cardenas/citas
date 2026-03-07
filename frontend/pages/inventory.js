@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
-import { Button, Input, Select, Modal, Table } from '@/components/ui';
+import { Button, Input, Select, Modal, Table, FloatMenu } from '@/components/ui';
 
 function InventoryAdjustModal({ open, onClose, onSubmit, initialData, loading }) {
   const [quantity, setQuantity] = useState('');
@@ -326,16 +326,15 @@ export default function InventoryPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openAdjustModal(row)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[{ label: 'Ajustar', onClick: () => openAdjustModal(row) }]}
                   >
-                    Ajustar
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

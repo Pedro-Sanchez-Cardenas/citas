@@ -11,7 +11,7 @@ import {
   uploadClientMedia,
   deleteClientMedia,
 } from '@/lib/api/clients';
-import { Button, Input, Textarea, Select, Modal, Table } from '@/components/ui';
+import { Button, Input, Textarea, Select, Modal, Table, FloatMenu } from '@/components/ui';
 
 function ClientFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [name, setName] = useState(initialData?.name ?? '');
@@ -615,35 +615,24 @@ export default function ClientsPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => setDetailClient(client)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Ver detalle', onClick: () => setDetailClient(client) },
+                      { label: 'Editar', onClick: () => openEditModal(client) },
+                      { divider: true },
+                      {
+                        label: deletingId === client.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteClient(client.id),
+                        disabled: deletingId === client.id,
+                      },
+                    ]}
                   >
-                    Ver detalle
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(client)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteClient(client.id)}
-                    disabled={deletingId === client.id}
-                  >
-                    {deletingId === client.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

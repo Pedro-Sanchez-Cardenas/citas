@@ -8,7 +8,7 @@ import {
   deleteBlock,
 } from '@/lib/api/blocks';
 import { fetchProfessionals } from '@/lib/api/professionals';
-import { Button, Input, Select, Modal, Textarea, Table } from '@/components/ui';
+import { Button, Input, Select, Modal, Textarea, Table, FloatMenu } from '@/components/ui';
 
 function formatDateTime(value) {
   if (!value) return '—';
@@ -394,17 +394,21 @@ export default function BlocksPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteBlock(b.id)}
-                    disabled={deletingId === b.id}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      {
+                        label: deletingId === b.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteBlock(b.id),
+                        disabled: deletingId === b.id,
+                      },
+                    ]}
                   >
-                    {deletingId === b.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }

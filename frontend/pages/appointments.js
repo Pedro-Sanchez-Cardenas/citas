@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/appointments';
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchServices } from '@/lib/api/services';
-import { Button, Input, Textarea, Select, Checkbox, Modal, Table } from '@/components/ui';
+import { Button, Input, Textarea, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 
 const STATUS_OPTIONS = [
   { value: 'scheduled', label: 'Agendada' },
@@ -576,26 +576,23 @@ export default function AppointmentsPage() {
 
             if (key === 'actions') {
               return (
-                <div className="flex items-center justify-end gap-2">
-                  <Button
-                    type="button"
-                    variant="subtle"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => openEditModal(appt)}
+                <div className="flex justify-end">
+                  <FloatMenu
+                    placement="bottom-end"
+                    options={[
+                      { label: 'Editar', onClick: () => openEditModal(appt) },
+                      { divider: true },
+                      {
+                        label: deletingId === appt.id ? 'Eliminando...' : 'Eliminar',
+                        onClick: () => handleDeleteAppointment(appt.id),
+                        disabled: deletingId === appt.id,
+                      },
+                    ]}
                   >
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="danger"
-                    size="sm"
-                    className="text-[11px]"
-                    onClick={() => handleDeleteAppointment(appt.id)}
-                    disabled={deletingId === appt.id}
-                  >
-                    {deletingId === appt.id ? 'Eliminando...' : 'Eliminar'}
-                  </Button>
+                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
+                      ⋮
+                    </Button>
+                  </FloatMenu>
                 </div>
               );
             }
