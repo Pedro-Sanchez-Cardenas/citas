@@ -11,7 +11,7 @@ import {
   uploadClientMedia,
   deleteClientMedia,
 } from '@/lib/api/clients';
-import { Button, Input, Textarea, Select, Modal, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Textarea, Select, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 
 function ClientFormModal({ open, onClose, onSubmit, initialData, loading }) {
   const [name, setName] = useState(initialData?.name ?? '');
@@ -96,12 +96,11 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }) {
           placeholder="+52 ..."
         />
 
-        <Input
+        <DatePicker
           label="Cumpleaños"
           id="client-birthday"
-          type="date"
-          value={birthday || ''}
-          onChange={(e) => setBirthday(e.target.value)}
+          value={birthday || null}
+          onChange={(_, dateStr) => setBirthday(dateStr || '')}
         />
 
         <Select

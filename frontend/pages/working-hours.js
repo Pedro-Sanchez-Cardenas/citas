@@ -9,7 +9,7 @@ import {
   deleteWorkingHour,
 } from '@/lib/api/workingHours';
 import { fetchProfessionals } from '@/lib/api/professionals';
-import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 
 const WEEKDAYS = [
   'Domingo',
@@ -128,20 +128,18 @@ function WorkingHourFormModal({
           onChange={(e) => setEndTime(e.target.value)}
         />
 
-        <Input
+        <DatePicker
           label="Válido desde"
           id="wh-effective-from"
-          type="date"
-          value={effectiveFrom || ''}
-          onChange={(e) => setEffectiveFrom(e.target.value)}
+          value={effectiveFrom || null}
+          onChange={(_, dateStr) => setEffectiveFrom(dateStr || '')}
         />
 
-        <Input
+        <DatePicker
           label="Válido hasta"
           id="wh-effective-until"
-          type="date"
-          value={effectiveUntil || ''}
-          onChange={(e) => setEffectiveUntil(e.target.value)}
+          value={effectiveUntil || null}
+          onChange={(_, dateStr) => setEffectiveUntil(dateStr || '')}
         />
 
         <div className="md:col-span-2 flex items-center justify-between pt-2">

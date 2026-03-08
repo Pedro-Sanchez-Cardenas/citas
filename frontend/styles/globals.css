@@ -29,3 +29,100 @@
     color: #f9fafb;
   }
 }
+
+/* Flatpickr: tema oscuro para el calendario */
+.flatpickr-calendar {
+  background: #0f172a;
+  border: 1px solid rgba(71, 85, 105, 0.6);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.flatpickr-months,
+.flatpickr-month {
+  background: #0f172a;
+}
+.flatpickr-current-month .flatpickr-monthDropdown-months,
+.flatpickr-current-month .numInputWrapper,
+.flatpickr-current-month input.cur-year {
+  color: #e2e8f0;
+}
+.flatpickr-weekdays {
+  background: #0f172a;
+}
+span.flatpickr-weekday {
+  color: #94a3b8;
+}
+.flatpickr-days {
+  background: #0f172a;
+  border-color: rgba(71, 85, 105, 0.5);
+}
+.dayContainer .flatpickr-day {
+  color: #e2e8f0;
+}
+.dayContainer .flatpickr-day:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.3);
+}
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange {
+  background: #0ea5e9;
+  border-color: #0ea5e9;
+}
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  background: #38bdf8;
+  border-color: #38bdf8;
+}
+.flatpickr-day.inRange {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: rgba(56, 189, 248, 0.25);
+  box-shadow: -5px 0 0 rgba(56, 189, 248, 0.25), 5px 0 0 rgba(56, 189, 248, 0.25);
+}
+.flatpickr-day.flatpickr-disabled {
+  color: #475569;
+}
+.flatpickr-day.flatpickr-disabled:hover {
+  color: #475569;
+  background: transparent;
+  border-color: transparent;
+}
+.flatpickr-monthDropdown-months:hover,
+.flatpickr-monthDropdown-months:focus,
+.numInputWrapper:hover,
+.numInputWrapper:focus {
+  background: rgba(51, 65, 85, 0.6);
+}
+.flatpickr-monthDropdown-months {
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid rgba(71, 85, 105, 0.6);
+}
+.flatpickr-prev-month:hover svg,
+.flatpickr-next-month:hover svg {
+  fill: #38bdf8;
+}
+.flatpickr-prev-month svg,
+.flatpickr-next-month svg {
+  fill: #94a3b8;
+}
+
+/* Flatpickr: selector de hora (enableTime) */
+.flatpickr-time {
+  background: #0f172a;
+  border-top: 1px solid rgba(71, 85, 105, 0.5);
+}
+.flatpickr-time input,
+.flatpickr-time .flatpickr-time-separator {
+  color: #e2e8f0;
+}
+.flatpickr-time input:hover,
+.flatpickr-time input:focus {
+  background: rgba(51, 65, 85, 0.6);
+}
+.flatpickr-time .numInputWrapper span.arrowUp:after {
+  border-bottom-color: #94a3b8;
+}
+.flatpickr-time .numInputWrapper span.arrowDown:after {
+  border-top-color: #94a3b8;
+}

@@ -8,7 +8,7 @@ import {
   deleteBlock,
 } from '@/lib/api/blocks';
 import { fetchProfessionals } from '@/lib/api/professionals';
-import { Button, Input, Select, Modal, Textarea, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Select, Modal, Textarea, Table, FloatMenu, DatePicker } from '@/components/ui';
 
 function formatDateTime(value) {
   if (!value) return '—';
@@ -79,22 +79,22 @@ function BlockFormModal({
           ))}
         </Select>
 
-        <Input
+        <DatePicker
           label="Inicio"
           id="block-start-at"
-          type="datetime-local"
+          enableTime
           required
-          value={startAt}
-          onChange={(e) => setStartAt(e.target.value)}
+          value={startAt || null}
+          onChange={(_, dateStr) => setStartAt(dateStr || '')}
         />
 
-        <Input
+        <DatePicker
           label="Fin"
           id="block-end-at"
-          type="datetime-local"
+          enableTime
           required
-          value={endAt}
-          onChange={(e) => setEndAt(e.target.value)}
+          value={endAt || null}
+          onChange={(_, dateStr) => setEndAt(dateStr || '')}
         />
 
         <Input

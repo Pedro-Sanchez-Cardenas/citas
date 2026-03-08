@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchAgendaDay, fetchAgendaWeek } from '@/lib/api/agenda';
-import { Button, Input, Select, Checkbox, Table } from '@/components/ui';
+import { Button, Input, Select, Checkbox, Table, DatePicker } from '@/components/ui';
 
 function formatHour(value) {
   if (!value) return '';
@@ -131,12 +131,11 @@ export default function AgendaPage() {
               Semana
             </button>
           </div>
-          <Input
+          <DatePicker
             label={null}
             id="agenda-date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+            value={date || null}
+            onChange={(_, dateStr) => setDate(dateStr || '')}
             inputClassName="rounded-2xl border-slate-800/80 bg-slate-950/70"
           />
         </div>

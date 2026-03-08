@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/appointments';
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchServices } from '@/lib/api/services';
-import { Button, Input, Textarea, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Textarea, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 
 const STATUS_OPTIONS = [
   { value: 'scheduled', label: 'Agendada' },
@@ -166,22 +166,22 @@ function AppointmentFormModal({
           placeholder="cliente@correo.com"
         />
 
-        <Input
+        <DatePicker
           label="Inicio"
           id="appointment-start-at"
-          type="datetime-local"
+          enableTime
           required
-          value={startAt}
-          onChange={(e) => setStartAt(e.target.value)}
+          value={startAt || null}
+          onChange={(_, dateStr) => setStartAt(dateStr || '')}
         />
 
-        <Input
+        <DatePicker
           label="Fin"
           id="appointment-end-at"
-          type="datetime-local"
+          enableTime
           required
-          value={endAt}
-          onChange={(e) => setEndAt(e.target.value)}
+          value={endAt || null}
+          onChange={(_, dateStr) => setEndAt(dateStr || '')}
         />
 
         <Select

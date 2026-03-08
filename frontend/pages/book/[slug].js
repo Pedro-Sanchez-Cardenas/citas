@@ -5,7 +5,7 @@ import {
   fetchPublicProfessionals,
   createPublicBooking,
 } from '@/lib/api/publicBooking';
-import { Button, Input, Select } from '@/components/ui';
+import { Button, Input, Select, DatePicker } from '@/components/ui';
 
 export default function PublicBookPage() {
   const router = useRouter();
@@ -195,12 +195,12 @@ export default function PublicBookPage() {
             </Select>
 
             <div className="grid grid-cols-2 gap-3">
-              <Input
+              <DatePicker
                 label="Fecha"
                 id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
+                value={date || null}
+                onChange={(_, dateStr) => setDate(dateStr || '')}
+                minDate={new Date()}
                 required
               />
               <Input
