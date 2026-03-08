@@ -1,3 +1,13 @@
+/**
+ * Tabla responsive: en desktop muestra tabla HTML; en móvil muestra tarjetas apiladas.
+ *
+ * @param {Array<{ key: string, header: string, align?: 'left'|'right'|'center', accessor?: (item, rowIndex) => any, render?: (item, rowIndex) => React.ReactNode }>} columns - Definición de columnas
+ * @param {Array} items - Lista de filas/datos
+ * @param {Function} [getItemKey] - (item, rowIndex) => string|number - Clave única por fila para keys de React
+ * @param {Function} [renderCell] - (item, colKey, rowIndex) => React.ReactNode - Renderizado genérico por celda (tiene prioridad sobre col.render y col.accessor)
+ * @param {string} [emptyMessage='Sin registros'] - Texto cuando items está vacío
+ * @param {string} [className] - Clases adicionales del contenedor
+ */
 export default function Table({
   columns,
   items,

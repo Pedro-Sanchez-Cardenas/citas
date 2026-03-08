@@ -1,5 +1,16 @@
 import clsx from 'clsx';
 
+/**
+ * Campo de texto nativo con label, hint y mensaje de error.
+ *
+ * @param {string} [label] - Etiqueta visible sobre el input
+ * @param {string} [hint] - Texto de ayuda debajo del input (no se muestra si hay error)
+ * @param {string} [error] - Mensaje de error; si existe, se muestra en rojo y el input en estado error
+ * @param {string} [className] - Clases del contenedor exterior
+ * @param {string} [inputClassName] - Clases aplicadas al <input>
+ * @param {boolean} [required] - Marca el campo como obligatorio (asterisco y atributo required)
+ * @param {Object} [props] - Resto de atributos nativos de <input> (id, type, value, onChange, placeholder, etc.)
+ */
 export default function Input({
   label,
   hint,

@@ -1,5 +1,17 @@
 import clsx from 'clsx';
 
+/**
+ * Select nativo con label, hint y mensaje de error.
+ *
+ * @param {string} [label] - Etiqueta visible sobre el select
+ * @param {string} [hint] - Texto de ayuda debajo (no se muestra si hay error)
+ * @param {string} [error] - Mensaje de error; si existe, se muestra en rojo y el select en estado error
+ * @param {string} [className] - Clases del contenedor exterior
+ * @param {string} [selectClassName] - Clases aplicadas al <select>
+ * @param {boolean} [required] - Marca el campo como obligatorio
+ * @param {React.ReactNode} [children] - Opciones <option> del select
+ * @param {Object} [props] - Resto de atributos nativos de <select> (id, value, onChange, disabled, etc.)
+ */
 export default function Select({
   label,
   hint,

@@ -5,14 +5,12 @@ import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 
 /**
- * FloatMenu - Menú flotante / dropdown usando React Portals.
+ * Menú flotante / dropdown usando React Portals. Se abre al hacer clic en el trigger.
  *
- * @param {React.ReactNode} children - Elemento que actúa como disparador (trigger).
- * @param {Array} options - Lista de opciones. Cada item puede ser:
- *   - { label: string, onClick?: () => void, disabled?: boolean, icon?: React.ReactNode, divider?: false }
- *   - { divider: true } - para mostrar un separador
- * @param {string} [placement='bottom-start'] - Posición: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
- * @param {string} [className] - Clases extra para el contenedor del trigger.
+ * @param {React.ReactNode} children - Elemento que actúa como disparador (trigger)
+ * @param {Array<{ label: string, onClick?: () => void, disabled?: boolean, icon?: React.ReactNode }|{ divider: true }>} [options=[]] - Lista de opciones; use { divider: true } para un separador
+ * @param {string} [placement='bottom-start'] - Posición del menú: 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end'
+ * @param {string} [className] - Clases adicionales para el contenedor del trigger
  */
 export default function FloatMenu({ children, options = [], placement = 'bottom-start', className }) {
 	const [open, setOpen] = useState(false);

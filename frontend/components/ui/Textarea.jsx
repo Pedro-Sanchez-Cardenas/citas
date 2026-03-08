@@ -1,5 +1,17 @@
 import clsx from 'clsx';
 
+/**
+ * Área de texto multilínea con label, hint y mensaje de error.
+ *
+ * @param {string} [label] - Etiqueta visible sobre el textarea
+ * @param {string} [hint] - Texto de ayuda debajo (no se muestra si hay error)
+ * @param {string} [error] - Mensaje de error; si existe, se muestra en rojo y el textarea en estado error
+ * @param {string} [className] - Clases del contenedor exterior
+ * @param {string} [textareaClassName] - Clases aplicadas al <textarea>
+ * @param {boolean} [required] - Marca el campo como obligatorio
+ * @param {number} [rows=3] - Número de filas visibles
+ * @param {Object} [props] - Resto de atributos nativos de <textarea> (id, value, onChange, placeholder, etc.)
+ */
 export default function Textarea({
   label,
   hint,

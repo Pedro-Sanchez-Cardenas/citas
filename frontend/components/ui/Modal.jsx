@@ -2,6 +2,16 @@ import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
 
+/**
+ * Modal centrado con portal, bloqueo de scroll y overlay.
+ *
+ * @param {boolean} open - Si es true se muestra el modal; si es false no se renderiza
+ * @param {string} [title] - Título del modal (header)
+ * @param {string} [description] - Texto descriptivo bajo el título
+ * @param {React.ReactNode} [children] - Contenido del modal
+ * @param {Function} [onClose] - Callback al cerrar (se renderiza un botón sr-only para cerrar)
+ * @param {string} [size='md'] - Ancho máximo: 'sm' | 'md' | 'lg'
+ */
 export default function Modal({ open, title, description, children, onClose, size = 'md' }) {
 	// En SSR no hay document, evitar errores
 	if (typeof document === 'undefined') return null;

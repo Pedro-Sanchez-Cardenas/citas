@@ -1,5 +1,14 @@
 import clsx from 'clsx';
 
+/**
+ * Botón con variantes y tamaños predefinidos.
+ *
+ * @param {string} [variant='primary'] - 'primary' | 'subtle' | 'ghost' | 'danger' | 'outline'
+ * @param {string} [size='md'] - 'sm' | 'md' | 'lg' | 'full'
+ * @param {string} [className] - Clases CSS adicionales para el botón
+ * @param {React.ReactNode} [children] - Contenido del botón
+ * @param {Object} [props] - Resto de atributos nativos de <button> (onClick, disabled, type, etc.)
+ */
 const baseClasses =
   'inline-flex items-center justify-center rounded-xl text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:cursor-not-allowed disabled:opacity-70';
 
