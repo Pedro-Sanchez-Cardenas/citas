@@ -23,6 +23,18 @@ function parseValue(value) {
   return Number.isNaN(d.getTime()) ? undefined : d;
 }
 
+/** Normaliza a Date a medianoche (solo día) para enable/disable */
+function toDateOnly(date) {
+  if (date instanceof Date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  const d = new Date(String(date).slice(0, 10));
+  d.setHours(0, 0, 0, 0);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
 /**
  * DatePicker basado en Flatpickr.
  *
@@ -32,6 +44,8 @@ function parseValue(value) {
  * @param {Function} onChange - (value, dateStr) => {}. En single: value es Date|null; dateStr "Y-m-d" o "YYYY-MM-DDTHH:mm". En range: value es [Date, Date]|[]
  * @param {string|Date} [minDate] - Fecha mínima seleccionable
  * @param {string|Date} [maxDate] - Fecha máxima seleccionable
+ * @param {Array<string|Date>} [enabledDates] - Si se pasa, solo estas fechas son seleccionables (el resto deshabilitado)
+ * @param {Array<string|Date>} [disabledDates] - Fechas que no se pueden seleccionar
  * @param {string} [dateFormat] - Por defecto 'Y-m-d' o 'Y-m-d H:i' si enableTime
  */
 export default function DatePicker({
@@ -50,6 +64,8 @@ export default function DatePicker({
   onChange,
   minDate,
   maxDate,
+  enabledDates,
+  disabledDates,
   dateFormat: dateFormatProp,
   ...rest
 }) {
@@ -98,8 +114,8 @@ export default function DatePicker({
     [onChange, isRange, enableTime]
   );
 
-  const options = useMemo(
-    () => ({
+  const options = useMemo(() => {
+    const opts = {
       mode: isRange ? 'range' : 'single',
       dateFormat,
       minDate: minDate ?? undefined,
@@ -109,9 +125,15 @@ export default function DatePicker({
       disableMobile: true,
       enableTime: enableTime || undefined,
       time_24hr: true,
-    }),
-    [isRange, dateFormat, minDate, maxDate, enableTime]
-  );
+    };
+    if (enabledDates != null && Array.isArray(enabledDates) && enabledDates.length > 0) {
+      opts.enable = enabledDates.map(toDateOnly).filter(Boolean);
+    }
+    if (disabledDates != null && Array.isArray(disabledDates) && disabledDates.length > 0) {
+      opts.disable = disabledDates.map(toDateOnly).filter(Boolean);
+    }
+    return opts;
+  }, [isRange, dateFormat, minDate, maxDate, enableTime, enabledDates, disabledDates]);
 
   return (
     <div className={className}>
