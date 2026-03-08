@@ -1,0 +1,21 @@
+import clsx from 'clsx';
+import type { InputHTMLAttributes } from 'react';
+
+export interface RadioProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  type?: 'radio';
+  label?: string | null;
+  className?: string;
+}
+
+export default function Radio({ label, className, ...props }: RadioProps) {
+  return (
+    <label className={clsx('inline-flex items-center gap-2 text-xs text-slate-300', className)}>
+      <input
+        type="radio"
+        className="h-4 w-4 rounded-full border-slate-600 bg-slate-900 text-teal-400 focus:ring-teal-500/60 focus:ring-offset-slate-950"
+        {...props}
+      />
+      {label != null && label !== '' && <span>{label}</span>}
+    </label>
+  );
+}
