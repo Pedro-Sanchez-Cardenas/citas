@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mysql:8.0
-    container_name: citas-mysql
+    container_name: mysql
     restart: unless-stopped
     command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
@@ -12,13 +12,13 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     networks:
-      - citas-network
+      - network
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: citas-frontend
+    container_name: frontend
     restart: unless-stopped
     depends_on:
       - backend
@@ -39,15 +39,15 @@ services:
       - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.docker.network=citas-network"
+      - "traefik.docker.network=network"
     networks:
-      - citas-network
+      - network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    container_name: citas-backend
+    container_name: backend
     restart: unless-stopped
     depends_on:
       - mysql
@@ -77,13 +77,13 @@ services:
       - "traefik.http.routers.backend.priority=100"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.docker.network=citas-network"
+      - "traefik.docker.network=network"
     networks:
-      - citas-network
+      - network
 
   traefik:
     image: traefik:v3.6.9
-    container_name: citas-traefik
+    container_name: traefik
     restart: unless-stopped
     depends_on:
       - frontend
@@ -99,7 +99,7 @@ services:
       - "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=citas-network"
+      - "--providers.docker.network=network"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.metrics.address=:8082"
       - "--metrics.prometheus=true"
@@ -111,11 +111,11 @@ services:
       - "--tracing.serviceName=citas-traefik"
       - "--tracing.sampleRate=1.0"
     networks:
-      - citas-network
+      - network
 
 volumes:
   db_data:
   backend_vendor:
 
 networks:
-  citas-network:
+  network:
