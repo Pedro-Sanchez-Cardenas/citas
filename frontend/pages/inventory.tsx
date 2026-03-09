@@ -199,7 +199,7 @@ export default function InventoryPage() {
     setModalLoading(true);
     setError('');
     try {
-      const updated = await adjustInventory(payload);
+      const updated = await adjustInventory(payload as unknown as Record<string, unknown>);
       if (updated && Array.isArray(updated)) {
         setStocks(updated as StockRow[]);
       } else {

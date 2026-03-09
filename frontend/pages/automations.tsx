@@ -279,12 +279,12 @@ export default function AutomationsPage() {
     setError('');
     try {
       if (selectedAutomation?.id) {
-        const updated = await updateAutomation(selectedAutomation.id, formData as Record<string, unknown>);
+        const updated = await updateAutomation(selectedAutomation.id, formData as unknown as Record<string, unknown>);
         setAutomations((prev) =>
           prev.map((a) => (a.id === selectedAutomation.id ? (updated as AutomationRecord) ?? a : a))
         );
       } else {
-        const created = await createAutomation(formData as Record<string, unknown>);
+        const created = await createAutomation(formData as unknown as Record<string, unknown>);
         if (created) setAutomations((prev) => [created as AutomationRecord, ...prev]);
       }
       setModalOpen(false);

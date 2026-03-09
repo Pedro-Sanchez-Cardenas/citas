@@ -288,7 +288,7 @@ export default function PaymentsPage() {
         const data = await fetchPayments();
         if (!cancelled) {
           const raw = (data as { data?: PaymentItem[] })?.data ?? (Array.isArray(data) ? data : []);
-          setPayments(Array.isArray(raw) ? raw : []);
+          setPayments(Array.isArray(raw) ? (raw as PaymentItem[]) : []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -340,7 +340,7 @@ export default function PaymentsPage() {
     setModalLoading(true);
     setError('');
     try {
-      const created = await createPayment(payload as Record<string, unknown>);
+      const created = await createPayment(payload as unknown as Record<string, unknown>);
       setPayments((prev) => [created as PaymentItem, ...(Array.isArray(prev) ? prev : [])]);
       setModalOpen(false);
     } catch (err) {

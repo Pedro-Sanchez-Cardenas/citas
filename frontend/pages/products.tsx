@@ -291,12 +291,12 @@ export default function ProductsPage() {
     setError('');
     try {
       if (selectedProduct?.id) {
-        const updated = await updateProduct(selectedProduct.id, formData as Record<string, unknown>);
+        const updated = await updateProduct(selectedProduct.id, formData as unknown as Record<string, unknown>);
         setProducts((prev) =>
           prev.map((p) => (p.id === selectedProduct.id ? (updated as ProductItem) ?? p : p))
         );
       } else {
-        const created = await createProduct(formData as Record<string, unknown>);
+        const created = await createProduct(formData as unknown as Record<string, unknown>);
         if (created) setProducts((prev) => [created as ProductItem, ...prev]);
       }
       setModalOpen(false);

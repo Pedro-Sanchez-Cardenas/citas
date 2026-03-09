@@ -7,6 +7,7 @@ import {
   createProfessional,
   updateProfessional,
   deleteProfessional,
+  type CreateProfessionalPayload,
 } from '@/lib/api/professionals';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 import type { Professional } from '@/types';
@@ -55,7 +56,7 @@ function ProfessionalFormModal({
   );
   const [baseSalary, setBaseSalary] = useState(
     (initialData as Professional & { base_salary_cents?: number })?.base_salary_cents != null
-      ? String((initialData as Professional & { base_salary_cents?: number }).base_salary_cents / 100)
+      ? String(((initialData as Professional & { base_salary_cents?: number })?.base_salary_cents ?? 0) / 100)
       : ''
   );
   const [isActive, setIsActive] = useState((initialData as Professional & { is_active?: boolean })?.is_active ?? true);
@@ -294,12 +295,12 @@ export default function ProfessionalsPage() {
     setError('');
     try {
       if (selectedProfessional?.id) {
-        const updated = await updateProfessional(selectedProfessional.id, formData);
+        const updated = await updateProfessional(selectedProfessional.id, formData as unknown as Partial<CreateProfessionalPayload>);
         setProfessionals((prev) =>
           prev.map((p) => (p.id === selectedProfessional.id ? updated ?? p : p))
         );
       } else {
-        const created = await createProfessional(formData);
+        const created = await createProfessional(formData as unknown as CreateProfessionalPayload);
         if (created) setProfessionals((prev) => [created, ...prev]);
       }
       setModalOpen(false);

@@ -395,12 +395,12 @@ export default function CombinedServicesPage() {
     setError('');
     try {
       if (selected?.id) {
-        const updated = await updateCombinedService(selected.id, formData as Record<string, unknown>);
+        const updated = await updateCombinedService(selected.id, formData as unknown as Record<string, unknown>);
         setCombined((prev) =>
           prev.map((c) => (c.id === selected.id ? (updated as CombinedServiceRecord) ?? c : c))
         );
       } else {
-        const created = await createCombinedService(formData as Record<string, unknown>);
+        const created = await createCombinedService(formData as unknown as Record<string, unknown>);
         if (created) setCombined((prev) => [created as CombinedServiceRecord, ...prev]);
       }
       setModalOpen(false);
