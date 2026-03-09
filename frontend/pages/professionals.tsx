@@ -9,6 +9,7 @@ import {
   deleteProfessional,
   type CreateProfessionalPayload,
 } from '@/lib/api/professionals';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 import type { Professional } from '@/types';
 import type { AxiosError } from 'axios';
@@ -36,6 +37,7 @@ interface ProfessionalFormModalProps {
   onSubmit: (payload: ProfessionalFormPayload) => Promise<void>;
   initialData: Professional | null;
   loading: boolean;
+  fieldErrors: FormFieldErrors;
 }
 
 function ProfessionalFormModal({
@@ -44,6 +46,7 @@ function ProfessionalFormModal({
   onSubmit,
   initialData,
   loading,
+  fieldErrors,
 }: ProfessionalFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [email, setEmail] = useState((initialData as Professional & { email?: string })?.email ?? '');
@@ -123,6 +126,7 @@ function ProfessionalFormModal({
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="Nombre y apellidos"
+            error={fieldErrors.name}
           />
         </div>
 
@@ -133,6 +137,7 @@ function ProfessionalFormModal({
           value={email}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="equipo@salon.com"
+          error={fieldErrors.email}
         />
 
         <Input
@@ -141,6 +146,7 @@ function ProfessionalFormModal({
           value={phone}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
           placeholder="+52 ..."
+          error={fieldErrors.phone}
         />
 
         <div>
@@ -171,6 +177,7 @@ function ProfessionalFormModal({
           onChange={(e: ChangeEvent<HTMLInputElement>) => setCommissionRate(e.target.value)}
           placeholder="Ej. 40"
           hint="Porcentaje de comisión sobre los servicios realizados."
+          error={fieldErrors.commission_rate}
         />
 
         <Input
@@ -183,6 +190,7 @@ function ProfessionalFormModal({
           onChange={(e: ChangeEvent<HTMLInputElement>) => setBaseSalary(e.target.value)}
           placeholder="Ej. 8000.00"
           hint="Opcional. Se guarda en la base de datos en centavos."
+          error={fieldErrors.base_salary_cents}
         />
 
         <div className="md:col-span-2 flex items-center justify-between pt-2">
@@ -221,6 +229,7 @@ export default function ProfessionalsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -281,11 +290,13 @@ export default function ProfessionalsPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedProfessional(null);
     setModalOpen(true);
   };
 
   const openEditModal = (prof: Professional) => {
+    setFieldErrors({});
     setSelectedProfessional(prof);
     setModalOpen(true);
   };
@@ -293,6 +304,7 @@ export default function ProfessionalsPage() {
   const handleSubmitProfessional = async (formData: ProfessionalFormPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedProfessional?.id) {
         const updated = await updateProfessional(selectedProfessional.id, formData as unknown as Partial<CreateProfessionalPayload>);
@@ -306,6 +318,7 @@ export default function ProfessionalsPage() {
       setModalOpen(false);
       setSelectedProfessional(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -346,6 +359,7 @@ export default function ProfessionalsPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedProfessional(null);
           }
@@ -353,6 +367,7 @@ export default function ProfessionalsPage() {
         onSubmit={handleSubmitProfessional}
         initialData={selectedProfessional}
         loading={modalLoading}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

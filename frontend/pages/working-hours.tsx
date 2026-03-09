@@ -11,6 +11,7 @@ import {
   type CreateWorkingHourPayload,
 } from '@/lib/api/workingHours';
 import { fetchProfessionals } from '@/lib/api/professionals';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 import type { Professional } from '@/types';
 import type { AxiosError } from 'axios';
@@ -32,6 +33,7 @@ interface WorkingHourFormModalProps {
   initialData: WorkingHour | null;
   loading: boolean;
   professionals: Professional[];
+  fieldErrors: FormFieldErrors;
 }
 
 function WorkingHourFormModal({
@@ -41,6 +43,7 @@ function WorkingHourFormModal({
   initialData,
   loading,
   professionals,
+  fieldErrors,
 }: WorkingHourFormModalProps) {
   const [weekday, setWeekday] = useState(initialData?.weekday ?? 1);
   const [startTime, setStartTime] = useState(initialData?.start_time ?? '09:00');
@@ -101,6 +104,7 @@ function WorkingHourFormModal({
           id="wh-weekday"
           value={String(weekday)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setWeekday(Number(e.target.value))}
+          error={fieldErrors.weekday}
         >
           {WEEKDAYS.map((label, index) => (
             <option key={index} value={index}>
@@ -114,6 +118,7 @@ function WorkingHourFormModal({
           id="wh-professional"
           value={String(professionalId)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setProfessionalId(e.target.value)}
+          error={fieldErrors.professional_id}
         >
           <option value="">Horario general de sucursal</option>
           {professionals.map((p) => (
@@ -130,6 +135,7 @@ function WorkingHourFormModal({
           required
           value={startTime}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setStartTime(e.target.value)}
+          error={fieldErrors.start_time}
         />
 
         <Input
@@ -139,6 +145,7 @@ function WorkingHourFormModal({
           required
           value={endTime}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setEndTime(e.target.value)}
+          error={fieldErrors.end_time}
         />
 
         <DatePicker
@@ -146,6 +153,7 @@ function WorkingHourFormModal({
           id="wh-effective-from"
           value={effectiveFrom || null}
           onChange={(_, dateStr) => setEffectiveFrom(dateStr || '')}
+          error={fieldErrors.effective_from}
         />
 
         <DatePicker
@@ -153,6 +161,7 @@ function WorkingHourFormModal({
           id="wh-effective-until"
           value={effectiveUntil || null}
           onChange={(_, dateStr) => setEffectiveUntil(dateStr || '')}
+          error={fieldErrors.effective_until}
         />
 
         <div className="md:col-span-2 flex items-center justify-between pt-2">
@@ -192,6 +201,7 @@ export default function WorkingHoursPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedHour, setSelectedHour] = useState<WorkingHour | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -268,11 +278,13 @@ export default function WorkingHoursPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedHour(null);
     setModalOpen(true);
   };
 
   const openEditModal = (hour: WorkingHour) => {
+    setFieldErrors({});
     setSelectedHour(hour);
     setModalOpen(true);
   };
@@ -280,6 +292,7 @@ export default function WorkingHoursPage() {
   const handleSubmitHour = async (formData: CreateWorkingHourPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedHour?.id) {
         const updated = await updateWorkingHour(selectedHour.id, formData);
@@ -293,6 +306,7 @@ export default function WorkingHoursPage() {
       setModalOpen(false);
       setSelectedHour(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -333,6 +347,7 @@ export default function WorkingHoursPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedHour(null);
           }
@@ -341,6 +356,7 @@ export default function WorkingHoursPage() {
         initialData={selectedHour}
         loading={modalLoading}
         professionals={professionals}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

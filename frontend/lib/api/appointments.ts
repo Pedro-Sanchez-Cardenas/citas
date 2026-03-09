@@ -20,6 +20,7 @@ export async function fetchAppointment(id: number | string): Promise<Appointment
 }
 
 export interface CreateAppointmentPayload {
+  branch_id: number;
   professional_id: number;
   service_id?: number | null;
   client_name?: string | null;

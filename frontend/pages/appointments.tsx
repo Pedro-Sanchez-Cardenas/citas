@@ -11,8 +11,10 @@ import {
 } from '@/lib/api/appointments';
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchServices } from '@/lib/api/services';
+import { fetchBranches } from '@/lib/api/branches';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Textarea, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
-import type { Appointment, Professional, Service } from '@/types';
+import type { Appointment, Professional, Service, Branch } from '@/types';
 import type { AxiosError } from 'axios';
 
 const STATUS_OPTIONS = [
@@ -40,8 +42,10 @@ interface AppointmentFormModalProps {
   onSubmit: (payload: CreateAppointmentPayload) => Promise<void>;
   initialData: Appointment | null;
   loading: boolean;
+  branches: Branch[];
   professionals: Professional[];
   services: Service[];
+  fieldErrors: FormFieldErrors;
 }
 
 function AppointmentFormModal({
@@ -50,9 +54,12 @@ function AppointmentFormModal({
   onSubmit,
   initialData,
   loading,
+  branches,
   professionals,
   services,
+  fieldErrors,
 }: AppointmentFormModalProps) {
+  const [branchId, setBranchId] = useState<string | number>(initialData?.branch_id ?? '');
   const [professionalId, setProfessionalId] = useState<string | number>(initialData?.professional_id ?? '');
   const [serviceId, setServiceId] = useState<string | number>(initialData?.service_id ?? '');
   const [clientName, setClientName] = useState(initialData?.client_name ?? '');
@@ -74,6 +81,10 @@ function AppointmentFormModal({
 
   useEffect(() => {
     if (open) {
+      const defaultBranch =
+        initialData?.branch_id ??
+        (branches.length === 1 ? branches[0].id : '');
+      setBranchId(defaultBranch);
       setProfessionalId(initialData?.professional_id ?? '');
       setServiceId(initialData?.service_id ?? '');
       setClientName(initialData?.client_name ?? '');
@@ -87,13 +98,14 @@ function AppointmentFormModal({
       setNotes(initialData?.notes ?? '');
       setNotifyClient(false);
     }
-  }, [open, initialData]);
+  }, [open, initialData, branches]);
 
   const isEdit = !!initialData?.id;
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const payload: CreateAppointmentPayload = {
+      branch_id: Number(branchId),
       professional_id: Number(professionalId),
       service_id: serviceId ? Number(serviceId) : null,
       client_name: clientName,
@@ -120,11 +132,28 @@ function AppointmentFormModal({
         onSubmit={handleSubmit}
       >
         <Select
+          label="Sucursal"
+          id="appointment-branch"
+          value={String(branchId)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setBranchId(e.target.value)}
+          required
+          error={fieldErrors.branch_id}
+        >
+          <option value="">Selecciona sucursal</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </Select>
+
+        <Select
           label="Profesional"
           id="appointment-professional"
           value={String(professionalId)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setProfessionalId(e.target.value)}
           required
+          error={fieldErrors.professional_id}
         >
           <option value="">Selecciona profesional</option>
           {professionals.map((p) => (
@@ -139,6 +168,7 @@ function AppointmentFormModal({
           id="appointment-service"
           value={String(serviceId)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setServiceId(e.target.value)}
+          error={fieldErrors.service_id}
         >
           <option value="">Sin servicio asignado</option>
           {services.map((s) => (
@@ -156,6 +186,7 @@ function AppointmentFormModal({
             value={clientName}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setClientName(e.target.value)}
             placeholder="Nombre del cliente"
+            error={fieldErrors.client_name}
           />
         </div>
 
@@ -165,6 +196,7 @@ function AppointmentFormModal({
           value={clientPhone}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setClientPhone(e.target.value)}
           placeholder="+52 ..."
+          error={fieldErrors.client_phone}
         />
 
         <Input
@@ -174,6 +206,7 @@ function AppointmentFormModal({
           value={clientEmail}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setClientEmail(e.target.value)}
           placeholder="cliente@correo.com"
+          error={fieldErrors.client_email}
         />
 
         <DatePicker
@@ -183,6 +216,7 @@ function AppointmentFormModal({
           required
           value={startAt || null}
           onChange={(_, dateStr) => setStartAt(dateStr || '')}
+          error={fieldErrors.start_at}
         />
 
         <DatePicker
@@ -192,6 +226,7 @@ function AppointmentFormModal({
           required
           value={endAt || null}
           onChange={(_, dateStr) => setEndAt(dateStr || '')}
+          error={fieldErrors.end_at}
         />
 
         <Select
@@ -199,6 +234,7 @@ function AppointmentFormModal({
           id="appointment-status"
           value={status}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
+          error={fieldErrors.status}
         >
           <option value="">Sin estado</option>
           {STATUS_OPTIONS.map((opt) => (
@@ -215,6 +251,7 @@ function AppointmentFormModal({
           value={notes}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
           placeholder="Detalles específicos de la cita, preferencias del cliente, etc."
+          error={fieldErrors.notes}
         />
 
         <div className="md:col-span-2 flex items-center justify-between pt-2">
@@ -248,6 +285,7 @@ export default function AppointmentsPage() {
   const { user, loading: authLoading, logout } = useAuth();
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -256,6 +294,7 @@ export default function AppointmentsPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -275,14 +314,16 @@ export default function AppointmentsPage() {
       setLoading(true);
       setError('');
       try {
-        const [appointmentsData, professionalsData, servicesData] =
+        const [appointmentsData, branchesData, professionalsData, servicesData] =
           await Promise.all([
             fetchAppointments(),
+            fetchBranches(),
             fetchProfessionals(),
             fetchServices(),
           ]);
         if (!cancelled) {
           setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
+          setBranches(Array.isArray(branchesData) ? branchesData : []);
           setProfessionals(
             Array.isArray(professionalsData) ? professionalsData : []
           );
@@ -342,11 +383,13 @@ export default function AppointmentsPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedAppointment(null);
     setModalOpen(true);
   };
 
   const openEditModal = (appt: Appointment) => {
+    setFieldErrors({});
     setSelectedAppointment(appt);
     setModalOpen(true);
   };
@@ -354,6 +397,7 @@ export default function AppointmentsPage() {
   const handleSubmitAppointment = async (formData: CreateAppointmentPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedAppointment?.id) {
         const updated = await updateAppointment(selectedAppointment.id, formData);
@@ -367,6 +411,7 @@ export default function AppointmentsPage() {
       setModalOpen(false);
       setSelectedAppointment(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -407,6 +452,7 @@ export default function AppointmentsPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedAppointment(null);
           }
@@ -414,8 +460,10 @@ export default function AppointmentsPage() {
         onSubmit={handleSubmitAppointment}
         initialData={selectedAppointment}
         loading={modalLoading}
+        branches={branches}
         professionals={professionals}
         services={services}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

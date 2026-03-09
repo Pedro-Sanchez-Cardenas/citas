@@ -6,6 +6,7 @@ import { fetchPayments, createPayment } from '@/lib/api/payments';
 import { fetchBranches } from '@/lib/api/branches';
 import { fetchAppointments } from '@/lib/api/appointments';
 import { fetchClients } from '@/lib/api/clients';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Table, Modal } from '@/components/ui';
 import type { Appointment, Client, Branch } from '@/types';
 
@@ -66,6 +67,7 @@ interface PaymentFormModalProps {
   branches: Branch[];
   appointments: AppointmentWithBranch[];
   clients: Client[];
+  fieldErrors: FormFieldErrors;
 }
 
 function PaymentFormModal({
@@ -76,6 +78,7 @@ function PaymentFormModal({
   branches,
   appointments,
   clients,
+  fieldErrors,
 }: PaymentFormModalProps) {
   const [branchId, setBranchId] = useState('');
   const [appointmentId, setAppointmentId] = useState('');
@@ -141,6 +144,7 @@ function PaymentFormModal({
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setBranchId(e.target.value)}
           required
           disabled={!!selectedAppointment}
+          error={fieldErrors.branch_id}
         >
           <option value="">Selecciona sucursal</option>
           {branches.map((b) => (
@@ -158,6 +162,7 @@ function PaymentFormModal({
             setAppointmentId(e.target.value);
             if (e.target.value) setClientId('');
           }}
+          error={fieldErrors.appointment_id}
         >
           <option value="">Sin asociar a cita</option>
           {appointments.slice(0, 100).map((a) => (
@@ -173,6 +178,7 @@ function PaymentFormModal({
             id="payment-client"
             value={clientId}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setClientId(e.target.value)}
+            error={fieldErrors.client_id}
           >
             <option value="">Sin asociar a cliente</option>
             {clients.map((c) => (
@@ -189,6 +195,7 @@ function PaymentFormModal({
           value={method}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setMethod(e.target.value)}
           required
+          error={fieldErrors.method}
         >
           {PAYMENT_METHODS.map((m) => (
             <option key={m} value={m}>
@@ -207,6 +214,7 @@ function PaymentFormModal({
           value={amount}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setAmount(e.target.value)}
           placeholder="0.00"
+          error={fieldErrors.amount_cents}
         />
 
         <Input
@@ -218,6 +226,7 @@ function PaymentFormModal({
           value={tip}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setTip(e.target.value)}
           placeholder="0.00"
+          error={fieldErrors.tip_cents}
         />
 
         <Select
@@ -225,6 +234,7 @@ function PaymentFormModal({
           id="payment-status"
           value={status}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
+          error={fieldErrors.status}
         >
           {PAYMENT_STATUS.map((s) => (
             <option key={s} value={s}>
@@ -239,6 +249,7 @@ function PaymentFormModal({
           value={reference}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setReference(e.target.value)}
           placeholder="Número de transacción, folio..."
+          error={fieldErrors.provider_payment_id}
         />
 
         <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
@@ -265,6 +276,7 @@ export default function PaymentsPage() {
   const [methodFilter, setMethodFilter] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [branches, setBranches] = useState<Branch[]>([]);
   const [appointments, setAppointments] = useState<AppointmentWithBranch[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -339,11 +351,13 @@ export default function PaymentsPage() {
   const handleSubmitPayment = async (payload: PaymentFormPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       const created = await createPayment(payload as unknown as Record<string, unknown>);
       setPayments((prev) => [created as PaymentItem, ...(Array.isArray(prev) ? prev : [])]);
       setModalOpen(false);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message || 'No se pudo registrar el pago.'
@@ -386,12 +400,18 @@ export default function PaymentsPage() {
     <>
       <PaymentFormModal
         open={modalOpen}
-        onClose={() => !modalLoading && setModalOpen(false)}
+        onClose={() => {
+          if (!modalLoading) {
+            setFieldErrors({});
+            setModalOpen(false);
+          }
+        }}
         onSubmit={handleSubmitPayment}
         loading={modalLoading}
         branches={branches}
         appointments={appointments}
         clients={clients}
+        fieldErrors={fieldErrors}
       />
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -402,7 +422,14 @@ export default function PaymentsPage() {
             Consulta y registra pagos asociados a citas o clientes.
           </p>
         </div>
-        <Button type="button" onClick={() => setModalOpen(true)} size="md">
+        <Button
+          type="button"
+          onClick={() => {
+            setFieldErrors({});
+            setModalOpen(true);
+          }}
+          size="md"
+        >
           <span className="mr-2 text-base">＋</span>
           Registrar pago
         </Button>

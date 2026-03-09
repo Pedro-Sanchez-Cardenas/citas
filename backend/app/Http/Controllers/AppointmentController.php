@@ -41,7 +41,9 @@ class AppointmentController extends Controller
 
     public function store(StoreAppointmentRequest $request): JsonResponse
     {
-        $appointment = $this->appointmentService->create($request->validated());
+        $data = $request->validated();
+        $data['business_id'] = (int) $request->user()->business_id;
+        $appointment = $this->appointmentService->create($data);
 
         return response()->json($appointment, 201);
     }

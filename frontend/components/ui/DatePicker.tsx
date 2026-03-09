@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import Flatpickr from 'react-flatpickr';
 import clsx from 'clsx';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -74,6 +74,8 @@ export default function DatePicker({
   dateFormat: dateFormatProp,
   ...rest
 }: DatePickerProps) {
+  const [nativeError, setNativeError] = useState<string | null>(null);
+  const effectiveError = error ?? nativeError;
   const isRange = mode === 'range';
   const dateFormat = dateFormatProp ?? (enableTime ? 'Y-m-d H:i' : 'Y-m-d');
   const defaultPlaceholder = enableTime
@@ -96,6 +98,9 @@ export default function DatePicker({
 
   const handleChange = useCallback(
     (selectedDates: Date[], dateStr: string) => {
+      if (nativeError && selectedDates.length > 0) {
+        setNativeError(null);
+      }
       if (!onChange) return;
       if (enableTime && selectedDates[0]) {
         const dateStrOut = toDateTimeLocalString(selectedDates[0]);
@@ -130,7 +135,7 @@ export default function DatePicker({
         onChange(selectedDates[0] ?? null, dateStr);
       }
     },
-    [onChange, isRange, enableTime]
+    [onChange, isRange, enableTime, nativeError]
   );
 
   const options = useMemo(() => {
@@ -174,19 +179,23 @@ export default function DatePicker({
         disabled={disabled}
         className={clsx(
           'flatpickr-input w-full rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/50',
-          error && 'border-red-500/70 focus:border-red-500 focus:ring-red-500/40',
-          inputClassName
+          inputClassName,
+          effectiveError && 'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
         )}
-        aria-invalid={!!error}
+        aria-invalid={!!effectiveError}
         aria-describedby={hint ? `${id}-hint` : undefined}
+        onInvalid={(e) => {
+          if (error) return;
+          setNativeError((e.target as HTMLInputElement).validationMessage || 'Campo inválido.');
+        }}
         {...rest}
       />
-      {hint && !error && (
+      {hint && !effectiveError && (
         <p id={id ? `${id}-hint` : undefined} className="mt-1 text-[11px] text-slate-500">
           {hint}
         </p>
       )}
-      {error && <p className="mt-1 text-[11px] text-red-300">{error}</p>}
+      {effectiveError && <p className="mt-1 text-[11px] text-red-300">{effectiveError}</p>}
     </div>
   );
 }

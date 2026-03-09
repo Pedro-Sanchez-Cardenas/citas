@@ -29,6 +29,7 @@ export interface BaseEntity {
 
 export interface Appointment {
   id: number;
+  branch_id?: number;
   professional_id?: number;
   service_id?: number | null;
   client_name?: string | null;

@@ -10,6 +10,7 @@ import {
   type CreateServicePayload,
 } from '@/lib/api/services';
 import { fetchServiceCategories } from '@/lib/api/serviceCategories';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 import type { Service } from '@/types';
 import type { AxiosError } from 'axios';
@@ -53,6 +54,7 @@ interface ServiceFormModalProps {
   initialData: ServiceWithCategory | null;
   loading: boolean;
   categories: ServiceCategory[];
+  fieldErrors: FormFieldErrors;
 }
 
 function ServiceFormModal({
@@ -62,6 +64,7 @@ function ServiceFormModal({
   initialData,
   loading,
   categories,
+  fieldErrors,
 }: ServiceFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [code, setCode] = useState(initialData?.code ?? '');
@@ -131,6 +134,7 @@ function ServiceFormModal({
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="Corte de cabello, Manicure spa, Color completo..."
+            error={fieldErrors.name}
           />
         </div>
 
@@ -141,6 +145,7 @@ function ServiceFormModal({
           value={code}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
           placeholder="Ej. CUT-BASICO, MANI-SPA"
+          error={fieldErrors.code}
         />
 
         <Input
@@ -152,6 +157,7 @@ function ServiceFormModal({
           value={durationMinutes}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setDurationMinutes(Number(e.target.value))}
           placeholder="30"
+          error={fieldErrors.duration_minutes}
         />
 
         <Input
@@ -164,6 +170,7 @@ function ServiceFormModal({
           onChange={(e: ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
           placeholder="Ej. 15.00"
           hint="Puedes dejarlo vacío si el precio se define caso por caso."
+          error={fieldErrors.price_cents}
         />
 
         <Select
@@ -171,6 +178,7 @@ function ServiceFormModal({
           id="service-currency"
           value={currency}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setCurrency(e.target.value)}
+          error={fieldErrors.currency}
         >
           <option value="USD">USD (US Dollar)</option>
           <option value="MXN">MXN (Peso mexicano)</option>
@@ -183,6 +191,7 @@ function ServiceFormModal({
           value={String(categoryId ?? '')}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setCategoryId(e.target.value)}
           hint="Opcional, pero recomendado para ordenar tu catálogo."
+          error={fieldErrors.service_category_id}
         >
           <option value="">Sin categoría</option>
           {categories.map((cat) => (
@@ -229,6 +238,7 @@ export default function ServicesPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedService, setSelectedService] = useState<ServiceWithCategory | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -298,11 +308,13 @@ export default function ServicesPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedService(null);
     setModalOpen(true);
   };
 
   const openEditModal = (service: ServiceWithCategory) => {
+    setFieldErrors({});
     setSelectedService(service);
     setModalOpen(true);
   };
@@ -310,6 +322,7 @@ export default function ServicesPage() {
   const handleSubmitService = async (formData: ServiceFormPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedService?.id) {
         const updated = await updateService(selectedService.id, formData);
@@ -323,6 +336,7 @@ export default function ServicesPage() {
       setModalOpen(false);
       setSelectedService(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -363,6 +377,7 @@ export default function ServicesPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedService(null);
           }
@@ -371,6 +386,7 @@ export default function ServicesPage() {
         initialData={selectedService}
         loading={modalLoading}
         categories={categories}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

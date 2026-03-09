@@ -9,6 +9,7 @@ import {
   deleteCombinedService,
 } from '@/lib/api/combinedServices';
 import { fetchServices } from '@/lib/api/services';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 import type { Service } from '@/types';
 import type { AxiosError } from 'axios';
@@ -53,6 +54,7 @@ interface CombinedServiceFormModalProps {
   initialData: CombinedServiceRecord | null;
   loading: boolean;
   services: Service[];
+  fieldErrors: FormFieldErrors;
 }
 
 function CombinedServiceFormModal({
@@ -62,6 +64,7 @@ function CombinedServiceFormModal({
   initialData,
   loading,
   services,
+  fieldErrors,
 }: CombinedServiceFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [code, setCode] = useState(initialData?.code ?? '');
@@ -170,6 +173,7 @@ function CombinedServiceFormModal({
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="Corte + Barba Premium"
+            error={fieldErrors.name}
           />
 
           <Input
@@ -179,6 +183,7 @@ function CombinedServiceFormModal({
             value={code}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setCode(e.target.value)}
             placeholder="COMB-001"
+            error={fieldErrors.code}
           />
 
           <Input
@@ -189,6 +194,7 @@ function CombinedServiceFormModal({
             value={totalDuration}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setTotalDuration(e.target.value)}
             placeholder="Ej. 90"
+            error={fieldErrors.total_duration_minutes}
           />
 
           <div className="flex items-center pt-5">
@@ -228,6 +234,7 @@ function CombinedServiceFormModal({
                   onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                     handleChangeItem(index, 'service_id', e.target.value)
                   }
+                  error={fieldErrors[`items.${index}.service_id`]}
                 >
                   <option value="">Selecciona servicio</option>
                   {services.map((s) => (
@@ -244,6 +251,7 @@ function CombinedServiceFormModal({
                   onChange={(e: ChangeEvent<HTMLInputElement>) =>
                     handleChangeItem(index, 'position', Number(e.target.value))
                   }
+                  error={fieldErrors[`items.${index}.position`]}
                 />
                 <Input
                   label="Offset (min)"
@@ -257,6 +265,7 @@ function CombinedServiceFormModal({
                       Number(e.target.value)
                     )
                   }
+                  error={fieldErrors[`items.${index}.offset_minutes`]}
                 />
                 <div className="flex items-end gap-2">
                   <Input
@@ -271,6 +280,7 @@ function CombinedServiceFormModal({
                         e.target.value ? Number(e.target.value) : ''
                       )
                     }
+                    error={fieldErrors[`items.${index}.duration_minutes`]}
                   />
                   {items.length > 1 && (
                     <Button
@@ -318,6 +328,7 @@ export default function CombinedServicesPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selected, setSelected] = useState<CombinedServiceRecord | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -381,11 +392,13 @@ export default function CombinedServicesPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelected(null);
     setModalOpen(true);
   };
 
   const openEditModal = (item: CombinedServiceRecord) => {
+    setFieldErrors({});
     setSelected(item);
     setModalOpen(true);
   };
@@ -393,6 +406,7 @@ export default function CombinedServicesPage() {
   const handleSubmit = async (formData: CombinedFormPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selected?.id) {
         const updated = await updateCombinedService(selected.id, formData as unknown as Record<string, unknown>);
@@ -406,6 +420,7 @@ export default function CombinedServicesPage() {
       setModalOpen(false);
       setSelected(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -446,6 +461,7 @@ export default function CombinedServicesPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelected(null);
           }
@@ -454,6 +470,7 @@ export default function CombinedServicesPage() {
         initialData={selected}
         loading={modalLoading}
         services={services}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

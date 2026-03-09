@@ -8,6 +8,7 @@ import {
   updateServiceCategory,
   deleteServiceCategory,
 } from '@/lib/api/serviceCategories';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Textarea, Modal, Table, FloatMenu } from '@/components/ui';
 import type { AxiosError } from 'axios';
 
@@ -24,9 +25,10 @@ interface CategoryFormModalProps {
   onSubmit: (payload: { name: string; description?: string | null }) => Promise<void>;
   initialData: ServiceCategoryRecord | null;
   loading: boolean;
+  fieldErrors: FormFieldErrors;
 }
 
-function CategoryFormModal({ open, onClose, onSubmit, initialData, loading }: CategoryFormModalProps) {
+function CategoryFormModal({ open, onClose, onSubmit, initialData, loading, fieldErrors }: CategoryFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [description, setDescription] = useState(initialData?.description ?? '');
 
@@ -61,6 +63,7 @@ function CategoryFormModal({ open, onClose, onSubmit, initialData, loading }: Ca
           value={name}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
           placeholder="Cortes, Color, Manos y pies..."
+          error={fieldErrors.name}
         />
 
         <Textarea
@@ -70,6 +73,7 @@ function CategoryFormModal({ open, onClose, onSubmit, initialData, loading }: Ca
           value={description}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
           placeholder="Describe qué tipos de servicios entran en esta categoría."
+          error={fieldErrors.description}
         />
 
         <div className="mt-4 flex items-center justify-end gap-2">
@@ -100,6 +104,7 @@ export default function ServiceCategoriesPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategoryRecord | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -159,11 +164,13 @@ export default function ServiceCategoriesPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedCategory(null);
     setModalOpen(true);
   };
 
   const openEditModal = (category: ServiceCategoryRecord) => {
+    setFieldErrors({});
     setSelectedCategory(category);
     setModalOpen(true);
   };
@@ -171,6 +178,7 @@ export default function ServiceCategoriesPage() {
   const handleSubmitCategory = async (formData: { name: string; description?: string | null }) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedCategory?.id) {
         const updated = await updateServiceCategory(selectedCategory.id, formData as Record<string, unknown>);
@@ -184,6 +192,7 @@ export default function ServiceCategoriesPage() {
       setModalOpen(false);
       setSelectedCategory(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -224,6 +233,7 @@ export default function ServiceCategoriesPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedCategory(null);
           }
@@ -231,6 +241,7 @@ export default function ServiceCategoriesPage() {
         onSubmit={handleSubmitCategory}
         initialData={selectedCategory}
         loading={modalLoading}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

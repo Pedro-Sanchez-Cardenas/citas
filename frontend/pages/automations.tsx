@@ -8,6 +8,7 @@ import {
   updateAutomation,
   deleteAutomation,
 } from '@/lib/api/automations';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Textarea, Table, FloatMenu } from '@/components/ui';
 import type { AxiosError } from 'axios';
 
@@ -42,6 +43,7 @@ interface AutomationFormModalProps {
   onSubmit: (payload: AutomationFormPayload) => Promise<void>;
   initialData: AutomationRecord | null;
   loading: boolean;
+  fieldErrors: FormFieldErrors;
 }
 
 function AutomationFormModal({
@@ -50,6 +52,7 @@ function AutomationFormModal({
   onSubmit,
   initialData,
   loading,
+  fieldErrors,
 }: AutomationFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [trigger, setTrigger] = useState(initialData?.trigger ?? 'appointment_reminder');
@@ -132,6 +135,7 @@ function AutomationFormModal({
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="Recordatorio 24h antes de la cita"
+            error={fieldErrors.name}
           />
         </div>
 
@@ -140,6 +144,7 @@ function AutomationFormModal({
           id="automation-trigger"
           value={trigger}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setTrigger(e.target.value)}
+          error={fieldErrors.trigger}
         >
           {TRIGGER_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -156,6 +161,7 @@ function AutomationFormModal({
             value={conditionsJson}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setConditionsJson(e.target.value)}
             hint="Configura filtros como días de anticipación, tipos de servicio, etc."
+            error={fieldErrors.conditions}
           />
         </div>
 
@@ -167,6 +173,7 @@ function AutomationFormModal({
             value={actionJson}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setActionJson(e.target.value)}
             hint="Define mensajes, canales (SMS/email) y otros parámetros."
+            error={fieldErrors.action}
           />
         </div>
 
@@ -206,6 +213,7 @@ export default function AutomationsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedAutomation, setSelectedAutomation] = useState<AutomationRecord | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -265,11 +273,13 @@ export default function AutomationsPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedAutomation(null);
     setModalOpen(true);
   };
 
   const openEditModal = (automation: AutomationRecord) => {
+    setFieldErrors({});
     setSelectedAutomation(automation);
     setModalOpen(true);
   };
@@ -277,6 +287,7 @@ export default function AutomationsPage() {
   const handleSubmitAutomation = async (formData: AutomationFormPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedAutomation?.id) {
         const updated = await updateAutomation(selectedAutomation.id, formData as unknown as Record<string, unknown>);
@@ -290,6 +301,7 @@ export default function AutomationsPage() {
       setModalOpen(false);
       setSelectedAutomation(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -330,6 +342,7 @@ export default function AutomationsPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedAutomation(null);
           }
@@ -337,6 +350,7 @@ export default function AutomationsPage() {
         onSubmit={handleSubmitAutomation}
         initialData={selectedAutomation}
         loading={modalLoading}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

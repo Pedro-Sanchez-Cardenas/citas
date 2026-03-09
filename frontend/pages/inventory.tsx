@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Modal, Table, FloatMenu } from '@/components/ui';
 import type { AxiosError } from 'axios';
 
@@ -31,6 +32,7 @@ interface InventoryAdjustModalProps {
   onSubmit: (payload: AdjustPayload) => Promise<void>;
   initialData: StockRow | null;
   loading: boolean;
+  fieldErrors: FormFieldErrors;
 }
 
 function InventoryAdjustModal({
@@ -39,6 +41,7 @@ function InventoryAdjustModal({
   onSubmit,
   initialData,
   loading,
+  fieldErrors,
 }: InventoryAdjustModalProps) {
   const [quantity, setQuantity] = useState('');
   const [type, setType] = useState('in');
@@ -80,6 +83,7 @@ function InventoryAdjustModal({
           id="inventory-type"
           value={type}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setType(e.target.value)}
+          error={fieldErrors.type}
         >
           <option value="in">Entrada (+)</option>
           <option value="out">Salida (-)</option>
@@ -95,6 +99,7 @@ function InventoryAdjustModal({
           value={quantity}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)}
           placeholder="Ej. 1, 0.5, 250"
+          error={fieldErrors.quantity}
         />
 
         <Input
@@ -103,6 +108,7 @@ function InventoryAdjustModal({
           value={reason}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setReason(e.target.value)}
           placeholder="Compra, ajuste, consumo interno, etc."
+          error={fieldErrors.reason}
         />
 
         <div className="mt-2 flex items-center justify-end gap-2">
@@ -133,6 +139,7 @@ export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedStock, setSelectedStock] = useState<StockRow | null>(null);
 
   useEffect(() => {
@@ -191,6 +198,7 @@ export default function InventoryPage() {
   const isLoading = authLoading || loading;
 
   const openAdjustModal = (row: StockRow) => {
+    setFieldErrors({});
     setSelectedStock(row);
     setModalOpen(true);
   };
@@ -198,6 +206,7 @@ export default function InventoryPage() {
   const handleSubmitAdjust = async (payload: AdjustPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       const updated = await adjustInventory(payload as unknown as Record<string, unknown>);
       if (updated && Array.isArray(updated)) {
@@ -215,6 +224,7 @@ export default function InventoryPage() {
       setModalOpen(false);
       setSelectedStock(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -235,6 +245,7 @@ export default function InventoryPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedStock(null);
           }
@@ -242,6 +253,7 @@ export default function InventoryPage() {
         onSubmit={handleSubmitAdjust}
         initialData={selectedStock}
         loading={modalLoading}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

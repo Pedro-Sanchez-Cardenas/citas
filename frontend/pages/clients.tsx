@@ -12,6 +12,7 @@ import {
   deleteClientMedia,
   type CreateClientPayload,
 } from '@/lib/api/clients';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Textarea, Select, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 import type { Client } from '@/types';
 import type { AxiosError } from 'axios';
@@ -22,9 +23,10 @@ interface ClientFormModalProps {
   onSubmit: (payload: CreateClientPayload) => Promise<void>;
   initialData: Client | null;
   loading: boolean;
+  fieldErrors: FormFieldErrors;
 }
 
-function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: ClientFormModalProps) {
+function ClientFormModal({ open, onClose, onSubmit, initialData, loading, fieldErrors }: ClientFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [email, setEmail] = useState(initialData?.email ?? '');
   const [phone, setPhone] = useState(initialData?.phone ?? '');
@@ -86,6 +88,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="Nombre y apellidos del cliente"
+            error={fieldErrors.name}
           />
         </div>
 
@@ -97,6 +100,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           placeholder="cliente@correo.com"
           hint="Opcional, pero útil para recordatorios y marketing."
+          error={fieldErrors.email}
         />
 
         <Input
@@ -105,6 +109,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           value={phone}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setPhone(e.target.value)}
           placeholder="+52 ..."
+          error={fieldErrors.phone}
         />
 
         <DatePicker
@@ -112,6 +117,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           id="client-birthday"
           value={birthday || null}
           onChange={(_, dateStr) => setBirthday(dateStr || '')}
+          error={fieldErrors.birthday}
         />
 
         <Select
@@ -119,6 +125,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           id="client-gender"
           value={gender || ''}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setGender(e.target.value)}
+          error={fieldErrors.gender}
         >
           <option value="">Sin especificar</option>
           <option value="female">Femenino</option>
@@ -133,6 +140,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           value={preferredStylist}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setPreferredStylist(e.target.value)}
           placeholder="Nombre de la persona de confianza del cliente"
+          error={fieldErrors.preferred_stylist}
         />
 
         <Textarea
@@ -142,6 +150,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           value={notes}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
           placeholder="Preferencias, detalles importantes, historial relevante..."
+          error={fieldErrors.notes}
         />
 
         <Textarea
@@ -151,6 +160,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading }: Clie
           value={allergies}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAllergies(e.target.value)}
           placeholder="Productos, ingredientes o tratamientos a evitar."
+          error={fieldErrors.allergies}
         />
 
         <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
@@ -394,6 +404,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [detailClient, setDetailClient] = useState<Client | null>(null);
@@ -459,11 +470,13 @@ export default function ClientsPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedClient(null);
     setModalOpen(true);
   };
 
   const openEditModal = (client: Client) => {
+    setFieldErrors({});
     setSelectedClient(client);
     setModalOpen(true);
   };
@@ -471,6 +484,7 @@ export default function ClientsPage() {
   const handleSubmitClient = async (formData: CreateClientPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedClient?.id) {
         const updated = await updateClient(selectedClient.id, formData);
@@ -484,6 +498,7 @@ export default function ClientsPage() {
       setModalOpen(false);
       setSelectedClient(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -529,6 +544,7 @@ export default function ClientsPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedClient(null);
           }
@@ -536,6 +552,7 @@ export default function ClientsPage() {
         onSubmit={handleSubmitClient}
         initialData={selectedClient}
         loading={modalLoading}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

@@ -10,6 +10,7 @@ import {
   type CreateBlockPayload,
 } from '@/lib/api/blocks';
 import { fetchProfessionals } from '@/lib/api/professionals';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Modal, Textarea, Table, FloatMenu, DatePicker } from '@/components/ui';
 import type { Professional } from '@/types';
 import type { AxiosError } from 'axios';
@@ -31,6 +32,7 @@ interface BlockFormModalProps {
   onSubmit: (payload: CreateBlockPayload) => Promise<void>;
   loading: boolean;
   professionals: Professional[];
+  fieldErrors: FormFieldErrors;
 }
 
 function BlockFormModal({
@@ -39,6 +41,7 @@ function BlockFormModal({
   onSubmit,
   loading,
   professionals,
+  fieldErrors,
 }: BlockFormModalProps) {
   const [professionalId, setProfessionalId] = useState('');
   const [startAt, setStartAt] = useState('');
@@ -82,6 +85,7 @@ function BlockFormModal({
           id="block-professional"
           value={professionalId}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setProfessionalId(e.target.value)}
+          error={fieldErrors.professional_id}
         >
           <option value="">Bloqueo general</option>
           {professionals.map((p) => (
@@ -98,6 +102,7 @@ function BlockFormModal({
           required
           value={startAt || null}
           onChange={(_, dateStr) => setStartAt(dateStr || '')}
+          error={fieldErrors.start_at}
         />
 
         <DatePicker
@@ -107,6 +112,7 @@ function BlockFormModal({
           required
           value={endAt || null}
           onChange={(_, dateStr) => setEndAt(dateStr || '')}
+          error={fieldErrors.end_at}
         />
 
         <Input
@@ -115,6 +121,7 @@ function BlockFormModal({
           value={type}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setType(e.target.value)}
           placeholder="descanso, mantenimiento, cierre, etc."
+          error={fieldErrors.type}
         />
 
         <Textarea
@@ -124,6 +131,7 @@ function BlockFormModal({
           value={reason}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setReason(e.target.value)}
           placeholder="Detalles del motivo del bloqueo."
+          error={fieldErrors.reason}
         />
 
         <div className="mt-2 flex items-center justify-end gap-2">
@@ -155,6 +163,7 @@ export default function BlocksPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -240,11 +249,13 @@ export default function BlocksPage() {
   const handleSubmitBlock = async (formData: CreateBlockPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       const created = await createBlock(formData);
       if (created) setBlocks((prev) => [created, ...prev]);
       setModalOpen(false);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -285,12 +296,14 @@ export default function BlocksPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
           }
         }}
         onSubmit={handleSubmitBlock}
         loading={modalLoading}
         professionals={professionals}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

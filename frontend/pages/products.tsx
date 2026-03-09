@@ -8,6 +8,7 @@ import {
   updateProduct,
   deleteProduct,
 } from '@/lib/api/products';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
 import type { AxiosError } from 'axios';
 
@@ -45,9 +46,10 @@ interface ProductFormModalProps {
   onSubmit: (payload: ProductFormPayload) => Promise<void>;
   initialData: ProductItem | null;
   loading: boolean;
+  fieldErrors: FormFieldErrors;
 }
 
-function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: ProductFormModalProps) {
+function ProductFormModal({ open, onClose, onSubmit, initialData, loading, fieldErrors }: ProductFormModalProps) {
   const [name, setName] = useState(initialData?.name ?? '');
   const [sku, setSku] = useState(initialData?.sku ?? '');
   const [category, setCategory] = useState(initialData?.category ?? '');
@@ -126,6 +128,7 @@ function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: Pro
             value={name}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
             placeholder="Shampoo hidratante, Tinte rubio 7.1, etc."
+            error={fieldErrors.name}
           />
         </div>
 
@@ -136,6 +139,7 @@ function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: Pro
           value={sku}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setSku(e.target.value)}
           placeholder="Código interno único"
+          error={fieldErrors.sku}
         />
 
         <Input
@@ -144,6 +148,7 @@ function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: Pro
           value={category}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setCategory(e.target.value)}
           placeholder="Color, Tratamientos, Uñas, Barbería..."
+          error={fieldErrors.category}
         />
 
         <Select
@@ -151,6 +156,7 @@ function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: Pro
           id="product-unit"
           value={unit}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setUnit(e.target.value)}
+          error={fieldErrors.unit}
         >
           <option value="unit">Unidad</option>
           <option value="ml">Mililitros (ml)</option>
@@ -168,6 +174,7 @@ function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: Pro
           value={cost}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setCost(e.target.value)}
           placeholder="Costo por unidad"
+          error={fieldErrors.cost_cents}
         />
 
         <Input
@@ -179,6 +186,7 @@ function ProductFormModal({ open, onClose, onSubmit, initialData, loading }: Pro
           value={price}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setPrice(e.target.value)}
           placeholder="Precio sugerido de venta"
+          error={fieldErrors.price_cents}
         />
 
         <div className="md:col-span-2 flex items-center justify-between pt-2">
@@ -217,6 +225,7 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
   const [selectedProduct, setSelectedProduct] = useState<ProductItem | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
@@ -277,11 +286,13 @@ export default function ProductsPage() {
   const isLoading = authLoading || loading;
 
   const openCreateModal = () => {
+    setFieldErrors({});
     setSelectedProduct(null);
     setModalOpen(true);
   };
 
   const openEditModal = (product: ProductItem) => {
+    setFieldErrors({});
     setSelectedProduct(product);
     setModalOpen(true);
   };
@@ -289,6 +300,7 @@ export default function ProductsPage() {
   const handleSubmitProduct = async (formData: ProductFormPayload) => {
     setModalLoading(true);
     setError('');
+    setFieldErrors({});
     try {
       if (selectedProduct?.id) {
         const updated = await updateProduct(selectedProduct.id, formData as unknown as Record<string, unknown>);
@@ -302,6 +314,7 @@ export default function ProductsPage() {
       setModalOpen(false);
       setSelectedProduct(null);
     } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
       const ax = err as AxiosError<{ message?: string }>;
       setError(
         ax?.response?.data?.message ||
@@ -342,6 +355,7 @@ export default function ProductsPage() {
         open={modalOpen}
         onClose={() => {
           if (!modalLoading) {
+            setFieldErrors({});
             setModalOpen(false);
             setSelectedProduct(null);
           }
@@ -349,6 +363,7 @@ export default function ProductsPage() {
         onSubmit={handleSubmitProduct}
         initialData={selectedProduct}
         loading={modalLoading}
+        fieldErrors={fieldErrors}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
