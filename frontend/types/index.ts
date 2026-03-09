@@ -60,12 +60,14 @@ export interface Client {
 export interface Professional {
   id: number;
   name: string;
+  branch_id?: number | null;
   [key: string]: unknown;
 }
 
 export interface Service {
   id: number;
   name: string;
+  branch_id?: number | null;
   [key: string]: unknown;
 }
 

@@ -15,12 +15,14 @@ class EloquentAppointmentRepository implements AppointmentRepositoryInterface
     }
 
     public function getBetween(
+        int $businessId,
         CarbonImmutable $start,
         CarbonImmutable $end,
         ?int $branchId = null,
         ?int $professionalId = null
     ): Collection {
         return Appointment::query()
+            ->where('business_id', $businessId)
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($professionalId, fn ($q) => $q->where('professional_id', $professionalId))
             ->where(function ($q) use ($start, $end) {

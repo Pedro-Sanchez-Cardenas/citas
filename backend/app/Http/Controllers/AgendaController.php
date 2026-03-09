@@ -24,6 +24,7 @@ class AgendaController extends Controller
 
     public function day(Request $request): JsonResponse
     {
+        $businessId = (int) $request->user()->business_id;
         $date = $request->query('date')
             ? new CarbonImmutable($request->query('date'))
             : CarbonImmutable::now();
@@ -31,13 +32,14 @@ class AgendaController extends Controller
         $branchId = $request->query('branch_id') ? (int) $request->query('branch_id') : null;
         $professionalId = $request->query('professional_id') ? (int) $request->query('professional_id') : null;
 
-        $data = $this->calendarService->getDayView($date, $branchId, $professionalId);
+        $data = $this->calendarService->getDayView($businessId, $date, $branchId, $professionalId);
 
         return response()->json($data);
     }
 
     public function week(Request $request): JsonResponse
     {
+        $businessId = (int) $request->user()->business_id;
         $start = $request->query('start')
             ? new CarbonImmutable($request->query('start'))
             : CarbonImmutable::now()->startOfWeek();
@@ -45,7 +47,7 @@ class AgendaController extends Controller
         $branchId = $request->query('branch_id') ? (int) $request->query('branch_id') : null;
         $professionalId = $request->query('professional_id') ? (int) $request->query('professional_id') : null;
 
-        $data = $this->calendarService->getWeekView($start, $branchId, $professionalId);
+        $data = $this->calendarService->getWeekView($businessId, $start, $branchId, $professionalId);
 
         return response()->json($data);
     }

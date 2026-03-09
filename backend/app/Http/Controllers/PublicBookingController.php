@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Models\Business;
+use App\Models\Branch;
 use App\Models\Professional;
 use App\Services\AppointmentService;
 use App\Services\CalendarService;
@@ -61,8 +62,30 @@ class PublicBookingController extends Controller
         $branchId = $request->query('branch_id') ? (int) $request->query('branch_id') : null;
         $professionalId = $request->query('professional_id') ? (int) $request->query('professional_id') : null;
 
+        if ($branchId) {
+            $validBranch = Branch::query()
+                ->whereKey($branchId)
+                ->where('business_id', $business->id)
+                ->exists();
+
+            if (! $validBranch) {
+                abort(404);
+            }
+        }
+
+        if ($professionalId) {
+            $validProfessional = Professional::query()
+                ->whereKey($professionalId)
+                ->where('business_id', $business->id)
+                ->exists();
+
+            if (! $validProfessional) {
+                abort(404);
+            }
+        }
+
         // Reutilizamos la vista de día de la agenda
-        $data = $this->calendarService->getDayView($date, $branchId, $professionalId);
+        $data = $this->calendarService->getDayView($business->id, $date, $branchId, $professionalId);
 
         return response()->json([
             'business' => $business,

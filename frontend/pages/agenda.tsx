@@ -2,8 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchAgendaDay, fetchAgendaWeek } from '@/lib/api/agenda';
+import { fetchBranches } from '@/lib/api/branches';
 import { Button, Select, Checkbox, Table, DatePicker } from '@/components/ui';
 import type { AxiosError } from 'axios';
+import type { Branch } from '@/types';
 
 interface AgendaItem {
   id: number;
@@ -41,6 +43,8 @@ export default function AgendaPage() {
     return today.toISOString().slice(0, 10);
   });
   const [data, setData] = useState<{ items?: AgendaItem[] } | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCancelled, setShowCancelled] = useState(false);
@@ -57,11 +61,40 @@ export default function AgendaPage() {
 
     let cancelled = false;
 
+    async function loadBranches() {
+      try {
+        const response = await fetchBranches();
+        if (!cancelled) {
+          const list = Array.isArray(response) ? response : [];
+          setBranches(list);
+          if (list.length === 1) {
+            setSelectedBranchId(String(list[0].id));
+          }
+        }
+      } catch {
+        // Si falla, la agenda sigue funcionando sin selector.
+      }
+    }
+
+    void loadBranches();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+
     async function loadAgenda() {
       setLoading(true);
       setError('');
       try {
-        const params = { date };
+        const params = selectedBranchId
+          ? { date, branch_id: Number(selectedBranchId) }
+          : { date };
         const response =
           view === 'day'
             ? await fetchAgendaDay(params)
@@ -89,7 +122,7 @@ export default function AgendaPage() {
     return () => {
       cancelled = true;
     };
-  }, [user, logout, view, date]);
+  }, [user, logout, view, date, selectedBranchId]);
 
   const agendaItems = useMemo((): AgendaItem[] => {
     if (!data) return [];
@@ -152,6 +185,18 @@ export default function AgendaPage() {
             onChange={(_, dateStr) => setDate(dateStr || '')}
             inputClassName="rounded-2xl border-slate-800/80 bg-slate-950/70"
           />
+          <Select
+            id="agenda-branch-filter"
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+          >
+            <option value="">Todas las sucursales</option>
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
+            ))}
+          </Select>
         </div>
       </header>
 

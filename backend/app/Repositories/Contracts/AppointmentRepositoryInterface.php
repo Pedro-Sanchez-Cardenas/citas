@@ -14,6 +14,7 @@ interface AppointmentRepositoryInterface
      * Citas en un rango de fechas opcionalmente filtradas por sucursal/profesional.
      */
     public function getBetween(
+        int $businessId,
         CarbonImmutable $start,
         CarbonImmutable $end,
         ?int $branchId = null,

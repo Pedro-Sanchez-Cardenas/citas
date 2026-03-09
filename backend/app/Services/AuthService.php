@@ -28,7 +28,9 @@ class AuthService
         }
 
         $this->guard->login($user);
-        $request->session()->regenerate();
+        if ($request->hasSession()) {
+            $request->session()->regenerate();
+        }
 
         return ['user' => $user];
     }
@@ -36,8 +38,10 @@ class AuthService
     public function logout(Request $request): void
     {
         $this->guard->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        if ($request->hasSession()) {
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
     }
 
     public function currentUser(): ?\App\Models\User

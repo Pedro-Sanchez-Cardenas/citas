@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Repositories\Contracts\AppointmentRepositoryInterface;
 use App\Repositories\Contracts\AutomationRepositoryInterface;
 use App\Repositories\Contracts\ClientRepositoryInterface;
+use App\Repositories\Contracts\CombinedServiceRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
 use App\Repositories\Contracts\ProductMovementRepositoryInterface;
 use App\Repositories\Contracts\ProductRepositoryInterface;
@@ -17,6 +18,7 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\EloquentAppointmentRepository;
 use App\Repositories\EloquentAutomationRepository;
 use App\Repositories\EloquentClientRepository;
+use App\Repositories\EloquentCombinedServiceRepository;
 use App\Repositories\EloquentPaymentRepository;
 use App\Repositories\EloquentProductMovementRepository;
 use App\Repositories\EloquentProductRepository;
@@ -47,6 +49,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProductMovementRepositoryInterface::class, EloquentProductMovementRepository::class);
         $this->app->bind(AutomationRepositoryInterface::class, EloquentAutomationRepository::class);
         $this->app->bind(WorkingHourRepositoryInterface::class, EloquentWorkingHourRepository::class);
+        $this->app->bind(CombinedServiceRepositoryInterface::class, EloquentCombinedServiceRepository::class);
     }
 
     /**

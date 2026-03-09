@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTimeBlockRequest;
+use App\Models\Branch;
+use App\Models\Professional;
 use App\Models\TimeBlock;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,7 +13,10 @@ class TimeBlockController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $businessId = (int) $request->user()->business_id;
+
         $query = TimeBlock::query()
+            ->whereHas('branch', fn ($q) => $q->where('business_id', $businessId))
             ->where('branch_id', '!=', null);
 
         if ($branchId = $request->query('branch_id')) {
@@ -31,21 +36,69 @@ class TimeBlockController extends Controller
 
     public function store(StoreTimeBlockRequest $request): JsonResponse
     {
-        $block = TimeBlock::create($request->validated());
+        $businessId = (int) $request->user()->business_id;
+        $data = $request->validated();
+
+        if (! $this->belongsToBusiness($businessId, (int) $data['branch_id'], $data['professional_id'] ?? null)) {
+            abort(404);
+        }
+
+        $block = TimeBlock::create($data);
 
         return response()->json($block, 201);
     }
 
-    public function show(TimeBlock $block): JsonResponse
+    public function show(Request $request, TimeBlock $block): JsonResponse
     {
+        $this->authorizeBlock($request, $block);
+
         return response()->json($block);
     }
 
-    public function destroy(TimeBlock $block): JsonResponse
+    public function destroy(Request $request, TimeBlock $block): JsonResponse
     {
+        $this->authorizeBlock($request, $block);
         $block->delete();
 
         return response()->json(['deleted' => true]);
+    }
+
+    protected function authorizeBlock(Request $request, TimeBlock $block): void
+    {
+        $businessId = (int) $request->user()->business_id;
+        $belongs = $block->branch()
+            ->where('business_id', $businessId)
+            ->exists();
+
+        if (! $belongs) {
+            abort(404);
+        }
+    }
+
+    protected function belongsToBusiness(int $businessId, int $branchId, ?int $professionalId): bool
+    {
+        $branchValid = $this->branchBelongsToBusiness($businessId, $branchId);
+        if (! $branchValid) {
+            return false;
+        }
+
+        if (! $professionalId) {
+            return true;
+        }
+
+        return Professional::query()
+            ->whereKey($professionalId)
+            ->where('business_id', $businessId)
+            ->where('branch_id', $branchId)
+            ->exists();
+    }
+
+    protected function branchBelongsToBusiness(int $businessId, int $branchId): bool
+    {
+        return Branch::query()
+            ->whereKey($branchId)
+            ->where('business_id', $businessId)
+            ->exists();
     }
 }
 

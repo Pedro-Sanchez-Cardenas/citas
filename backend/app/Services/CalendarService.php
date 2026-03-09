@@ -18,6 +18,7 @@ class CalendarService
      * Vista por día para el calendario.
      */
     public function getDayView(
+        int $businessId,
         CarbonImmutable $date,
         ?int $branchId = null,
         ?int $professionalId = null
@@ -26,10 +27,10 @@ class CalendarService
         $end = $date->endOfDay();
 
         $appointments = $this->appointmentRepository
-            ->getBetween($start, $end, $branchId, $professionalId);
+            ->getBetween($businessId, $start, $end, $branchId, $professionalId);
 
-        $workingHours = $this->getWorkingHoursForRange($start, $end, $branchId, $professionalId);
-        $blocks = $this->getBlocksForRange($start, $end, $branchId, $professionalId);
+        $workingHours = $this->getWorkingHoursForRange($businessId, $start, $end, $branchId, $professionalId);
+        $blocks = $this->getBlocksForRange($businessId, $start, $end, $branchId, $professionalId);
 
         return [
             'range' => [
@@ -46,6 +47,7 @@ class CalendarService
      * Vista por semana (7 días a partir de la fecha indicada).
      */
     public function getWeekView(
+        int $businessId,
         CarbonImmutable $startOfWeek,
         ?int $branchId = null,
         ?int $professionalId = null
@@ -54,10 +56,10 @@ class CalendarService
         $end = $start->addDays(6)->endOfDay();
 
         $appointments = $this->appointmentRepository
-            ->getBetween($start, $end, $branchId, $professionalId);
+            ->getBetween($businessId, $start, $end, $branchId, $professionalId);
 
-        $workingHours = $this->getWorkingHoursForRange($start, $end, $branchId, $professionalId);
-        $blocks = $this->getBlocksForRange($start, $end, $branchId, $professionalId);
+        $workingHours = $this->getWorkingHoursForRange($businessId, $start, $end, $branchId, $professionalId);
+        $blocks = $this->getBlocksForRange($businessId, $start, $end, $branchId, $professionalId);
 
         return [
             'range' => [
@@ -71,6 +73,7 @@ class CalendarService
     }
 
     protected function getWorkingHoursForRange(
+        int $businessId,
         CarbonImmutable $start,
         CarbonImmutable $end,
         ?int $branchId,
@@ -78,6 +81,7 @@ class CalendarService
     ) {
         // Horarios dinámicos por día de la semana y fecha efectiva
         return WorkingHour::query()
+            ->where('business_id', $businessId)
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($professionalId, fn ($q) => $q->where('professional_id', $professionalId))
             ->where('is_active', true)
@@ -94,12 +98,14 @@ class CalendarService
     }
 
     protected function getBlocksForRange(
+        int $businessId,
         CarbonImmutable $start,
         CarbonImmutable $end,
         ?int $branchId,
         ?int $professionalId
     ) {
         return TimeBlock::query()
+            ->whereHas('branch', fn ($q) => $q->where('business_id', $businessId))
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($professionalId, fn ($q) => $q->where('professional_id', $professionalId))
             ->where(function ($q) use ($start, $end) {

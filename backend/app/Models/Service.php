@@ -51,6 +51,13 @@ class Service extends Model
             ->withTimestamps();
     }
 
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'service_product')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
+
     public function combinedServiceItems(): HasMany
     {
         return $this->hasMany(CombinedServiceItem::class);

@@ -2,22 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Models\Appointment;
-use App\Models\Branch;
-use App\Models\Professional;
-use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use Tests\Feature\Support\CreatesTenantData;
 
 class AgendaApiTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-    }
+    use CreatesTenantData;
 
     public function test_day_view_requires_authentication(): void
     {
@@ -26,32 +19,15 @@ class AgendaApiTest extends TestCase
 
     public function test_day_view_returns_appointments_for_authenticated_user(): void
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+        $ctx = $this->authenticatedTenant();
+        $business = $ctx['business'];
+        $branch = $ctx['branch'];
+        $professional = $this->createProfessional($business, $branch);
 
-        $branch = Branch::create([
-            'name' => 'Sucursal Centro',
-            'code' => 'CENTRO',
-            'timezone' => 'UTC',
-        ]);
-
-        $professional = Professional::create([
-            'branch_id' => $branch->id,
-            'name' => 'Dr. Demo',
-            'email' => 'demo@example.com',
-        ]);
-
-        $start = CarbonImmutable::now()->setTime(10, 0);
+        $start = CarbonImmutable::now()->addDay()->setTime(10, 0);
         $end = $start->addMinutes(30);
-
-        Appointment::create([
-            'branch_id' => $branch->id,
-            'professional_id' => $professional->id,
-            'client_name' => 'Paciente Demo',
-            'start_at' => $start,
-            'end_at' => $end,
-            'status' => 'scheduled',
-        ]);
+        $this->createWorkingHour($business, $branch, $professional, $start);
+        $this->createAppointment($business, $branch, $professional, null, null, $start, $end);
 
         $response = $this->getJson('/api/agenda/day?date=' . $start->toDateString() . '&branch_id=' . $branch->id);
 
@@ -62,6 +38,21 @@ class AgendaApiTest extends TestCase
                 'working_hours',
                 'blocks',
             ]);
+    }
+
+    public function test_week_view_returns_ok_with_authentication(): void
+    {
+        $ctx = $this->authenticatedTenant();
+        $business = $ctx['business'];
+        $branch = $ctx['branch'];
+        $professional = $this->createProfessional($business, $branch);
+        $start = CarbonImmutable::now()->addDay()->setTime(9, 0);
+        $this->createWorkingHour($business, $branch, $professional, $start);
+        $this->createAppointment($business, $branch, $professional, null, null, $start, $start->addMinutes(30));
+
+        $this->getJson('/api/agenda/week?start=' . $start->startOfWeek()->toDateString())
+            ->assertStatus(200)
+            ->assertJsonStructure(['range', 'appointments', 'working_hours', 'blocks']);
     }
 }
 

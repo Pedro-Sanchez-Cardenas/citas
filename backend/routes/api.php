@@ -41,7 +41,7 @@ Route::prefix('public/{business}')->group(function () {
     Route::post('/book', [PublicBookingController::class, 'book']);
 });
 
-Route::middleware(['auth', 'throttle:60,1'])->group(function () {
+Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'updateProfile']);
     Route::get('/dashboard', [DashboardController::class, 'index']);

@@ -15,7 +15,8 @@ export async function fetchAgendaWeek(params: Record<string, unknown> = {}): Pro
 /** Devuelve items de agenda para un rango de fechas (varias semanas si hace falta). */
 export async function fetchAgendaRange(
   start: Date,
-  end: Date
+  end: Date,
+  params: { branch_id?: number; professional_id?: number } = {}
 ): Promise<{ items?: unknown[] }> {
   const oneDay = 24 * 60 * 60 * 1000;
   const startTime = new Date(start).setHours(0, 0, 0, 0);
@@ -38,7 +39,7 @@ export async function fetchAgendaRange(
   const results = await Promise.all(
     Array.from(weekStarts).map(async (dateStr) => {
       try {
-        const data = await fetchAgendaWeek({ date: dateStr });
+        const data = await fetchAgendaWeek({ date: dateStr, ...params });
         const items = Array.isArray((data as { items?: unknown[] })?.items)
           ? (data as { items: unknown[] }).items
           : Array.isArray(data)

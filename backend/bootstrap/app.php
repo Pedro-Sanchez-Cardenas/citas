@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'subscribed' => \App\Http\Middleware\EnsureBusinessHasSubscription::class,
+            'tenant.isolation' => \App\Http\Middleware\EnsureTenantIsolation::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

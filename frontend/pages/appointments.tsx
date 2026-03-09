@@ -100,6 +100,38 @@ function AppointmentFormModal({
     }
   }, [open, initialData, branches]);
 
+  const normalizedBranchId =
+    branchId !== '' && Number.isFinite(Number(branchId)) ? Number(branchId) : null;
+
+  const filteredProfessionals = useMemo(() => {
+    if (!normalizedBranchId) return professionals;
+    return professionals.filter(
+      (p) => p.branch_id == null || Number(p.branch_id) === normalizedBranchId
+    );
+  }, [professionals, normalizedBranchId]);
+
+  const filteredServices = useMemo(() => {
+    if (!normalizedBranchId) return services;
+    return services.filter(
+      (s) => s.branch_id == null || Number(s.branch_id) === normalizedBranchId
+    );
+  }, [services, normalizedBranchId]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    if (
+      professionalId &&
+      !filteredProfessionals.some((p) => p.id === Number(professionalId))
+    ) {
+      setProfessionalId('');
+    }
+
+    if (serviceId && !filteredServices.some((s) => s.id === Number(serviceId))) {
+      setServiceId('');
+    }
+  }, [open, professionalId, serviceId, filteredProfessionals, filteredServices]);
+
   const isEdit = !!initialData?.id;
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -156,7 +188,7 @@ function AppointmentFormModal({
           error={fieldErrors.professional_id}
         >
           <option value="">Selecciona profesional</option>
-          {professionals.map((p) => (
+          {filteredProfessionals.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
             </option>
@@ -171,7 +203,7 @@ function AppointmentFormModal({
           error={fieldErrors.service_id}
         >
           <option value="">Sin servicio asignado</option>
-          {services.map((s) => (
+          {filteredServices.map((s) => (
             <option key={s.id} value={s.id}>
               {s.name}
             </option>
