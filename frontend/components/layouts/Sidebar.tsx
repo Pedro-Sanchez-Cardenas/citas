@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import { FloatMenu } from '@/components/ui';
 import clsx from 'clsx';
@@ -71,7 +72,7 @@ interface SidebarProps {
   variant?: 'desktop' | 'mobile';
 }
 
-export default function Sidebar({
+function Sidebar({
   user,
   userMenuOptions = [],
   navSections = [],
@@ -195,3 +196,5 @@ export default function Sidebar({
     </aside>
   );
 }
+
+export default memo(Sidebar);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/router';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import type { User } from '@/types';
@@ -70,10 +70,14 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const isActive = (href: string) =>
-    router.pathname === href || router.pathname.startsWith(`${href}/`);
+  const isActive = useCallback(
+    (href: string) =>
+      router.pathname === href || router.pathname.startsWith(`${href}/`),
+    [router.pathname]
+  );
 
-  const closeSidebar = () => setSidebarOpen(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const openSidebar = useCallback(() => setSidebarOpen(true), []);
 
   const userMenuOptions: FloatMenuOptionItem[] = useMemo(
     () => [
@@ -128,7 +132,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
         <Navbar
           user={user}
           userMenuOptions={userMenuOptions}
-          onMenuClick={() => setSidebarOpen(true)}
+          onMenuClick={openSidebar}
           className="lg:hidden"
         />
         <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8 xl:px-10 lg:py-8">

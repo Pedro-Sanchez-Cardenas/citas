@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { FloatMenu } from '@/components/ui';
 import clsx from 'clsx';
 import type { User } from '@/types';
@@ -18,7 +19,7 @@ interface NavbarProps {
   className?: string;
 }
 
-export default function Navbar({
+function Navbar({
   user,
   userMenuOptions = [],
   onMenuClick,
@@ -67,3 +68,5 @@ export default function Navbar({
     </header>
   );
 }
+
+export default memo(Navbar);
