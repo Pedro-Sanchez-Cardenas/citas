@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchBillingPlans,
@@ -190,7 +189,7 @@ export default function BillingPage() {
   const addonEntries = Object.entries(addons);
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
@@ -413,6 +412,6 @@ export default function BillingPage() {
           )}
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 }

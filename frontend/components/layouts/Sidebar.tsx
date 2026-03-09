@@ -96,7 +96,10 @@ export default function Sidebar({
         </div>
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto py-4 pr-1" aria-label="Navegación principal">
+      <nav
+        className="flex-1 space-y-6 overflow-y-auto py-4 pr-1"
+        aria-label="Navegación principal"
+      >
         {navSections.map((section) => (
           <div key={section.label}>
             <h3 className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-500">

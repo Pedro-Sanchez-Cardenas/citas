@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchProducts,
@@ -338,7 +337,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <ProductFormModal
         open={modalOpen}
         onClose={() => {
@@ -519,6 +518,6 @@ export default function ProductsPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

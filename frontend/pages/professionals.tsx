@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchProfessionals,
@@ -341,7 +340,7 @@ export default function ProfessionalsPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <ProfessionalFormModal
         open={modalOpen}
         onClose={() => {
@@ -522,6 +521,6 @@ export default function ProfessionalsPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

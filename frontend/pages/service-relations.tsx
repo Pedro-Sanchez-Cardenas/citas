@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchServices,
@@ -244,7 +243,7 @@ export default function ServiceRelationsPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
@@ -431,6 +430,6 @@ export default function ServiceRelationsPage() {
           </div>
         </section>
       )}
-    </DashboardLayout>
+    </>
   );
 }

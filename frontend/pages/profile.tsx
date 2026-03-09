@@ -1,7 +1,6 @@
 import { useEffect, useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchBusinessSetup } from '@/lib/api/businessSetup';
 import { updateProfileRequest } from '@/lib/api/auth';
@@ -107,7 +106,7 @@ export default function ProfilePage() {
   const isLoading = authLoading || loadingSetup;
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
@@ -292,6 +291,6 @@ export default function ProfilePage() {
           )}
         </section>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

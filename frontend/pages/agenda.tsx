@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchAgendaDay, fetchAgendaWeek } from '@/lib/api/agenda';
 import { Button, Select, Checkbox, Table, DatePicker } from '@/components/ui';
@@ -111,7 +110,7 @@ export default function AgendaPage() {
   const isLoading = authLoading || loading;
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
@@ -299,6 +298,6 @@ export default function AgendaPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchPayments, createPayment } from '@/lib/api/payments';
 import { fetchBranches } from '@/lib/api/branches';
@@ -384,7 +383,7 @@ export default function PaymentsPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <PaymentFormModal
         open={modalOpen}
         onClose={() => !modalLoading && setModalOpen(false)}
@@ -517,6 +516,6 @@ export default function PaymentsPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

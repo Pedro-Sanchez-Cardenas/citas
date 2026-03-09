@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchServices,
@@ -359,7 +358,7 @@ export default function ServicesPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <ServiceFormModal
         open={modalOpen}
         onClose={() => {
@@ -541,6 +540,6 @@ export default function ServicesPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

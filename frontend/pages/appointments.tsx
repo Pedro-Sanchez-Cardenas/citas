@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchAppointments,
@@ -403,7 +402,7 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <AppointmentFormModal
         open={modalOpen}
         onClose={() => {
@@ -615,6 +614,6 @@ export default function AppointmentsPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

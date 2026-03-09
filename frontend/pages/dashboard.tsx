@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { fetchDashboardCards } from '@/lib/api/dashboard';
 
 interface DashboardCard {
@@ -55,7 +54,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <header className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
@@ -93,6 +92,6 @@ export default function DashboardPage() {
           </div>
         ))}
       </section>
-    </DashboardLayout>
+    </>
   );
 }

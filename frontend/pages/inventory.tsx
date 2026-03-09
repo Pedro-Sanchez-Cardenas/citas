@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
 import { Button, Input, Select, Modal, Table, FloatMenu } from '@/components/ui';
@@ -231,7 +230,7 @@ export default function InventoryPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <InventoryAdjustModal
         open={modalOpen}
         onClose={() => {
@@ -379,6 +378,6 @@ export default function InventoryPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }

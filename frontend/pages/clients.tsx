@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { FormEvent, ChangeEvent } from 'react';
-import DashboardLayout from '@/components/layouts/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchClients,
@@ -520,7 +519,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <DashboardLayout user={user} onLogout={logout}>
+    <>
       <ClientDetailModal
         open={!!detailClient}
         onClose={() => setDetailClient(null)}
@@ -682,6 +681,6 @@ export default function ClientsPage() {
           }}
         />
       )}
-    </DashboardLayout>
+    </>
   );
 }
