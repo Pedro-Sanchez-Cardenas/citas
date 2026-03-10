@@ -1,0 +1,22 @@
+{
+    "name": "Citas (full stack)",
+    "dockerComposeFile": "../compose.yml",
+    "service": "dev",
+    "initializeCommand": "docker compose -f compose.yml --profile dev build",
+    "workspaceFolder": "/workspace",
+    "runArgs": ["--profile", "dev"],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bmewburn.vscode-intelephense-client",
+                "onecentlin.laravel-blade",
+                "shufo.vscode-blade-formatter",
+                "dbaeumer.vscode-eslint",
+                "esbenp.prettier-vscode"
+            ]
+        }
+    },
+    "forwardPorts": [3000, 8000],
+    "postCreateCommand": "cd backend && (test -f .env || cp -n .env.example .env) && cd ..",
+    "remoteUser": "root"
+}
