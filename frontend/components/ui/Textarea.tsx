@@ -31,7 +31,7 @@ export default function Textarea({
   const errorId = effectiveError ? `${id}-error` : undefined;
 
   return (
-    <div className={className}>
+    <div className={clsx('space-y-1.5', className)}>
       {label && (
         <label
           className="mb-1.5 block text-xs font-medium uppercase tracking-[0.16em] text-slate-400"
@@ -45,9 +45,10 @@ export default function Textarea({
         id={id}
         rows={rows}
         className={clsx(
-          'w-full resize-none rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/50',
+          'w-full resize-none rounded-2xl border border-slate-800/80 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60',
           textareaClassName,
-          effectiveError && 'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
+          effectiveError &&
+            'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
         )}
         aria-invalid={!!effectiveError}
         aria-describedby={errorId ?? hintId}
@@ -66,12 +67,12 @@ export default function Textarea({
         {...props}
       />
       {hint && !effectiveError && (
-        <p id={hintId} className="mt-1 text-[11px] text-slate-500">
+        <p id={hintId} className="text-[11px] text-slate-500">
           {hint}
         </p>
       )}
       {effectiveError && (
-        <p id={errorId} className="mt-1 text-[11px] text-red-300">
+        <p id={errorId} className="text-[11px] text-red-300">
           {effectiveError}
         </p>
       )}
