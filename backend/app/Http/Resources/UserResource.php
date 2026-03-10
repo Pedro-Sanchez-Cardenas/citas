@@ -16,6 +16,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'roles' => method_exists($this, 'getRoleNames') ? $this->getRoleNames()->toArray() : [],
+            'permissions' => method_exists($this, 'getAllPermissions') ? $this->getAllPermissions()->pluck('name')->toArray() : [],
             'business' => $this->whenLoaded('business', fn () => [
                 'id' => $this->business->id,
                 'name' => $this->business->name,

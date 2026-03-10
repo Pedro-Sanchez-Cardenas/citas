@@ -1,23 +1,28 @@
 {
-    "name": "Citas (frontend)",
-    "dockerComposeFile": ["../compose.yml"],
-    // Contenedor principal donde se adjunta VS Code: solo el frontend
-    "service": "frontend",
-    // Solo necesitamos levantar el servicio de frontend (Docker se encargará de sus dependencias si las hubiera)
-    "runServices": ["frontend"],
-    // Carpeta de trabajo dentro del contenedor de frontend (WORKDIR en Dockerfile.dev)
-    "workspaceFolder": "/app",
-    // Construir imágenes antes de arrancar el contenedor de desarrollo
-    "initializeCommand": "docker compose -f compose.yml build frontend",
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "dbaeumer.vscode-eslint",
-                "esbenp.prettier-vscode"
-            ]
-        }
-    },
-    // Solo el puerto del frontend
-    "forwardPorts": [3000],
-    "remoteUser": "root"
+  "name": "Citas – Workspace",
+
+  "dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
+
+  "service": "workspace",
+
+  "workspaceFolder": "/workspace",
+
+  "runServices": ["mysql", "backend", "frontend", "traefik", "workspace"],
+
+  "forwardPorts": [8080, 8081, 8082, 3306],
+
+  "shutdownAction": "stopCompose",
+
+  "remoteUser": "root",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "bmewburn.vscode-intelephense-client",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
 }

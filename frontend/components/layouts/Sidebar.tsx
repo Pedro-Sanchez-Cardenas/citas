@@ -81,6 +81,15 @@ function Sidebar({
   open = false,
   variant = 'desktop',
 }: SidebarProps) {
+  const roleKey = Array.isArray(user?.roles) && user.roles.length > 0 ? user.roles[0] : null;
+  const roleLabel =
+    roleKey === 'business_owner'
+      ? 'Propietario del negocio'
+      : roleKey === 'manager'
+        ? 'Manager'
+        : roleKey === 'worker'
+          ? 'Colaborador'
+          : null;
   const isMobile = variant === 'mobile';
 
   const content = (
@@ -132,6 +141,11 @@ function Sidebar({
                   {user?.name ?? 'Usuario'}
                 </div>
                 <div className="truncate text-[11px] text-slate-400">{user?.email}</div>
+                {roleLabel && (
+                  <div className="truncate text-[11px] text-slate-400">
+                    {roleLabel}
+                  </div>
+                )}
               </div>
             </div>
             <FloatMenu placement="top-end" className="shrink-0" options={userMenuOptions}>

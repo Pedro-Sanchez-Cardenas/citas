@@ -1,5 +1,4 @@
 services:
-
   traefik:
     image: traefik:v3.6.9
     container_name: traefik
@@ -8,9 +7,9 @@ services:
       - frontend
       - backend
     ports:
-      - "8080:80"     # App (frontend + API vía /api y /sanctum)
-      - "8081:8080"  # Dashboard Traefik (solo desarrollo)
-      - "8082:8082"  # Métricas Prometheus
+      - "8080:80" # App (frontend + API vía /api y /sanctum)
+      - "8081:8080" # Dashboard Traefik (solo desarrollo)
+      - "8082:8082" # Métricas Prometheus
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
@@ -49,8 +48,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: docker/frontend/Dockerfile.dev
     container_name: frontend
     restart: unless-stopped
     depends_on:
@@ -77,8 +76,8 @@ services:
 
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile.dev
+      context: .
+      dockerfile: docker/backend/Dockerfile.dev
     container_name: backend
     restart: unless-stopped
     depends_on:
@@ -88,7 +87,7 @@ services:
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
-      APP_KEY: 
+      APP_KEY:
       APP_URL: http://localhost:8080
       DB_CONNECTION: mysql
       DB_HOST: mysql
@@ -112,6 +111,7 @@ services:
       - "traefik.docker.network=network"
     networks:
       - network
+
 volumes:
   db_data:
   backend_vendor:

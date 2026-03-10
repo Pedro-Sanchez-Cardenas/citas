@@ -5,6 +5,7 @@ import { useState, useMemo, useCallback } from 'react';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import type { User } from '@/types';
+import { hasAnyRole, hasPermission } from '@/lib/auth';
 import type { FloatMenuOptionItem } from '@/components/ui/FloatMenu';
 
 interface NavSection {
@@ -79,6 +80,42 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
 
+  const filteredNavSections = useMemo<NavSection[]>(() => {
+    return NAV_SECTIONS.map((section) => {
+      const items = section.items.filter((item) => {
+        if (item.href === '/reports') {
+          return hasPermission(user, 'view_reports');
+        }
+        if (item.href === '/inventory' || item.href === '/products') {
+          return hasPermission(user, 'manage_inventory');
+        }
+        if (
+          item.href === '/services' ||
+          item.href === '/combined-services' ||
+          item.href === '/service-relations' ||
+          item.href === '/service-categories'
+        ) {
+          return hasPermission(user, 'manage_services');
+        }
+        if (item.href === '/clients') {
+          return hasPermission(user, 'manage_clients');
+        }
+        if (item.href === '/professionals') {
+          return hasPermission(user, 'manage_professionals');
+        }
+        if (item.href === '/working-hours' || item.href === '/blocks' || item.href === '/appointments') {
+          return hasPermission(user, 'manage_appointments');
+        }
+        if (item.href === '/billing' || item.href === '/automations') {
+          return hasAnyRole(user, ['business_owner']);
+        }
+        // Dashboard y Agenda visibles para todos los usuarios autenticados
+        return true;
+      });
+      return { ...section, items };
+    }).filter((section) => section.items.length > 0);
+  }, [user]);
+
   const userMenuOptions: FloatMenuOptionItem[] = useMemo(
     () => [
       {
@@ -113,7 +150,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
           variant="desktop"
           user={user}
           userMenuOptions={userMenuOptions}
-          navSections={NAV_SECTIONS}
+          navSections={filteredNavSections}
           isActive={isActive}
         />
       </div>
@@ -122,7 +159,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
         variant="mobile"
         user={user}
         userMenuOptions={userMenuOptions}
-        navSections={NAV_SECTIONS}
+        navSections={filteredNavSections}
         isActive={isActive}
         open={sidebarOpen}
         onClose={closeSidebar}

@@ -25,7 +25,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 
 # Cache de dependencias (--no-scripts porque artisan aún no existe)
-COPY composer.json composer.lock* ./
+COPY backend/composer.json backend/composer.lock* ./
 
 RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
     --no-interaction \
@@ -33,7 +33,7 @@ RUN COMPOSER_ALLOW_SUPERUSER=1 composer install \
     --no-scripts
 
 # Copiar código de la app (incluye .env.example, pero no vendor/.env por .dockerignore)
-COPY . .
+COPY backend/ .
 
 # Asegurar que Laravel tenga un .env basado en .env.example si no existe
 RUN php -r "file_exists('.env') || copy('.env.example', '.env');"

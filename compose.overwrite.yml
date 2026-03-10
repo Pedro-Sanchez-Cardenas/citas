@@ -1,0 +1,13 @@
+services:
+  workspace:
+    build:
+      context: .
+      dockerfile: docker/workspace/Dockerfile.dev
+    container_name: workspace
+    volumes:
+      - .:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /workspace
+    networks:
+      - network
+    command: sleep infinity

@@ -45,7 +45,8 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'updateProfile']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/business-setup', [BusinessSetupController::class, 'show']);
+    Route::get('/business-setup', [BusinessSetupController::class, 'show'])
+        ->middleware('role:business_owner');
     Route::get('/branches', [BranchController::class, 'index']);
 
     // Billing (Stripe Cashier): planes, estado, checkout, portal, addons, usuarios extra
