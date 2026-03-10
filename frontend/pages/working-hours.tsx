@@ -11,9 +11,10 @@ import {
   type CreateWorkingHourPayload,
 } from '@/lib/api/workingHours';
 import { fetchProfessionals } from '@/lib/api/professionals';
+import { fetchBranches } from '@/lib/api/branches';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
-import type { Professional } from '@/types';
+import type { Branch, Professional } from '@/types';
 import type { AxiosError } from 'axios';
 
 const WEEKDAYS = [
@@ -32,6 +33,7 @@ interface WorkingHourFormModalProps {
   onSubmit: (payload: CreateWorkingHourPayload) => Promise<void>;
   initialData: WorkingHour | null;
   loading: boolean;
+  branches: Branch[];
   professionals: Professional[];
   fieldErrors: FormFieldErrors;
 }
@@ -42,9 +44,11 @@ function WorkingHourFormModal({
   onSubmit,
   initialData,
   loading,
+  branches,
   professionals,
   fieldErrors,
 }: WorkingHourFormModalProps) {
+  const [branchId, setBranchId] = useState<string | number>(initialData?.branch_id ?? '');
   const [weekday, setWeekday] = useState(initialData?.weekday ?? 1);
   const [startTime, setStartTime] = useState(initialData?.start_time ?? '09:00');
   const [endTime, setEndTime] = useState(initialData?.end_time ?? '18:00');
@@ -61,6 +65,10 @@ function WorkingHourFormModal({
 
   useEffect(() => {
     if (open) {
+      const defaultBranch =
+        initialData?.branch_id ??
+        (branches.length === 1 ? branches[0]?.id : '');
+      setBranchId(defaultBranch);
       setWeekday(initialData?.weekday ?? 1);
       setStartTime(initialData?.start_time ?? '09:00');
       setEndTime(initialData?.end_time ?? '18:00');
@@ -76,6 +84,7 @@ function WorkingHourFormModal({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const payload: CreateWorkingHourPayload = {
+      branch_id: branchId !== '' ? Number(branchId) : null,
       weekday: Number(weekday),
       start_time: startTime,
       end_time: endTime,
@@ -99,6 +108,22 @@ function WorkingHourFormModal({
         className="mt-1 grid grid-cols-1 gap-4 md:grid-cols-2"
         onSubmit={handleSubmit}
       >
+        <Select
+          label="Sucursal"
+          id="wh-branch"
+          value={String(branchId)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setBranchId(e.target.value)}
+          error={fieldErrors.branch_id}
+          required
+        >
+          <option value="">Selecciona una sucursal</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </Select>
+
         <Select
           label="Día de la semana"
           id="wh-weekday"
@@ -195,6 +220,7 @@ export default function WorkingHoursPage() {
   const { user, loading: authLoading, logout } = useAuth();
 
   const [hours, setHours] = useState<WorkingHour[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -221,15 +247,17 @@ export default function WorkingHoursPage() {
       setLoading(true);
       setError('');
       try {
-        const [hoursData, professionalsData] = await Promise.all([
+        const [hoursData, professionalsData, branchesData] = await Promise.all([
           fetchWorkingHours(),
           fetchProfessionals(),
+          fetchBranches(),
         ]);
         if (!cancelled) {
           setHours(Array.isArray(hoursData) ? hoursData : []);
           setProfessionals(
             Array.isArray(professionalsData) ? professionalsData : []
           );
+          setBranches(Array.isArray(branchesData) ? branchesData : []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -355,6 +383,7 @@ export default function WorkingHoursPage() {
         onSubmit={handleSubmitHour}
         initialData={selectedHour}
         loading={modalLoading}
+        branches={branches}
         professionals={professionals}
         fieldErrors={fieldErrors}
       />

@@ -9,6 +9,7 @@ function unwrap<T>(data: unknown): T {
 
 export interface WorkingHour {
   id: number;
+  branch_id?: number | null;
   professional_id?: number | null;
   weekday?: number;
   start_time?: string;
@@ -31,6 +32,7 @@ export async function fetchWorkingHour(id: number | string): Promise<WorkingHour
 }
 
 export interface CreateWorkingHourPayload {
+  branch_id?: number | null;
   professional_id?: number | null;
   weekday?: number;
   start_time?: string;

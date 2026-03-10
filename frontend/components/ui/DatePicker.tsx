@@ -3,21 +3,8 @@
 import { useMemo, useCallback, useState } from 'react';
 import Flatpickr from 'react-flatpickr';
 import clsx from 'clsx';
-import 'flatpickr/dist/flatpickr.min.css';
+import 'flatpickr/dist/themes/dark.css';
 import { Spanish as localeEs } from 'flatpickr/dist/l10n/es.js';
-
-function toDateTimeLocalString(date: Date): string {
-  if (!date || !(date instanceof Date) || Number.isNaN(date.getTime())) return '';
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function parseValue(value: string | Date | null | undefined): Date | undefined {
-  if (value == null || value === '') return undefined;
-  if (value instanceof Date) return Number.isNaN(value.getTime()) ? undefined : value;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d;
-}
 
 function toDateOnly(date: string | Date): Date | null {
   if (date instanceof Date) {
@@ -51,6 +38,8 @@ export interface DatePickerProps {
   enabledDates?: (string | Date)[];
   disabledDates?: (string | Date)[];
   dateFormat?: string;
+  altFormat?: string;
+  useAltInput?: boolean;
 }
 
 export default function DatePicker({
@@ -72,12 +61,15 @@ export default function DatePicker({
   enabledDates,
   disabledDates,
   dateFormat: dateFormatProp,
+  altFormat: altFormatProp,
+  useAltInput = true,
   ...rest
 }: DatePickerProps) {
   const [nativeError, setNativeError] = useState<string | null>(null);
   const effectiveError = error ?? nativeError;
   const isRange = mode === 'range';
   const dateFormat = dateFormatProp ?? (enableTime ? 'Y-m-d H:i' : 'Y-m-d');
+  const altFormat = altFormatProp ?? (enableTime ? 'd/m/Y H:i' : 'd/m/Y');
   const defaultPlaceholder = enableTime
     ? 'Seleccionar fecha y hora'
     : isRange
@@ -85,44 +77,12 @@ export default function DatePicker({
       : 'Seleccionar fecha';
   const resolvedPlaceholder = placeholder ?? defaultPlaceholder;
 
-  const normalizedValue = useMemo(() => {
-    if (value == null || value === '') return undefined;
-    if (isRange && Array.isArray(value)) {
-      const parsed = value.map(parseValue).filter((x): x is Date => x != null);
-      if (parsed.length === 2) return parsed;
-      if (parsed.length === 1) return [parsed[0], parsed[0]];
-      return undefined;
-    }
-    return parseValue(value as string | Date | null);
-  }, [value, isRange]);
-
   const handleChange = useCallback(
     (selectedDates: Date[], dateStr: string) => {
       if (nativeError && selectedDates.length > 0) {
         setNativeError(null);
       }
       if (!onChange) return;
-      if (enableTime && selectedDates[0]) {
-        const dateStrOut = toDateTimeLocalString(selectedDates[0]);
-        if (isRange && selectedDates.length === 2) {
-          onChange(
-            [selectedDates[0], selectedDates[1]],
-            `${dateStrOut} - ${toDateTimeLocalString(selectedDates[1])}`
-          );
-        } else if (!isRange) {
-          onChange(selectedDates[0], dateStrOut);
-        } else {
-          const next =
-            selectedDates.length === 1 ? [selectedDates[0], selectedDates[0]] : [];
-          onChange(
-            next,
-            next.length === 2
-              ? `${toDateTimeLocalString(next[0])} - ${toDateTimeLocalString(next[1])}`
-              : ''
-          );
-        }
-        return;
-      }
       if (isRange) {
         const next =
           selectedDates.length === 2
@@ -135,13 +95,20 @@ export default function DatePicker({
         onChange(selectedDates[0] ?? null, dateStr);
       }
     },
-    [onChange, isRange, enableTime, nativeError]
+    [onChange, isRange, nativeError]
   );
 
   const options = useMemo(() => {
+    let defaultDate: string | Date | (string | Date)[] | undefined;
+    if (value != null && value !== '') {
+      defaultDate = Array.isArray(value) ? value : (value as string | Date);
+    }
     const opts: Record<string, unknown> = {
       mode: isRange ? 'range' : 'single',
       dateFormat,
+      altInput: useAltInput,
+      altFormat,
+      defaultDate,
       minDate: minDate ?? undefined,
       maxDate: maxDate ?? undefined,
       locale: localeEs,
@@ -157,45 +124,93 @@ export default function DatePicker({
       opts.disable = disabledDates.map(toDateOnly).filter(Boolean);
     }
     return opts;
-  }, [isRange, dateFormat, minDate, maxDate, enableTime, enabledDates, disabledDates]);
+  }, [isRange, dateFormat, altFormat, minDate, maxDate, enableTime, enabledDates, disabledDates, useAltInput, value]);
 
   return (
-    <div className={className}>
+    <div className={clsx('space-y-1.5', className)}>
       {label && (
         <label
-          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.16em] text-slate-400"
+          className="block text-xs font-medium uppercase tracking-[0.16em] text-slate-400"
           htmlFor={id}
         >
           {label}
           {required && <span className="ml-0.5 text-red-400">*</span>}
         </label>
       )}
-      <Flatpickr
-        id={id}
-        value={normalizedValue}
-        onChange={handleChange}
-        options={options}
-        placeholder={resolvedPlaceholder}
-        disabled={disabled}
-        className={clsx(
-          'flatpickr-input w-full rounded-xl border border-slate-700/70 bg-slate-950/70 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/50',
-          inputClassName,
-          effectiveError && 'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
-        )}
-        aria-invalid={!!effectiveError}
-        aria-describedby={hint ? `${id}-hint` : undefined}
-        onInvalid={(e) => {
-          if (error) return;
-          setNativeError((e.target as HTMLInputElement).validationMessage || 'Campo inválido.');
-        }}
-        {...rest}
-      />
+      <div className="relative">
+        <Flatpickr
+          id={id}
+          onChange={handleChange}
+          options={options}
+          placeholder={resolvedPlaceholder}
+          disabled={disabled}
+          className={clsx(
+            'flatpickr-input w-full rounded-2xl border border-slate-800/80 bg-slate-950/80 pl-9 pr-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60',
+            inputClassName,
+            effectiveError &&
+              'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
+          )}
+          aria-invalid={!!effectiveError}
+          aria-describedby={hint ? `${id}-hint` : undefined}
+          onInvalid={(e) => {
+            if (error) return;
+            setNativeError(
+              (e.target as HTMLInputElement).validationMessage || 'Campo inválido.'
+            );
+          }}
+          {...rest}
+        />
+        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
+          <svg
+            aria-hidden="true"
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="3"
+              y="4"
+              width="14"
+              height="13"
+              rx="2"
+              className="stroke-current"
+              strokeWidth="1.3"
+            />
+            <path
+              d="M7 2.5V5.5"
+              className="stroke-current"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
+            <path
+              d="M13 2.5V5.5"
+              className="stroke-current"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
+            <path
+              d="M3 8H17"
+              className="stroke-current"
+              strokeWidth="1.3"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+      </div>
       {hint && !effectiveError && (
-        <p id={id ? `${id}-hint` : undefined} className="mt-1 text-[11px] text-slate-500">
+        <p
+          id={id ? `${id}-hint` : undefined}
+          className="text-[11px] text-slate-500"
+        >
           {hint}
         </p>
       )}
-      {effectiveError && <p className="mt-1 text-[11px] text-red-300">{effectiveError}</p>}
+      {effectiveError && (
+        <p className="text-[11px] text-red-300">
+          {effectiveError}
+        </p>
+      )}
     </div>
   );
 }

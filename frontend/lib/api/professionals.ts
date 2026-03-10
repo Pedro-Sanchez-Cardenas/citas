@@ -4,7 +4,7 @@ import type { Professional } from '@/types';
 const BASE_PATH = '/api/professionals';
 
 function unwrap<T>(data: unknown): T {
-  const d = data as { data?: T };
+    const d = data as { data?: T };
   return d?.data ?? (data as T);
 }
 
@@ -21,6 +21,7 @@ export async function fetchProfessional(id: number | string): Promise<Profession
 
 export interface CreateProfessionalPayload {
   name: string;
+  branch_id?: number | null;
   [key: string]: unknown;
 }
 

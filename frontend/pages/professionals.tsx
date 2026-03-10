@@ -9,9 +9,10 @@ import {
   deleteProfessional,
   type CreateProfessionalPayload,
 } from '@/lib/api/professionals';
+import { fetchBranches } from '@/lib/api/branches';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu } from '@/components/ui';
-import type { Professional } from '@/types';
+import type { Professional, Branch } from '@/types';
 import type { AxiosError } from 'axios';
 
 function formatMoneyFromCents(amountCents: number | null | undefined, currency = 'USD'): string {
@@ -23,6 +24,7 @@ function formatMoneyFromCents(amountCents: number | null | undefined, currency =
 
 interface ProfessionalFormPayload {
   name: string;
+  branch_id: number;
   email?: string | null;
   phone?: string | null;
   color?: string | null;
@@ -38,6 +40,7 @@ interface ProfessionalFormModalProps {
   initialData: Professional | null;
   loading: boolean;
   fieldErrors: FormFieldErrors;
+  branches: Branch[];
 }
 
 function ProfessionalFormModal({
@@ -47,7 +50,9 @@ function ProfessionalFormModal({
   initialData,
   loading,
   fieldErrors,
+  branches,
 }: ProfessionalFormModalProps) {
+  const [branchId, setBranchId] = useState<string | number>(initialData?.branch_id ?? '');
   const [name, setName] = useState(initialData?.name ?? '');
   const [email, setEmail] = useState((initialData as Professional & { email?: string })?.email ?? '');
   const [phone, setPhone] = useState((initialData as Professional & { phone?: string })?.phone ?? '');
@@ -66,6 +71,10 @@ function ProfessionalFormModal({
 
   useEffect(() => {
     if (open) {
+      const defaultBranch =
+        (initialData as Professional & { branch_id?: number })?.branch_id ??
+        (branches.length === 1 ? branches[0].id : '');
+      setBranchId(defaultBranch);
       setName(initialData?.name ?? '');
       setEmail((initialData as Professional & { email?: string })?.email ?? '');
       setPhone((initialData as Professional & { phone?: string })?.phone ?? '');
@@ -89,6 +98,7 @@ function ProfessionalFormModal({
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const payload: ProfessionalFormPayload = {
+      branch_id: Number(branchId),
       name,
       email: email || null,
       phone: phone || null,
@@ -118,6 +128,22 @@ function ProfessionalFormModal({
         className="mt-1 grid grid-cols-1 gap-4 md:grid-cols-2"
         onSubmit={handleSubmit}
       >
+        <Select
+          label="Sucursal"
+          id="professional-branch"
+          value={String(branchId)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setBranchId(e.target.value)}
+          required
+          error={fieldErrors.branch_id}
+        >
+          <option value="">Selecciona una sucursal</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </Select>
+
         <div className="md:col-span-2">
           <Input
             label="Nombre del profesional"
@@ -224,6 +250,7 @@ export default function ProfessionalsPage() {
   const { user, loading: authLoading, logout } = useAuth();
 
   const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
@@ -249,9 +276,13 @@ export default function ProfessionalsPage() {
       setLoading(true);
       setError('');
       try {
-        const data = await fetchProfessionals();
+        const [prosData, branchesData] = await Promise.all([
+          fetchProfessionals(),
+          fetchBranches(),
+        ]);
         if (!cancelled) {
-          setProfessionals(Array.isArray(data) ? data : []);
+          setProfessionals(Array.isArray(prosData) ? prosData : []);
+          setBranches(Array.isArray(branchesData) ? branchesData : []);
         }
       } catch (err) {
         if (!cancelled) {
@@ -368,6 +399,7 @@ export default function ProfessionalsPage() {
         initialData={selectedProfessional}
         loading={modalLoading}
         fieldErrors={fieldErrors}
+        branches={branches}
       />
 
       <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
