@@ -1,4 +1,37 @@
 services:
+
+  traefik:
+    image: traefik:v3.6.9
+    container_name: traefik
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"     # App (frontend + API vía /api y /sanctum)
+      - "8081:8080"  # Dashboard Traefik (solo desarrollo)
+      - "8082:8082"  # Métricas Prometheus
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=network"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.metrics.address=:8082"
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.entryPoint=metrics"
+      - "--metrics.prometheus.addEntryPointsLabels=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
+      - "--metrics.prometheus.addServicesLabels=true"
+      - "--tracing.otlp=true"
+      - "--tracing.serviceName=citas-traefik"
+      - "--tracing.sampleRate=1.0"
+    networks:
+      - network
+
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -29,7 +62,6 @@ services:
       - /app/node_modules
       - /app/.next
     environment:
-      - NEXT_PUBLIC_API_BASE_URL=""
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
@@ -80,39 +112,6 @@ services:
       - "traefik.docker.network=network"
     networks:
       - network
-
-  traefik:
-    image: traefik:v3.6.9
-    container_name: traefik
-    restart: unless-stopped
-    depends_on:
-      - frontend
-      - backend
-    ports:
-      - "8080:80"     # App (frontend + API vía /api y /sanctum)
-      - "8081:8080"  # Dashboard Traefik (solo desarrollo)
-      - "8082:8082"  # Métricas Prometheus
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=network"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.metrics.address=:8082"
-      - "--metrics.prometheus=true"
-      - "--metrics.prometheus.entryPoint=metrics"
-      - "--metrics.prometheus.addEntryPointsLabels=true"
-      - "--metrics.prometheus.addRoutersLabels=true"
-      - "--metrics.prometheus.addServicesLabels=true"
-      - "--tracing.otlp=true"
-      - "--tracing.serviceName=citas-traefik"
-      - "--tracing.sampleRate=1.0"
-    networks:
-      - network
-
 volumes:
   db_data:
   backend_vendor:
