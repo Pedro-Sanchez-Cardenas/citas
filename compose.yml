@@ -30,7 +30,6 @@ services:
       - "--tracing.sampleRate=1.0"
     networks:
       - network
-
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -45,7 +44,6 @@ services:
       - db_data:/var/lib/mysql
     networks:
       - network
-
   frontend:
     build:
       context: .
@@ -67,13 +65,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.docker.network=network"
     networks:
       - network
-
   backend:
     build:
       context: .
@@ -105,7 +101,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/sanctum`)"
-      - "traefik.http.routers.backend.priority=100"
       - "traefik.http.routers.backend.entrypoints=web"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
       - "traefik.docker.network=network"
