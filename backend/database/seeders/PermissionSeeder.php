@@ -14,16 +14,7 @@ class PermissionSeeder extends Seeder
     public function run(): void
     {
         // Definir permisos base por funcionalidad del sistema
-        $permissions = [
-            'manage_business_settings',
-            'manage_branches',
-            'manage_professionals',
-            'manage_services',
-            'manage_inventory',
-            'manage_appointments',
-            'manage_clients',
-            'view_reports',
-        ];
+        $permissions = ['manage_business_settings', 'manage_branches', 'manage_professionals', 'manage_services', 'manage_inventory', 'manage_appointments', 'manage_clients', 'view_reports'];
 
         foreach ($permissions as $name) {
             Permission::findOrCreate($name, 'web');
@@ -37,20 +28,8 @@ class PermissionSeeder extends Seeder
         // Asignar permisos a cada rol
         $owner->syncPermissions($permissions);
 
-        $manager->syncPermissions([
-            'manage_branches',
-            'manage_professionals',
-            'manage_services',
-            'manage_inventory',
-            'manage_appointments',
-            'manage_clients',
-            'view_reports',
-        ]);
+        $manager->syncPermissions(['manage_branches', 'manage_professionals', 'manage_services', 'manage_inventory', 'manage_appointments', 'manage_clients', 'view_reports']);
 
-        $worker->syncPermissions([
-            'manage_appointments',
-            'manage_clients',
-        ]);
+        $worker->syncPermissions(['manage_appointments', 'manage_clients']);
     }
 }
-

@@ -1,5 +1,5 @@
 {
-  "name": "Citas – Workspace",
+  "name": "Citas - Workspace",
 
   "dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
 
@@ -9,7 +9,7 @@
 
   "runServices": ["mysql", "backend", "frontend", "traefik", "workspace"],
 
-  "forwardPorts": [8080, 8081, 8082, 3306],
+  "forwardPorts": [8080, 8081, 8082],
 
   "shutdownAction": "stopCompose",
 
@@ -21,7 +21,8 @@
         "ms-azuretools.vscode-docker",
         "bmewburn.vscode-intelephense-client",
         "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode"
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss"
       ]
     }
   }
