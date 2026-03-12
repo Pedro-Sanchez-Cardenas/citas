@@ -25,15 +25,62 @@ export interface CreateProfessionalPayload {
   [key: string]: unknown;
 }
 
-export async function createProfessional(payload: CreateProfessionalPayload): Promise<Professional | null> {
+const FORM_KEYS = [
+  'branch_id', 'name', 'email', 'phone', 'color',
+  'commission_rate', 'base_salary_cents', 'is_active',
+] as const;
+
+function buildProfessionalFormData(
+  payload: CreateProfessionalPayload | Partial<CreateProfessionalPayload>,
+  photo?: File | null
+): FormData | null {
+  if (!photo) return null;
+  const form = new FormData();
+  FORM_KEYS.forEach((key) => {
+    const v = payload[key];
+    if (v === undefined) return;
+    if (v === null) {
+      form.append(key, '');
+      return;
+    }
+    if (key === 'branch_id' || key === 'commission_rate' || key === 'base_salary_cents') {
+      form.append(key, String(v));
+      return;
+    }
+    if (key === 'is_active') {
+      form.append(key, v ? '1' : '0');
+      return;
+    }
+    form.append(key, String(v));
+  });
+  form.append('photo', photo);
+  return form;
+}
+
+export async function createProfessional(
+  payload: CreateProfessionalPayload,
+  photo?: File | null
+): Promise<Professional | null> {
+  const form = buildProfessionalFormData(payload, photo);
+  if (form) {
+    const response = await api.post(BASE_PATH, form);
+    return unwrap<Professional | null>(response.data) ?? null;
+  }
   const response = await api.post(BASE_PATH, payload);
   return unwrap<Professional | null>(response.data) ?? null;
 }
 
 export async function updateProfessional(
   id: number | string,
-  payload: Partial<CreateProfessionalPayload>
+  payload: Partial<CreateProfessionalPayload>,
+  photo?: File | null
 ): Promise<Professional | null> {
+  const form = buildProfessionalFormData(payload, photo);
+  if (form) {
+    form.append('_method', 'PUT');
+    const response = await api.post(`${BASE_PATH}/${id}`, form);
+    return unwrap<Professional | null>(response.data) ?? null;
+  }
   const response = await api.put(`${BASE_PATH}/${id}`, payload);
   return unwrap<Professional | null>(response.data) ?? null;
 }

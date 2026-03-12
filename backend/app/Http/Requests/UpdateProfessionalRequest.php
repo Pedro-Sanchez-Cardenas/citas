@@ -24,6 +24,7 @@ class UpdateProfessionalRequest extends FormRequest
             'commission_rate' => ['sometimes', 'numeric', 'min:0', 'max:100'],
             'base_salary_cents' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
+            'photo' => ['sometimes', 'nullable', 'image', 'max:5120'],
         ];
     }
 }

@@ -22,7 +22,10 @@ class Professional extends Model
         'commission_rate',
         'base_salary_cents',
         'is_active',
+        'photo_path',
     ];
+
+    protected $appends = ['photo_url'];
 
     protected $casts = [
         'commission_rate' => 'float',
@@ -59,6 +62,15 @@ class Professional extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (empty($this->photo_path)) {
+            return null;
+        }
+
+        return '/storage/' . ltrim($this->photo_path, '/');
     }
 }
 

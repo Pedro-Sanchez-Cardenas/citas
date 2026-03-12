@@ -8,6 +8,7 @@ use App\Models\Professional;
 use App\Services\ProfessionalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProfessionalController extends Controller
 {
@@ -28,7 +29,20 @@ class ProfessionalController extends Controller
     public function store(StoreProfessionalRequest $request): JsonResponse
     {
         $businessId = (int) $request->user()->business_id;
-        $professional = $this->professionalService->createForBusiness($businessId, $request->validated());
+        $data = $request->validated();
+        $photo = $data['photo'] ?? $request->file('photo');
+        unset($data['photo']);
+
+        $professional = $this->professionalService->createForBusiness($businessId, $data);
+
+        if ($photo) {
+            $path = $photo->store(
+                sprintf('professionals/%s/%s', $businessId, $professional->id),
+                'public'
+            );
+            $professional->update(['photo_path' => $path]);
+            $professional->refresh();
+        }
 
         return response()->json($professional, 201);
     }
@@ -52,7 +66,20 @@ class ProfessionalController extends Controller
             abort(404);
         }
 
-        $updated = $this->professionalService->update($professional, $request->validated());
+        $data = $request->validated();
+        $photo = $data['photo'] ?? $request->file('photo');
+        unset($data['photo']);
+
+        if ($photo) {
+            $dir = sprintf('professionals/%s/%s', $businessId, $professional->id);
+            if ($professional->photo_path) {
+                Storage::disk('public')->delete($professional->photo_path);
+            }
+            $path = $photo->store($dir, 'public');
+            $data['photo_path'] = $path;
+        }
+
+        $updated = $this->professionalService->update($professional, $data);
 
         return response()->json($updated);
     }

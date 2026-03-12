@@ -22,6 +22,7 @@ class StoreProfessionalRequest extends FormRequest
             'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'base_salary_cents' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
+            'photo' => ['nullable', 'image', 'max:5120'],
         ];
     }
 }
