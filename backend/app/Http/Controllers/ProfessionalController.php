@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreProfessionalRequest;
 use App\Http\Requests\UpdateProfessionalRequest;
 use App\Models\Professional;
@@ -12,6 +13,8 @@ use Illuminate\Support\Facades\Storage;
 
 class ProfessionalController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected ProfessionalService $professionalService
     ) {
@@ -51,9 +54,7 @@ class ProfessionalController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($professional->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($professional, $request);
 
         return response()->json($professional);
     }
@@ -62,9 +63,7 @@ class ProfessionalController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($professional->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($professional, $request);
 
         $data = $request->validated();
         $photo = $data['photo'] ?? $request->file('photo');
@@ -88,9 +87,7 @@ class ProfessionalController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($professional->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($professional, $request);
 
         $this->professionalService->delete($professional);
 

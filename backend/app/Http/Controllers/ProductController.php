@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected ProductRepositoryInterface $products
     ) {
@@ -36,9 +39,7 @@ class ProductController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($product->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($product, $request);
 
         return response()->json($product);
     }
@@ -47,9 +48,7 @@ class ProductController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($product->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($product, $request);
 
         $updated = $this->products->update($product, $request->validated());
 
@@ -60,9 +59,7 @@ class ProductController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($product->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($product, $request);
 
         $this->products->delete($product);
 

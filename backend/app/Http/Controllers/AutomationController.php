@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreAutomationRequest;
 use App\Http\Requests\UpdateAutomationRequest;
 use App\Models\Automation;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class AutomationController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected AutomationService $automationService
     ) {
@@ -34,22 +37,14 @@ class AutomationController extends Controller
 
     public function show(Request $request, Automation $automation): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($automation->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($automation, $request);
 
         return response()->json($automation);
     }
 
     public function update(UpdateAutomationRequest $request, Automation $automation): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($automation->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($automation, $request);
 
         $updated = $this->automationService->update($automation, $request->validated());
 
@@ -58,11 +53,7 @@ class AutomationController extends Controller
 
     public function destroy(Request $request, Automation $automation): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($automation->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($automation, $request);
 
         $this->automationService->delete($automation);
 

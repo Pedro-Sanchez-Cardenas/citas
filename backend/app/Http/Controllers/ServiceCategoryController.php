@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreServiceCategoryRequest;
 use App\Http\Requests\UpdateServiceCategoryRequest;
 use App\Models\ServiceCategory;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class ServiceCategoryController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected ServiceCategoryService $serviceCategoryService
     ) {
@@ -35,22 +38,14 @@ class ServiceCategoryController extends Controller
     public function show(Request $request, ServiceCategory $serviceCategory): JsonResponse
     {
         // El binding ya trae la categoría; validamos que pertenezca al negocio del usuario
-        $businessId = (int) $request->user()->business_id;
-
-        if ($serviceCategory->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($serviceCategory, $request);
 
         return response()->json($serviceCategory);
     }
 
     public function update(UpdateServiceCategoryRequest $request, ServiceCategory $serviceCategory): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($serviceCategory->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($serviceCategory, $request);
 
         $updated = $this->serviceCategoryService->update($serviceCategory, $request->validated());
 
@@ -59,11 +54,7 @@ class ServiceCategoryController extends Controller
 
     public function destroy(Request $request, ServiceCategory $serviceCategory): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($serviceCategory->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($serviceCategory, $request);
 
         $this->serviceCategoryService->delete($serviceCategory);
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StorePaymentRequest;
 use App\Models\Appointment;
 use App\Models\Payment;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected PaymentService $paymentService
     ) {
@@ -33,9 +36,7 @@ class PaymentController extends Controller
         // Si se asocia a una cita, usamos el helper específico
         if (! empty($data['appointment_id'])) {
             $appointment = Appointment::findOrFail($data['appointment_id']);
-            if ($appointment->business_id !== $businessId) {
-                abort(404);
-            }
+            $this->assertModelBelongsToRequestBusiness($appointment, $request);
 
             $payment = $this->paymentService->registerAppointmentPayment($businessId, $appointment, $data);
         } else {

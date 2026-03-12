@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreServiceRequest;
 use App\Http\Requests\UpdateServiceRequest;
 use App\Models\Service;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected ServiceService $serviceService
     ) {
@@ -35,22 +38,14 @@ class ServiceController extends Controller
 
     public function show(Request $request, Service $service): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($service->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($service, $request);
 
         return response()->json($service);
     }
 
     public function update(UpdateServiceRequest $request, Service $service): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($service->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($service, $request);
 
         $updated = $this->serviceService->update($service, $request->validated());
 
@@ -59,11 +54,7 @@ class ServiceController extends Controller
 
     public function destroy(Request $request, Service $service): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($service->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($service, $request);
 
         $this->serviceService->delete($service);
 

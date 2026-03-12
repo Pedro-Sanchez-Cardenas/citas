@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreWorkingHourRequest;
 use App\Http\Requests\UpdateWorkingHourRequest;
 use App\Models\WorkingHour;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class WorkingHourController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected WorkingHourService $workingHourService
     ) {
@@ -37,22 +40,14 @@ class WorkingHourController extends Controller
 
     public function show(Request $request, WorkingHour $workingHour): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($workingHour->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($workingHour, $request);
 
         return response()->json($workingHour);
     }
 
     public function update(UpdateWorkingHourRequest $request, WorkingHour $workingHour): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($workingHour->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($workingHour, $request);
 
         $updated = $this->workingHourService->update($workingHour, $request->validated());
 
@@ -61,11 +56,7 @@ class WorkingHourController extends Controller
 
     public function destroy(Request $request, WorkingHour $workingHour): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($workingHour->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($workingHour, $request);
 
         $this->workingHourService->delete($workingHour);
 

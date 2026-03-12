@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\SyncServiceMaterialsRequest;
 use App\Models\Product;
 use App\Models\Service;
@@ -10,13 +11,13 @@ use Illuminate\Http\Request;
 
 class ServiceMaterialController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function index(Request $request, Service $service): JsonResponse
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($service->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($service, $request);
 
         $materials = $service->products()->get();
 
@@ -27,9 +28,7 @@ class ServiceMaterialController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($service->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($service, $request);
 
         $materials = $request->validated()['materials'] ?? [];
 

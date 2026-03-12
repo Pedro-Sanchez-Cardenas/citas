@@ -101,7 +101,7 @@ class ResourceCrudApiTest extends TestCase
             'email' => 'cliente-historial@example.com',
         ])->assertStatus(201)->json();
 
-        $id = (int) $created['id'];
+        $id = (int) ($created['data']['id'] ?? $created['id'] ?? 0);
 
         $this->getJson('/api/clients')->assertStatus(200);
         $this->getJson("/api/clients/{$id}")->assertStatus(200);

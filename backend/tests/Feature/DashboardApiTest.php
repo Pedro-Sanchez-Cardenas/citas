@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class DashboardApiTest extends TestCase
@@ -47,6 +48,8 @@ class DashboardApiTest extends TestCase
             'industry' => 'beauty',
         ]);
         $user = User::factory()->create(['business_id' => $business->id]);
+        $ownerRole = Role::findOrCreate('business_owner');
+        $user->assignRole($ownerRole);
 
         $this->actingAs($user)
             ->getJson('/api/business-setup')

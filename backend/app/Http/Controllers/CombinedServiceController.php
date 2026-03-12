@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreCombinedServiceRequest;
 use App\Http\Requests\UpdateCombinedServiceRequest;
 use App\Models\CombinedService;
@@ -11,6 +12,8 @@ use Illuminate\Http\Request;
 
 class CombinedServiceController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected CombinedServiceService $combinedServiceService
     ) {
@@ -37,22 +40,14 @@ class CombinedServiceController extends Controller
 
     public function show(Request $request, CombinedService $combinedService): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($combinedService->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($combinedService, $request);
 
         return response()->json($combinedService->load('items'));
     }
 
     public function update(UpdateCombinedServiceRequest $request, CombinedService $combinedService): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($combinedService->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($combinedService, $request);
 
         $updated = $this->combinedServiceService->update($combinedService, $request->validated());
 
@@ -61,11 +56,7 @@ class CombinedServiceController extends Controller
 
     public function destroy(Request $request, CombinedService $combinedService): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        if ($combinedService->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($combinedService, $request);
 
         $this->combinedServiceService->delete($combinedService);
 

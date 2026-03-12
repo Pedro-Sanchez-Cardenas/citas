@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\MoveAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
@@ -13,6 +14,8 @@ use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected AppointmentService $appointmentService
     ) {
@@ -50,9 +53,7 @@ class AppointmentController extends Controller
 
     public function show(Request $request, Appointment $appointment): JsonResponse
     {
-        if ((int) $appointment->business_id !== (int) $request->user()->business_id) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($appointment, $request);
 
         return response()->json(
             $appointment->load(['branch', 'professional', 'service', 'combinedService', 'client'])
@@ -61,9 +62,7 @@ class AppointmentController extends Controller
 
     public function update(UpdateAppointmentRequest $request, Appointment $appointment): JsonResponse
     {
-        if ((int) $appointment->business_id !== (int) $request->user()->business_id) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($appointment, $request);
 
         $updated = $this->appointmentService->update($appointment, $request->validated());
 
@@ -72,9 +71,7 @@ class AppointmentController extends Controller
 
     public function destroy(Request $request, Appointment $appointment): JsonResponse
     {
-        if ((int) $appointment->business_id !== (int) $request->user()->business_id) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($appointment, $request);
 
         $appointment->delete();
 
@@ -86,9 +83,7 @@ class AppointmentController extends Controller
      */
     public function move(MoveAppointmentRequest $request, Appointment $appointment): JsonResponse
     {
-        if ((int) $appointment->business_id !== (int) $request->user()->business_id) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($appointment, $request);
 
         $data = $request->validated();
 

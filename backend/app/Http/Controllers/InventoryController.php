@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\AdjustStockRequest;
 use App\Models\Product;
 use App\Services\InventoryService;
@@ -10,6 +11,8 @@ use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected InventoryService $inventoryService
     ) {
@@ -32,9 +35,7 @@ class InventoryController extends Controller
 
         /** @var Product $product */
         $product = Product::findOrFail($data['product_id']);
-        if ($product->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($product, $request);
 
         $stock = $this->inventoryService->adjustStock(
             $businessId,

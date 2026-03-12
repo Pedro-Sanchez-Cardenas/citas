@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreClientMediaRequest;
 use App\Models\Client;
 use App\Models\ClientMedia;
@@ -10,13 +11,13 @@ use Illuminate\Http\Request;
 
 class ClientMediaController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function index(Request $request, Client $client): JsonResponse
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($client->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $media = $client->media()
             ->orderByDesc('created_at')
@@ -29,9 +30,7 @@ class ClientMediaController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($client->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $data = $request->validated();
         $data['business_id'] = $businessId;
@@ -46,9 +45,7 @@ class ClientMediaController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($media->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($media, $request);
 
         $media->delete();
 

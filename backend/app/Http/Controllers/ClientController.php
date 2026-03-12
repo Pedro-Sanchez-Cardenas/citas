@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 use App\Http\Resources\ClientResource;
@@ -14,6 +15,8 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ClientController extends Controller
 {
+    use InteractsWithBusiness;
+
     public function __construct(
         protected ClientService $clientService
     ) {
@@ -52,9 +55,7 @@ class ClientController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($client->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($client, $request);
 
         return (new ClientResource($client))->response();
     }
@@ -63,9 +64,7 @@ class ClientController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($client->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $data = $request->validated();
         $photo = $data['photo'] ?? null;
@@ -89,9 +88,7 @@ class ClientController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($client->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $this->clientService->delete($client);
 
@@ -102,9 +99,7 @@ class ClientController extends Controller
     {
         $businessId = (int) $request->user()->business_id;
 
-        if ($client->business_id !== $businessId) {
-            abort(404);
-        }
+        $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $appointments = $client->appointments()
             ->with(['branch', 'professional', 'service', 'combinedService', 'payments'])
