@@ -32,12 +32,12 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Servicios y catálogo',
     items: [
-      { label: 'Servicios', href: '/services', icon: '✨' },
-      { label: 'Servicios combinados', href: '/combined-services', icon: '💫' },
-      { label: 'Relaciones de servicio', href: '/service-relations', icon: '🔗' },
       { label: 'Categorías', href: '/service-categories', icon: '🧩' },
+      { label: 'Servicios', href: '/services', icon: '✨' },
       { label: 'Productos', href: '/products', icon: '🧴' },
       { label: 'Inventario', href: '/inventory', icon: '📦' },
+      { label: 'Servicios combinados', href: '/combined-services', icon: '💫' },
+      { label: 'Relaciones de servicio', href: '/service-relations', icon: '🔗' },
     ],
   },
   {
