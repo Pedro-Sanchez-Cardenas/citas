@@ -9,7 +9,7 @@
 
   "runServices": ["mysql", "backend", "frontend", "traefik", "workspace"],
 
-  "forwardPorts": [8080, 8081, 8082],
+  "forwardPorts": [8080, 8081, 8082, 3306],
 
   "shutdownAction": "stopCompose",
 

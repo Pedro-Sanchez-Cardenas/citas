@@ -136,6 +136,12 @@ export default function ProfilePage() {
                 {user?.name ?? 'Usuario'}
               </p>
               <p className="truncate text-xs text-slate-400">{user?.email}</p>
+              {user?.roles && (
+                <span className="items-center gap-1 rounded-full border border-teal-500/40 bg-teal-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-200">
+                    <span className="h-1.5 w-1.5 rounded-full bg-teal-400" aria-hidden />
+                    {user?.roles[0].replace('_', ' ')}
+                </span>
+              )}
             </div>
           </div>
 

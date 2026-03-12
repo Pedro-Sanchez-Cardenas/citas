@@ -49,14 +49,16 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
         ->middleware('role:business_owner');
     Route::get('/branches', [BranchController::class, 'index']);
 
-    // Billing (Stripe Cashier): planes, estado, checkout, portal, addons, usuarios extra
+    // Billing (Stripe Cashier): planes visibles para autenticados; resto solo propietario (Spatie)
     Route::get('/billing/plans', [BillingController::class, 'plans']);
-    Route::get('/billing/status', [BillingController::class, 'status']);
-    Route::post('/billing/checkout', [BillingController::class, 'checkout']);
-    Route::post('/billing/portal', [BillingController::class, 'billingPortal']);
-    Route::post('/billing/addons/{addonSlug}', [BillingController::class, 'addAddon']);
-    Route::delete('/billing/addons/{addonSlug}', [BillingController::class, 'removeAddon']);
-    Route::put('/billing/extra-users', [BillingController::class, 'setExtraUsers']);
+    Route::middleware('role:business_owner')->group(function () {
+        Route::get('/billing/status', [BillingController::class, 'status']);
+        Route::post('/billing/checkout', [BillingController::class, 'checkout']);
+        Route::post('/billing/portal', [BillingController::class, 'billingPortal']);
+        Route::post('/billing/addons/{addonSlug}', [BillingController::class, 'addAddon']);
+        Route::delete('/billing/addons/{addonSlug}', [BillingController::class, 'removeAddon']);
+        Route::put('/billing/extra-users', [BillingController::class, 'setExtraUsers']);
+    });
 
     Route::prefix('agenda')->group(function () {
         Route::get('/day', [AgendaController::class, 'day']);

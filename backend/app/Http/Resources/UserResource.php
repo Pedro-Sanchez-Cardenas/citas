@@ -16,12 +16,18 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
-            'roles' => method_exists($this, 'getRoleNames') ? $this->getRoleNames()->toArray() : [],
-            'permissions' => method_exists($this, 'getAllPermissions') ? $this->getAllPermissions()->pluck('name')->toArray() : [],
-            'business' => $this->whenLoaded('business', fn () => [
-                'id' => $this->business->id,
-                'name' => $this->business->name,
-            ]),
+            'email_verified_at' => $this->email_verified_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
+            'roles' => $this->roles->pluck('name')->values()->toArray(),
+            'permissions' => $this->permissions->pluck('name')->values()->toArray(),
+            'business' => $this->whenLoaded(
+                'business',
+                fn() => [
+                    'id' => $this->business->id,
+                    'name' => $this->business->name,
+                ],
+            ),
         ];
     }
 }

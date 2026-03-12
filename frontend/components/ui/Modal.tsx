@@ -36,22 +36,22 @@ export default function Modal({
   const maxWidth = size === 'sm' ? 'max-w-sm' : size === 'lg' ? 'max-w-2xl' : 'max-w-md';
 
   const modal = (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80 backdrop-blur-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/80 backdrop-blur-xl overflow-y-auto">
       <div
         className={clsx(
-          'w-full rounded-2xl border border-slate-800 bg-slate-950/95 p-6 shadow-2xl',
+          'flex w-full max-h-[calc(100vh-2rem)] flex-col rounded-2xl border border-slate-800 bg-slate-950/95 shadow-2xl',
           maxWidth
         )}
       >
         {(title || description) && (
-          <header className="mb-4">
+          <header className="shrink-0 border-b border-slate-800/80 px-6 pt-6 pb-4">
             {title && <h2 className="text-lg font-semibold text-slate-50">{title}</h2>}
             {description && (
               <p className="mt-1 text-xs text-slate-400">{description}</p>
             )}
           </header>
         )}
-        <div>{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6">{children}</div>
         {onClose && (
           <button
             type="button"

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([BusinessSeeder::class, PermissionSeeder::class]);
+        // Primero roles y permisos (Spatie), luego negocio y usuario con rol asignado
+        $this->call([PermissionSeeder::class, BusinessSeeder::class]);
     }
 }

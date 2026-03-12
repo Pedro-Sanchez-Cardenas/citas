@@ -60,6 +60,11 @@ class BusinessSeeder extends Seeder
             $user->save();
         }
 
+        // Asignar rol de propietario (Spatie Laravel Permission) si aún no tiene roles
+        if (! $user->hasAnyRole(['business_owner', 'manager', 'worker'])) {
+            $user->assignRole('business_owner');
+        }
+
         // Categorías de servicio básicas
         if (! ServiceCategory::where('business_id', $business->id)->exists()) {
             $hair = ServiceCategory::create([

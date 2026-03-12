@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Http\Request;
@@ -44,7 +45,7 @@ class AuthService
         }
     }
 
-    public function currentUser(): ?\App\Models\User
+    public function currentUser(): ?User
     {
         return $this->guard->user();
     }

@@ -1,4 +1,7 @@
 services:
+  mysql:
+    ports:
+      - "3306:3306"
   workspace:
     build:
       context: .

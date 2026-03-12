@@ -83,6 +83,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
   const filteredNavSections = useMemo<NavSection[]>(() => {
     return NAV_SECTIONS.map((section) => {
       const items = section.items.filter((item) => {
+        if (hasAnyRole(user, ['business_owner'])) return true;
         if (item.href === '/reports') {
           return hasPermission(user, 'view_reports');
         }
@@ -106,36 +107,46 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
         if (item.href === '/working-hours' || item.href === '/blocks' || item.href === '/appointments') {
           return hasPermission(user, 'manage_appointments');
         }
-        if (item.href === '/billing' || item.href === '/automations') {
+        if (item.href === '/payments') {
+          return hasPermission(user, 'manage_appointments');
+        }
+        if (item.href === '/automations') {
           return hasAnyRole(user, ['business_owner']);
         }
-        // Dashboard y Agenda visibles para todos los usuarios autenticados
-        return true;
+        // Dashboard y Agenda: visibles para todos los autenticados
+        if (item.href === '/dashboard' || item.href === '/agenda') {
+          return true;
+        }
+        return false;
       });
       return { ...section, items };
     }).filter((section) => section.items.length > 0);
   }, [user]);
 
   const userMenuOptions: FloatMenuOptionItem[] = useMemo(
-    () => [
-      {
-        label: 'Ver perfil',
-        onClick: () => {
-          closeSidebar();
-          router.push('/profile');
+    () => {
+      const options: FloatMenuOptionItem[] = [
+        {
+          label: 'Ver perfil',
+          onClick: () => {
+            closeSidebar();
+            router.push('/profile');
+          },
         },
-      },
-      {
-        label: 'Facturación',
-        onClick: () => {
-          closeSidebar();
-          router.push('/billing');
-        },
-      },
-      { divider: true },
-      { label: 'Cerrar sesión', onClick: onLogout },
-    ],
-    [onLogout, router]
+      ];
+      if (hasAnyRole(user, ['business_owner'])) {
+        options.push({
+          label: 'Facturación',
+          onClick: () => {
+            closeSidebar();
+            router.push('/billing');
+          },
+        });
+      }
+      options.push({ divider: true }, { label: 'Cerrar sesión', onClick: onLogout });
+      return options;
+    },
+    [user, onLogout, router]
   );
 
   return (
