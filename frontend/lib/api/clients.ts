@@ -31,15 +31,43 @@ export interface CreateClientPayload {
   [key: string]: unknown;
 }
 
-export async function createClient(payload: CreateClientPayload): Promise<Client | null> {
+function buildClientFormData(payload: CreateClientPayload | Partial<CreateClientPayload>, photo?: File | null): FormData | null {
+  if (!photo) return null;
+  const form = new FormData();
+  const keys = ['name', 'email', 'phone', 'birthday', 'gender', 'preferred_stylist', 'notes', 'allergies'] as const;
+  keys.forEach((key) => {
+    const v = payload[key];
+    if (v !== undefined && v !== null) form.append(key, v === '' ? '' : String(v));
+  });
+  form.append('photo', photo);
+  return form;
+}
+
+export async function createClient(
+  payload: CreateClientPayload,
+  photo?: File | null
+): Promise<Client | null> {
+  const form = buildClientFormData(payload, photo);
+  if (form) {
+    const response = await api.post(BASE_PATH, form);
+    return unwrap<Client | null>(response.data) ?? null;
+  }
   const response = await api.post(BASE_PATH, payload);
   return unwrap<Client | null>(response.data) ?? null;
 }
 
 export async function updateClient(
   id: number | string,
-  payload: Partial<CreateClientPayload>
+  payload: Partial<CreateClientPayload>,
+  photo?: File | null
 ): Promise<Client | null> {
+  const form = buildClientFormData(payload, photo);
+  if (form) {
+    // PHP no rellena $_FILES en PUT; usar POST + _method=PUT para que Laravel enrute a update y el archivo llegue
+    form.append('_method', 'PUT');
+    const response = await api.post(`${BASE_PATH}/${id}`, form);
+    return unwrap<Client | null>(response.data) ?? null;
+  }
   const response = await api.put(`${BASE_PATH}/${id}`, payload);
   return unwrap<Client | null>(response.data) ?? null;
 }

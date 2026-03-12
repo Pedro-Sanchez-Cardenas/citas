@@ -10,6 +10,7 @@ import {
   removeAddon,
   setExtraUsers,
 } from '@/lib/api/billing';
+import { formatDate } from '@/lib/format';
 import { Button, Input } from '@/components/ui';
 import type { AxiosError } from 'axios';
 
@@ -244,7 +245,7 @@ export default function BillingPage() {
                   )}
                   {status.trial_ends_at && (
                     <span className="text-xs text-slate-400">
-                      Trial hasta {new Date(status.trial_ends_at).toLocaleDateString()}
+                      Trial hasta {formatDate(status.trial_ends_at)}
                     </span>
                   )}
                 </div>

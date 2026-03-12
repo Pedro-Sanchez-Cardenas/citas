@@ -22,9 +22,12 @@ class Client extends Model
         'preferred_stylist',
         'notes',
         'allergies',
+        'photo_path',
         'preferences',
         'last_visit_at',
     ];
+
+    protected $appends = ['photo_url'];
 
     protected $casts = [
         'birthday' => 'date',
@@ -55,6 +58,19 @@ class Client extends Model
     public function media(): HasMany
     {
         return $this->hasMany(ClientMedia::class);
+    }
+
+    /**
+     * Ruta relativa de la foto para que el frontend la una con su API base URL
+     * y la imagen se cargue desde el mismo origen que el API.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        if (empty($this->photo_path)) {
+            return null;
+        }
+
+        return '/storage/' . ltrim($this->photo_path, '/');
     }
 }
 

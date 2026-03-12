@@ -24,6 +24,7 @@ class UpdateClientRequest extends FormRequest
             'notes' => ['sometimes', 'nullable', 'string'],
             'allergies' => ['sometimes', 'nullable', 'string'],
             'preferences' => ['sometimes', 'nullable', 'array'],
+            'photo' => ['sometimes', 'nullable', 'image', 'max:5120'], // 5 MB
         ];
     }
 }

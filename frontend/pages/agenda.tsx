@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchAgendaDay, fetchAgendaWeek } from '@/lib/api/agenda';
 import { fetchBranches } from '@/lib/api/branches';
+import { formatHour } from '@/lib/format';
 import { Button, Select, Checkbox, Table, DatePicker } from '@/components/ui';
 import type { AxiosError } from 'axios';
 import type { Branch } from '@/types';
@@ -18,19 +19,6 @@ interface AgendaItem {
   day_label?: string;
   date?: string;
   [key: string]: unknown;
-}
-
-function formatHour(value: string | undefined): string {
-  if (!value) return '';
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-      return String(value).slice(11, 16);
-    }
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  } catch {
-    return String(value);
-  }
 }
 
 export default function AgendaPage() {

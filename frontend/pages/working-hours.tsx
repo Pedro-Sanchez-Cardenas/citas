@@ -13,6 +13,7 @@ import {
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchBranches } from '@/lib/api/branches';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
+import { formatDate } from '@/lib/format';
 import { Button, Input, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 import type { Branch, Professional } from '@/types';
 import type { AxiosError } from 'axios';
@@ -499,8 +500,8 @@ export default function WorkingHoursPage() {
             if (key === 'range') {
               return (
                 <span className="text-xs text-slate-400">
-                  {row.effective_from || 'Desde siempre'}{' '}
-                  {row.effective_until ? `→ ${row.effective_until}` : ''}
+                  {row.effective_from ? formatDate(row.effective_from) : 'Desde siempre'}{' '}
+                  {row.effective_until ? `→ ${formatDate(row.effective_until)}` : ''}
                 </span>
               );
             }

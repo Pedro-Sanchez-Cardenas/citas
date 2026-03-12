@@ -7,6 +7,7 @@ import { fetchBranches } from '@/lib/api/branches';
 import { fetchAppointments } from '@/lib/api/appointments';
 import { fetchClients } from '@/lib/api/clients';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { Button, Input, Select, Table, Modal } from '@/components/ui';
 import type { Appointment, Client, Branch } from '@/types';
 
@@ -14,17 +15,6 @@ interface AppointmentWithBranch extends Appointment {
   branch_id?: number;
 }
 import type { AxiosError } from 'axios';
-
-function formatDate(value: string | undefined): string {
-  if (!value) return '—';
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString();
-  } catch {
-    return value;
-  }
-}
 
 function formatMoney(amount: number | null | undefined, currency = 'USD'): string {
   if (amount == null) return '—';
@@ -167,7 +157,7 @@ function PaymentFormModal({
           <option value="">Sin asociar a cita</option>
           {appointments.slice(0, 100).map((a) => (
             <option key={a.id} value={a.id}>
-              {a.client_name} — {a.start_at ? new Date(a.start_at).toLocaleString() : ''}
+              {a.client_name} — {a.start_at ? formatDateTime(a.start_at) : ''}
             </option>
           ))}
         </Select>

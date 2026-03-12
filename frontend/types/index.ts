@@ -56,6 +56,8 @@ export interface Client {
   preferred_stylist?: string | null;
   notes?: string | null;
   allergies?: string | null;
+  photo_path?: string | null;
+  photo_url?: string | null;
   [key: string]: unknown;
 }
 

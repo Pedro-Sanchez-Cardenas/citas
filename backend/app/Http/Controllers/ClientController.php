@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
+use App\Http\Resources\ClientResource;
 use App\Models\Client;
 use App\Services\ClientService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ClientController extends Controller
 {
@@ -21,15 +24,28 @@ class ClientController extends Controller
         $businessId = (int) $request->user()->business_id;
         $clients = $this->clientService->listForBusiness($businessId);
 
-        return response()->json($clients);
+        return ClientResource::collection($clients)->response();
     }
 
     public function store(StoreClientRequest $request): JsonResponse
     {
         $businessId = (int) $request->user()->business_id;
-        $client = $this->clientService->createForBusiness($businessId, $request->validated());
+        $data = $request->validated();
+        $photo = $data['photo'] ?? $request->file('photo');
+        unset($data['photo']);
 
-        return response()->json($client, 201);
+        $client = $this->clientService->createForBusiness($businessId, $data);
+
+        if ($photo) {
+            $path = $photo->store(
+                sprintf('clients/%s/%s', $businessId, $client->id),
+                'public'
+            );
+            $client->update(['photo_path' => $path]);
+            $client->refresh();
+        }
+
+        return (new ClientResource($client))->response()->setStatusCode(201);
     }
 
     public function show(Request $request, Client $client): JsonResponse
@@ -40,7 +56,7 @@ class ClientController extends Controller
             abort(404);
         }
 
-        return response()->json($client);
+        return (new ClientResource($client))->response();
     }
 
     public function update(UpdateClientRequest $request, Client $client): JsonResponse
@@ -51,9 +67,22 @@ class ClientController extends Controller
             abort(404);
         }
 
-        $updated = $this->clientService->update($client, $request->validated());
+        $data = $request->validated();
+        $photo = $data['photo'] ?? null;
+        unset($data['photo']);
 
-        return response()->json($updated);
+        if ($photo) {
+            $dir = sprintf('clients/%s/%s', $businessId, $client->id);
+            if ($client->photo_path) {
+                Storage::disk('public')->delete($client->photo_path);
+            }
+            $path = $photo->store($dir, 'public');
+            $data['photo_path'] = $path;
+        }
+
+        $updated = $this->clientService->update($client, $data);
+
+        return (new ClientResource($updated))->response();
     }
 
     public function destroy(Request $request, Client $client): JsonResponse
@@ -87,7 +116,7 @@ class ClientController extends Controller
             ->get();
 
         return response()->json([
-            'client' => $client,
+            'client' => new ClientResource($client),
             'appointments' => $appointments,
             'media' => $media,
         ]);

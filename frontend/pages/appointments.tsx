@@ -13,6 +13,7 @@ import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchServices } from '@/lib/api/services';
 import { fetchBranches } from '@/lib/api/branches';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
+import { formatDateTime } from '@/lib/format';
 import { Button, Input, Textarea, Select, Checkbox, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 import type { Appointment, Professional, Service, Branch } from '@/types';
 import type { AxiosError } from 'axios';
@@ -24,17 +25,6 @@ const STATUS_OPTIONS = [
   { value: 'cancelled', label: 'Cancelada' },
   { value: 'no_show', label: 'No se presentó' },
 ];
-
-function formatDateTime(value: string | undefined): string {
-  if (!value) return '—';
-  try {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleString();
-  } catch {
-    return value;
-  }
-}
 
 interface AppointmentFormModalProps {
   open: boolean;

@@ -5,6 +5,33 @@ const baseURL =
     ? process.env.NEXT_PUBLIC_API_BASE_URL || ''
     : process.env.NEXT_PUBLIC_API_BASE_URL || '';
 
+/** Base URL del API; útil para construir URLs de recursos (ej. fotos de cliente). */
+export const apiBaseUrl = baseURL.replace(/\/$/, '');
+
+/**
+ * Origen del backend sin el prefijo /api. Las fotos se sirven desde /storage en la raíz
+ * del servidor Laravel, no bajo /api, así que la URL de la imagen no debe llevar /api.
+ */
+const storageOrigin = apiBaseUrl.replace(/\/api\/?$/, '') || apiBaseUrl;
+
+/**
+ * URL del endpoint que sirve la foto del cliente (misma base que el API, con auth).
+ * Usar esta URL en <img src> para que la petición vaya con cookies y funcione siempre.
+ */
+export function clientPhotoEndpointUrl(clientId: number | string): string {
+  return `${apiBaseUrl}/clients/${clientId}/photo`;
+}
+
+/**
+ * Devuelve la URL absoluta de una foto de cliente (ruta /storage/... o URL del endpoint).
+ * Preferir clientPhotoEndpointUrl(id) cuando tengas el id del cliente.
+ */
+export function clientPhotoUrl(pathOrUrl: string | null | undefined): string | null {
+  if (!pathOrUrl) return null;
+  if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://')) return pathOrUrl;
+  return `${storageOrigin}${pathOrUrl.startsWith('/') ? '' : '/'}${pathOrUrl}`;
+}
+
 const api: AxiosInstance = axios.create({
   baseURL,
   withCredentials: true,

@@ -24,6 +24,7 @@ class StoreClientRequest extends FormRequest
             'notes' => ['nullable', 'string'],
             'allergies' => ['nullable', 'string'],
             'preferences' => ['nullable', 'array'],
+            'photo' => ['nullable', 'image', 'max:5120'], // 5 MB, opcional en multipart
         ];
     }
 }

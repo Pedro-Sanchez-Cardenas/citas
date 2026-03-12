@@ -8,11 +8,11 @@ import {
   updateClient,
   deleteClient,
   fetchClientHistory,
-  uploadClientMedia,
-  deleteClientMedia,
   type CreateClientPayload,
 } from '@/lib/api/clients';
+import { clientPhotoUrl } from '@/lib/api';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { Button, Input, Textarea, Select, Modal, Table, FloatMenu, DatePicker } from '@/components/ui';
 import type { Client } from '@/types';
 import type { AxiosError } from 'axios';
@@ -20,7 +20,7 @@ import type { AxiosError } from 'axios';
 interface ClientFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (payload: CreateClientPayload) => Promise<void>;
+  onSubmit: (payload: CreateClientPayload, photo?: File | null) => Promise<void>;
   initialData: Client | null;
   loading: boolean;
   fieldErrors: FormFieldErrors;
@@ -37,6 +37,8 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading, fieldE
   );
   const [notes, setNotes] = useState(initialData?.notes ?? '');
   const [allergies, setAllergies] = useState(initialData?.allergies ?? '');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -48,10 +50,29 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading, fieldE
       setPreferredStylist(initialData?.preferred_stylist ?? '');
       setNotes(initialData?.notes ?? '');
       setAllergies(initialData?.allergies ?? '');
+      setPhotoFile(null);
+      setPhotoPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     }
   }, [open, initialData]);
 
   const isEdit = !!initialData?.id;
+  const photoDisplay = photoPreview || clientPhotoUrl(initialData?.photo_url) || null;
+
+  const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) return;
+      setPhotoFile(file);
+      setPhotoPreview(URL.createObjectURL(file));
+    } else {
+      setPhotoFile(null);
+      if (photoPreview) URL.revokeObjectURL(photoPreview);
+      setPhotoPreview(null);
+    }
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -65,7 +86,7 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading, fieldE
       notes: notes || null,
       allergies: allergies || null,
     };
-    void onSubmit(payload);
+    void onSubmit(payload, photoFile);
   };
 
   return (
@@ -80,16 +101,55 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading, fieldE
         className="mt-1 grid grid-cols-1 gap-4 md:grid-cols-2"
         onSubmit={handleSubmit}
       >
-        <div className="md:col-span-2">
-          <Input
-            label="Nombre completo"
-            id="client-name"
-            required
-            value={name}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-            placeholder="Nombre y apellidos del cliente"
-            error={fieldErrors.name}
-          />
+        <div className="md:col-span-2 flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex-1 min-w-0">
+            <Input
+              label="Nombre completo"
+              id="client-name"
+              required
+              value={name}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+              placeholder="Nombre y apellidos del cliente"
+              error={fieldErrors.name}
+            />
+          </div>
+          <div className="flex shrink-0 flex-col items-start gap-2">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-slate-500">
+              Foto del cliente
+            </span>
+            <div className="flex items-center gap-3">
+              <label
+                htmlFor="client-photo"
+                className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-600 bg-slate-800/60 transition hover:border-slate-500 hover:bg-slate-800/80"
+              >
+                {photoDisplay ? (
+                  <img
+                    src={photoDisplay}
+                    alt="Vista previa"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl text-slate-500">👤</span>
+                )}
+              </label>
+              <input
+                id="client-photo"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="sr-only"
+                onChange={handlePhotoChange}
+              />
+              <div className="flex flex-col gap-0.5">
+                <label
+                  htmlFor="client-photo"
+                  className="text-xs font-medium text-teal-400 hover:text-teal-300 cursor-pointer"
+                >
+                  {photoDisplay ? 'Cambiar foto' : 'Subir foto'}
+                </label>
+                <p className="text-[11px] text-slate-500">JPG, PNG o WebP. Máx. 5 MB</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         <Input
@@ -181,16 +241,6 @@ function ClientFormModal({ open, onClose, onSubmit, initialData, loading, fieldE
   );
 }
 
-function formatDateTime(value: string | undefined): string {
-  if (!value) return '—';
-  try {
-    const d = new Date(value);
-    return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
-  } catch {
-    return value;
-  }
-}
-
 interface ClientHistoryAppointment {
   id: number;
   start_at?: string;
@@ -221,12 +271,6 @@ interface ClientDetailModalProps {
 function ClientDetailModal({ open, onClose, client }: ClientDetailModalProps) {
   const [data, setData] = useState<ClientDetailData | null>(null);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<'history' | 'media'>('history');
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [mediaNotes, setMediaNotes] = useState('');
-  const [mediaType, setMediaType] = useState('other');
-  const [uploading, setUploading] = useState(false);
-  const [deletingMediaId, setDeletingMediaId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!open || !client?.id) return;
@@ -246,35 +290,8 @@ function ClientDetailModal({ open, onClose, client }: ClientDetailModalProps) {
     return () => { cancelled = true; };
   }, [open, client?.id, client]);
 
-  const handleUploadMedia = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!client?.id || !mediaUrl.trim()) return;
-    setUploading(true);
-    try {
-      await uploadClientMedia(client.id, { url: mediaUrl.trim(), notes: mediaNotes.trim() || null, type: mediaType });
-      const next = await fetchClientHistory(client.id) as ClientDetailData;
-      setData(next);
-      setMediaUrl('');
-      setMediaNotes('');
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleDeleteMedia = async (mediaId: number) => {
-    if (!window.confirm('¿Eliminar este medio?')) return;
-    setDeletingMediaId(mediaId);
-    try {
-      await deleteClientMedia(mediaId);
-      setData((prev) => prev ? { ...prev, media: (prev.media || []).filter((m) => m.id !== mediaId) } : null);
-    } finally {
-      setDeletingMediaId(null);
-    }
-  };
-
   const clientData = data?.client ?? client;
   const appointments = data?.appointments ?? [];
-  const media = data?.media ?? [];
 
   return (
     <Modal open={open} onClose={onClose} title="Detalle del cliente" description="" size="lg">
@@ -282,112 +299,50 @@ function ClientDetailModal({ open, onClose, client }: ClientDetailModalProps) {
         <div className="py-8 text-center text-sm text-slate-400">Cargando...</div>
       ) : (
         <>
-          <div className="mb-4 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
-            <p className="text-sm font-semibold text-slate-50">{clientData?.name}</p>
-            {(clientData?.email || clientData?.phone) && (
-              <p className="mt-1 text-xs text-slate-400">
-                {[clientData?.email, clientData?.phone].filter(Boolean).join(' · ')}
-              </p>
-            )}
-          </div>
-
-          <div className="mb-3 flex gap-2 border-b border-slate-800/80">
-            <button
-              type="button"
-              onClick={() => setTab('history')}
-              className={`px-3 py-2 text-xs font-medium ${tab === 'history' ? 'border-b-2 border-teal-500 text-teal-300' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Historial de citas
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('media')}
-              className={`px-3 py-2 text-xs font-medium ${tab === 'media' ? 'border-b-2 border-teal-500 text-teal-300' : 'text-slate-400 hover:text-slate-200'}`}
-            >
-              Medios
-            </button>
-          </div>
-
-          {tab === 'history' && (
-            <div className="max-h-64 overflow-y-auto space-y-2">
-              {appointments.length === 0 ? (
-                <p className="text-xs text-slate-500">Sin citas registradas.</p>
+          <div className="mb-4 flex items-center gap-4 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-slate-700/80 bg-slate-800">
+              {clientData?.photo_url ? (
+                <img
+                  src={clientPhotoUrl(clientData.photo_url) ?? ''}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                appointments.map((a) => (
-                  <div
-                    key={a.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs"
-                  >
-                    <span className="text-slate-200">{formatDateTime(a.start_at)}</span>
-                    <span className="text-slate-400">{a.service?.name ?? a.combined_service?.name ?? '—'}</span>
-                    <span className="text-slate-400">{a.professional?.name ?? '—'}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[11px] ${a.status === 'attended' ? 'bg-emerald-500/20 text-emerald-300' : a.status === 'cancelled' ? 'bg-red-500/20 text-red-300' : 'bg-slate-700 text-slate-300'}`}>
-                      {a.status ?? '—'}
-                    </span>
-                  </div>
-                ))
+                <span className="flex h-full w-full items-center justify-center text-lg font-medium text-slate-400">
+                  {clientData?.name?.[0]?.toUpperCase() ?? '?'}
+                </span>
               )}
             </div>
-          )}
-
-          {tab === 'media' && (
-            <div className="space-y-4">
-              <form onSubmit={handleUploadMedia} className="flex flex-wrap items-end gap-2 rounded-xl border border-slate-800/80 bg-slate-950/60 p-3">
-                <Input
-                  label="URL"
-                  id="media-url"
-                  value={mediaUrl}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setMediaUrl(e.target.value)}
-                  placeholder="https://..."
-                  required
-                />
-                <Select
-                  label="Tipo"
-                  id="media-type"
-                  value={mediaType}
-                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setMediaType(e.target.value)}
-                >
-                  <option value="before">Antes</option>
-                  <option value="after">Después</option>
-                  <option value="other">Otro</option>
-                </Select>
-                <Input
-                  label="Notas"
-                  id="media-notes"
-                  value={mediaNotes}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setMediaNotes(e.target.value)}
-                  placeholder="Opcional"
-                />
-                <Button type="submit" size="sm" disabled={uploading}>
-                  {uploading ? 'Subiendo...' : 'Añadir'}
-                </Button>
-              </form>
-              <div className="max-h-48 overflow-y-auto space-y-2">
-                {media.length === 0 ? (
-                  <p className="text-xs text-slate-500">Sin medios.</p>
-                ) : (
-                  media.map((m) => (
-                    <div key={m.id} className="flex items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs">
-                      <a href={m.url} target="_blank" rel="noopener noreferrer" className="truncate text-teal-300 hover:underline">
-                        {m.url}
-                      </a>
-                      <span className="text-slate-500">{m.type}</span>
-                      <Button
-                        type="button"
-                        variant="danger"
-                        size="sm"
-                        className="text-[10px]"
-                        onClick={() => handleDeleteMedia(m.id)}
-                        disabled={deletingMediaId === m.id}
-                      >
-                        Eliminar
-                      </Button>
-                    </div>
-                  ))
-                )}
-              </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-50">{clientData?.name}</p>
+              {(clientData?.email || clientData?.phone) && (
+                <p className="mt-1 text-xs text-slate-400">
+                  {[clientData?.email, clientData?.phone].filter(Boolean).join(' · ')}
+                </p>
+              )}
             </div>
-          )}
+          </div>
+
+          <div className="max-h-64 overflow-y-auto space-y-2">
+            <p className="mb-2 text-xs font-medium text-slate-400">Historial de citas</p>
+            {appointments.length === 0 ? (
+              <p className="text-xs text-slate-500">Sin citas registradas.</p>
+            ) : (
+              appointments.map((a) => (
+                <div
+                  key={a.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs"
+                >
+                  <span className="text-slate-200">{formatDateTime(a.start_at)}</span>
+                  <span className="text-slate-400">{a.service?.name ?? a.combined_service?.name ?? '—'}</span>
+                  <span className="text-slate-400">{a.professional?.name ?? '—'}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] ${a.status === 'attended' ? 'bg-emerald-500/20 text-emerald-300' : a.status === 'cancelled' ? 'bg-red-500/20 text-red-300' : 'bg-slate-700 text-slate-300'}`}>
+                    {a.status ?? '—'}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
         </>
       )}
     </Modal>
@@ -481,18 +436,18 @@ export default function ClientsPage() {
     setModalOpen(true);
   };
 
-  const handleSubmitClient = async (formData: CreateClientPayload) => {
+  const handleSubmitClient = async (formData: CreateClientPayload, photo?: File | null) => {
     setModalLoading(true);
     setError('');
     setFieldErrors({});
     try {
       if (selectedClient?.id) {
-        const updated = await updateClient(selectedClient.id, formData);
+        const updated = await updateClient(selectedClient.id, formData, photo);
         setClients((prev) =>
           prev.map((c) => (c.id === selectedClient.id ? updated ?? c : c))
         );
       } else {
-        const created = await createClient(formData);
+        const created = await createClient(formData, photo);
         if (created) setClients((prev) => [created, ...prev]);
       }
       setModalOpen(false);
@@ -636,9 +591,22 @@ export default function ClientsPage() {
           renderCell={(client, key) => {
             if (key === 'name') {
               return (
-                <span className="text-sm font-medium text-slate-50">
-                  {client.name}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-700/80 bg-slate-800">
+                    {client.photo_url ? (
+                      <img
+                        src={clientPhotoUrl(client.photo_url) ?? ''}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-400">
+                        {client.name?.[0]?.toUpperCase() ?? '?'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-slate-50">{client.name}</span>
+                </div>
               );
             }
 
@@ -656,8 +624,8 @@ export default function ClientsPage() {
 
             if (key === 'birthday') {
               return (
-                <span className="text-xs text-slate-400">
-                  {client.birthday || '—'}
+                <span className="text-xs text-slate-200">
+                  {formatDate(client.birthday)}
                 </span>
               );
             }
