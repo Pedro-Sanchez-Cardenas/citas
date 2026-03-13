@@ -1,0 +1,41 @@
+########################
+# Backend Laravel
+########################
+
+# Ignorar la carpeta de symlink de Laravel que rompe el build en Docker
+backend/public/storage
+
+# Dependencias backend
+backend/vendor
+
+# Archivos de entorno y logs backend
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/storage/logs/*
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/testing/*
+backend/storage/framework/views/*
+backend/bootstrap/cache/*
+
+########################
+# Frontend / Node
+########################
+
+node_modules
+npm-debug.log
+yarn-error.log
+
+########################
+# Git y otros
+########################
+
+.git
+.gitignore
+.gitattributes
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+

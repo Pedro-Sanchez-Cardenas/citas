@@ -1,33 +1,17 @@
 services:
-  traefik:
-    image: traefik:v3.6.9
-    container_name: traefik
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx
     restart: unless-stopped
     depends_on:
       - frontend
       - backend
     ports:
-      - "8080:80" # App (frontend + API vía /api y /sanctum)
-      - "8081:8080" # Dashboard Traefik (solo desarrollo)
-      - "8082:8082" # Métricas Prometheus
+      - "8080:80" # App (frontend + API vía /api y /sanctum y /storage)
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command:
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=network"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.metrics.address=:8082"
-      - "--metrics.prometheus=true"
-      - "--metrics.prometheus.entryPoint=metrics"
-      - "--metrics.prometheus.addEntryPointsLabels=true"
-      - "--metrics.prometheus.addRoutersLabels=true"
-      - "--metrics.prometheus.addServicesLabels=true"
-      - "--tracing.otlp=true"
-      - "--tracing.serviceName=citas-traefik"
-      - "--tracing.sampleRate=1.0"
+      - ./docker/nginx/nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+      # Solo para servir archivos públicos de Laravel (/storage)
+      - ./backend/storage/app/public:/var/www/storage:ro
     networks:
       - network
   mysql:
@@ -62,12 +46,6 @@ services:
       - NODE_ENV=development
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.docker.network=network"
     networks:
       - network
   backend:
@@ -98,13 +76,6 @@ services:
     volumes:
       - ./backend:/var/www
       - backend_vendor:/var/www/vendor
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`) || PathPrefix(`/sanctum`) || PathPrefix(`/storage`)"
-      - "traefik.http.routers.backend.priority=100"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.services.backend.loadbalancer.server.port=8000"
-      - "traefik.docker.network=network"
     networks:
       - network
 

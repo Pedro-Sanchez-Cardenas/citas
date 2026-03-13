@@ -5,6 +5,7 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat bash
 
 COPY frontend/package.json frontend/package-lock.json* ./
+
 RUN npm install
 
 CMD ["npm", "run", "dev"]
