@@ -1,5 +1,5 @@
 {
-  "name": "Citas - Workspace",
+  "name": "Appointments App - Workspace",
 
   "dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
 
