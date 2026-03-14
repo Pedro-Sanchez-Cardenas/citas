@@ -15,8 +15,6 @@ class ClientMediaController extends Controller
 
     public function index(Request $request, Client $client): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
         $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $media = $client->media()
@@ -28,12 +26,9 @@ class ClientMediaController extends Controller
 
     public function store(StoreClientMediaRequest $request, Client $client): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
         $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $data = $request->validated();
-        $data['business_id'] = $businessId;
         $data['client_id'] = $client->id;
 
         $media = ClientMedia::create($data);
@@ -43,9 +38,8 @@ class ClientMediaController extends Controller
 
     public function destroy(Request $request, ClientMedia $media): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
-        $this->assertModelBelongsToRequestBusiness($media, $request);
+        $media->load('client');
+        $this->assertModelBelongsToRequestBusiness($media->client, $request);
 
         $media->delete();
 

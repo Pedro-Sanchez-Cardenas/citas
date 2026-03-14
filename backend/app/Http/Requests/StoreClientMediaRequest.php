@@ -16,7 +16,7 @@ class StoreClientMediaRequest extends FormRequest
         return [
             'appointment_id' => ['nullable', 'integer', 'exists:appointments,id'],
             'type' => ['nullable', 'string', 'in:before,after,other'],
-            'url' => ['required', 'string', 'max:2048'],
+            'photo_path' => ['required', 'string', 'max:2048'],
             'notes' => ['nullable', 'string'],
         ];
     }

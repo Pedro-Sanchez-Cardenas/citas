@@ -92,7 +92,7 @@ trait CreatesTenantData
     {
         return Client::create(array_merge([
             'business_id' => $business->id,
-            'default_branch_id' => $branch?->id,
+            'branch_id' => $branch?->id,
             'name' => 'Cliente '.Str::random(4),
             'email' => Str::random(8).'@example.com',
         ], $overrides));
@@ -132,8 +132,6 @@ trait CreatesTenantData
             'professional_id' => $professional->id,
             'service_id' => $service?->id,
             'client_id' => $client?->id,
-            'client_name' => $client?->name ?? 'Cliente cita',
-            'client_email' => $client?->email,
             'start_at' => $start,
             'end_at' => $end,
             'status' => 'scheduled',

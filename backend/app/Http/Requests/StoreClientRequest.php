@@ -14,7 +14,7 @@ class StoreClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'default_branch_id' => ['nullable', 'integer', 'exists:branches,id'],
+            'branch_id' => ['nullable', 'integer', 'exists:branches,id'],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'string', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],

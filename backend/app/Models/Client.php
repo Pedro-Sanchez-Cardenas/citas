@@ -13,7 +13,7 @@ class Client extends Model
 
     protected $fillable = [
         'business_id',
-        'default_branch_id',
+        'branch_id',
         'name',
         'email',
         'phone',
@@ -40,9 +40,9 @@ class Client extends Model
         return $this->belongsTo(Business::class);
     }
 
-    public function defaultBranch(): BelongsTo
+    public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class, 'default_branch_id');
+        return $this->belongsTo(Branch::class);
     }
 
     public function appointments(): HasMany

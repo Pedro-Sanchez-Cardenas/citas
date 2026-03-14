@@ -39,11 +39,12 @@ class TenantIsolationApiTest extends TestCase
         ]);
 
         $start = CarbonImmutable::now()->addDay()->setTime(11, 0);
+        $clientB = $this->createClient($businessB, $branchB, ['name' => 'Cliente B']);
         $appointmentB = Appointment::create([
             'business_id' => $businessB->id,
             'branch_id' => $branchB->id,
             'professional_id' => $this->createProfessional($businessB, $branchB)->id,
-            'client_name' => 'Cliente B',
+            'client_id' => $clientB->id,
             'start_at' => $start,
             'end_at' => $start->addMinutes(30),
             'status' => 'scheduled',
@@ -82,10 +83,11 @@ class TenantIsolationApiTest extends TestCase
         $start = CarbonImmutable::now()->addDay()->setTime(13, 0);
         $this->createWorkingHour($businessA, $branchA, $professionalA, $start);
 
+        $clientB = $this->createClient($businessB, $branchB, ['name' => 'Intento foraneo']);
         $this->postJson('/api/appointments', [
             'branch_id' => $branchB->id,
             'professional_id' => $professionalB->id,
-            'client_name' => 'Intento foraneo',
+            'client_id' => $clientB->id,
             'start_at' => $start->toIso8601String(),
             'end_at' => $start->addMinutes(30)->toIso8601String(),
         ])->assertStatus(404);

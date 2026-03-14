@@ -14,26 +14,36 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Limpiar cache de permisos antes de recrearlos
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // Definir permisos base por funcionalidad del sistema
-        $permissions = ['manage_business_settings', 'manage_branches', 'manage_professionals', 'manage_services', 'manage_inventory', 'manage_appointments', 'manage_clients', 'view_reports'];
+        $permissionNames = [
+            'manage_business_settings',
+            'manage_branches',
+            'manage_professionals',
+            'manage_services',
+            'manage_inventory',
+            'manage_appointments',
+            'manage_clients',
+            'view_reports',
+        ];
 
-        foreach ($permissions as $name) {
-            Permission::findOrCreate($name, 'web');
+        $permissions = [];
+        foreach ($permissionNames as $name) {
+            $permissions[] = Permission::findOrCreate($name, 'web');
         }
 
-        // Crear roles
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $owner = Role::findOrCreate('business_owner', 'web');
         $manager = Role::findOrCreate('manager', 'web');
         $worker = Role::findOrCreate('worker', 'web');
 
-        // Asignar permisos a cada rol
         $owner->syncPermissions($permissions);
 
-        $manager->syncPermissions(['manage_branches', 'manage_professionals', 'manage_services', 'manage_inventory', 'manage_appointments', 'manage_clients', 'view_reports']);
+        $managerPerms = collect($permissions)->whereNotIn('name', ['manage_business_settings'])->all();
+        $manager->syncPermissions($managerPerms);
 
-        $worker->syncPermissions(['manage_appointments', 'manage_clients']);
+        $workerPerms = collect($permissions)->whereIn('name', ['manage_appointments', 'manage_clients'])->all();
+        $worker->syncPermissions($workerPerms);
     }
 }

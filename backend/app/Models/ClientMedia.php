@@ -11,18 +11,12 @@ class ClientMedia extends Model
     use HasFactory;
 
     protected $fillable = [
-        'business_id',
         'client_id',
         'appointment_id',
         'type',
-        'url',
+        'photo_path',
         'notes',
     ];
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function client(): BelongsTo
     {

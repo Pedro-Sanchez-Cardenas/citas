@@ -18,9 +18,6 @@ class Appointment extends Model
         'service_id',
         'combined_service_id',
         'client_id',
-        'client_name',
-        'client_phone',
-        'client_email',
         'start_at',
         'end_at',
         'status',
@@ -75,6 +72,11 @@ class Appointment extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function clientMedia(): HasMany
+    {
+        return $this->hasMany(ClientMedia::class);
     }
 }
 

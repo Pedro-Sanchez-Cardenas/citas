@@ -96,7 +96,7 @@ class ResourceCrudApiTest extends TestCase
         $branch = $ctx['branch'];
 
         $created = $this->postJson('/api/clients', [
-            'default_branch_id' => $branch->id,
+            'branch_id' => $branch->id,
             'name' => 'Cliente Historial',
             'email' => 'cliente-historial@example.com',
         ])->assertStatus(201)->json();

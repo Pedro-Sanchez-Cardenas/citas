@@ -11,7 +11,6 @@ class Payment extends Model
     use HasFactory;
 
     protected $fillable = [
-        'business_id',
         'branch_id',
         'appointment_id',
         'client_id',
@@ -30,11 +29,6 @@ class Payment extends Model
         'tip_cents' => 'integer',
         'meta' => 'array',
     ];
-
-    public function business(): BelongsTo
-    {
-        return $this->belongsTo(Business::class);
-    }
 
     public function branch(): BelongsTo
     {

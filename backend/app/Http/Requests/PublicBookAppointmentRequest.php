@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreAppointmentRequest extends FormRequest
+class PublicBookAppointmentRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,7 +18,9 @@ class StoreAppointmentRequest extends FormRequest
             'professional_id' => ['required', 'integer', 'exists:professionals,id'],
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'combined_service_id' => ['nullable', 'integer', 'exists:combined_services,id'],
-            'client_id' => ['required', 'integer', 'exists:clients,id'],
+            'client_name' => ['required', 'string', 'max:255'],
+            'client_phone' => ['nullable', 'string', 'max:50'],
+            'client_email' => ['nullable', 'string', 'email', 'max:255'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'status' => ['nullable', 'in:scheduled,confirmed,attended,cancelled,no_show'],
@@ -27,4 +29,3 @@ class StoreAppointmentRequest extends FormRequest
         ];
     }
 }
-

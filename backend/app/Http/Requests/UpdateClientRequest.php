@@ -14,7 +14,7 @@ class UpdateClientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'default_branch_id' => ['sometimes', 'nullable', 'integer', 'exists:branches,id'],
+            'branch_id' => ['sometimes', 'nullable', 'integer', 'exists:branches,id'],
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['sometimes', 'nullable', 'string', 'email', 'max:255'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:50'],

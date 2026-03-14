@@ -31,7 +31,7 @@ class EnsureTenantIsolation
         $this->assertBusinessOwnership(
             $payload,
             $businessId,
-            ['branch_id', 'default_branch_id'],
+            ['branch_id'],
             fn (int $id): bool => Branch::query()
                 ->whereKey($id)
                 ->where('business_id', $businessId)

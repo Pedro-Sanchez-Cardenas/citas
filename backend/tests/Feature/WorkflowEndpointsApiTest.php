@@ -31,8 +31,6 @@ class WorkflowEndpointsApiTest extends TestCase
             'professional_id' => $professional->id,
             'service_id' => $service->id,
             'client_id' => $client->id,
-            'client_name' => $client->name,
-            'client_email' => $client->email,
             'start_at' => $start->toIso8601String(),
             'end_at' => $end->toIso8601String(),
             'status' => 'scheduled',
