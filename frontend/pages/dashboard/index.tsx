@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchDashboardCards } from '@/lib/api/dashboard';
 import type { DashboardCard } from '@/components/dashboard/types';
+import { PageHeader, Card, Container, Alert } from '@/components/ui';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -40,51 +41,42 @@ export default function DashboardPage() {
   const isLoading = authLoading || loading;
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-300">
-        Cargando dashboard...
-      </div>
+      <Container className="flex min-h-[40vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-slate-400">
+          <div className="h-10 w-10 animate-pulse rounded-2xl bg-slate-700/80" />
+          <span className="text-sm">Cargando dashboard...</span>
+        </div>
+      </Container>
     );
   }
 
   return (
-    <>
-      <header className="mb-7 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Panel de belleza
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Resumen de tus citas, servicios y actividad reciente del salón,
-            barbería o spa.
-          </p>
-        </div>
-      </header>
+    <Container>
+      <PageHeader
+        title="Panel de belleza"
+        subtitle="Resumen de tus citas, servicios y actividad reciente del salón, barbería o spa."
+      />
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => (
-          <div
-            key={card.title}
-            className="group rounded-2xl bg-linear-to-br from-slate-800/80 via-slate-900/80 to-slate-950/90 p-px shadow-[0_18px_40px_rgba(15,23,42,0.85)]"
-          >
-            <div className="flex h-full flex-col justify-between rounded-2xl bg-slate-950/80 p-4 transition group-hover:bg-slate-950">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
-                  {card.title}
-                </div>
+          <Card key={card.title} variant="elevated" padding="md">
+            <div className="flex flex-col justify-between gap-2">
+              <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">
+                {card.title}
               </div>
-              <div className="text-2xl font-semibold text-slate-50">
+              <div className="text-2xl font-semibold text-slate-50 tabular-nums">
                 {card.value}
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </section>
-    </>
+    </Container>
   );
 }

@@ -39,12 +39,15 @@ export async function fetchAgendaRange(
   const results = await Promise.all(
     Array.from(weekStarts).map(async (dateStr) => {
       try {
-        const data = await fetchAgendaWeek({ date: dateStr, ...params });
-        const items = Array.isArray((data as { items?: unknown[] })?.items)
-          ? (data as { items: unknown[] }).items
-          : Array.isArray(data)
-            ? data
-            : [];
+        const data = await fetchAgendaWeek({ start: dateStr, ...params });
+        const raw = data as { items?: unknown[]; appointments?: unknown[] };
+        const items = Array.isArray(raw?.items)
+          ? raw.items
+          : Array.isArray(raw?.appointments)
+            ? raw.appointments
+            : Array.isArray(data)
+              ? data
+              : [];
         return items as { id?: number }[];
       } catch {
         return [];

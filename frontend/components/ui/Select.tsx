@@ -27,12 +27,14 @@ export default function Select({
 }: SelectProps) {
   const [nativeError, setNativeError] = useState<string | null>(null);
   const effectiveError = error ?? nativeError;
+  const hintId = hint ? `${id}-hint` : undefined;
+  const errorId = effectiveError ? `${id}-error` : undefined;
 
   return (
     <div className={clsx('space-y-1.5', className)}>
       {label && (
         <label
-          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.16em] text-slate-400"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400"
           htmlFor={id}
         >
           {label}
@@ -42,12 +44,16 @@ export default function Select({
       <select
         id={id}
         className={clsx(
-          'w-full rounded-2xl border border-slate-800/80 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60',
+          'w-full min-h-[var(--touch-min)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 pl-4 pr-10 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 appearance-none bg-no-repeat bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center]',
           selectClassName,
           effectiveError &&
-            'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
+            'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30'
         )}
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")`,
+        }}
         aria-invalid={!!effectiveError}
+        aria-describedby={errorId ?? hintId}
         onInvalid={(e) => {
           if (error) return;
           setNativeError(e.currentTarget.validationMessage || 'Campo inválido.');
@@ -65,10 +71,10 @@ export default function Select({
         {children}
       </select>
       {hint && !effectiveError && (
-        <p className="text-[11px] text-slate-500">{hint}</p>
+        <p id={hintId} className="text-[11px] text-slate-500">{hint}</p>
       )}
       {effectiveError && (
-        <p className="text-[11px] text-red-300">{effectiveError}</p>
+        <p id={errorId} className="text-[11px] text-red-300">{effectiveError}</p>
       )}
     </div>
   );

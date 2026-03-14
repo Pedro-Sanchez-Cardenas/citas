@@ -32,7 +32,7 @@ export default function Input({
     <div className={clsx('space-y-1.5', className)}>
       {label && (
         <label
-          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.16em] text-slate-400"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400"
           htmlFor={id}
         >
           {label}
@@ -42,10 +42,10 @@ export default function Input({
       <input
         id={id}
         className={clsx(
-          'w-full rounded-2xl border border-slate-800/80 bg-slate-950/80 px-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60',
+          'w-full min-h-[var(--touch-min)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 px-4 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60',
           inputClassName,
           effectiveError &&
-            'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
+            'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30'
         )}
         aria-invalid={!!effectiveError}
         aria-describedby={errorId ?? hintId}

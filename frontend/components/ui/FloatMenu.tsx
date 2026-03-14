@@ -123,7 +123,7 @@ export default function FloatMenu({
   const menuContent = open && (
     <div
       ref={menuRef}
-      className="fixed z-100 min-w-40 rounded-xl border border-slate-800 bg-slate-950/95 py-1 shadow-xl backdrop-blur-sm"
+      className="fixed z-[100] min-w-40 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-overlay)] py-1 shadow-[var(--shadow-modal)] backdrop-blur-xl"
       style={{ top: position.top, left: position.left }}
       role="menu"
       aria-orientation="vertical"
@@ -142,7 +142,7 @@ export default function FloatMenu({
               'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition',
               'disabled' in option && option.disabled
                 ? 'cursor-not-allowed text-slate-500'
-                : 'text-slate-200 hover:bg-slate-800/80 hover:text-slate-50'
+                : 'text-slate-200 hover:bg-slate-800/80 hover:text-slate-50 active:bg-slate-800'
             )}
           >
             {'icon' in option && option.icon && (

@@ -12,7 +12,16 @@ import {
 import { clientPhotoUrl } from '@/lib/api';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { formatDate } from '@/lib/format';
-import { Button, Input, Table, FloatMenu } from '@/components/ui';
+import {
+  Button,
+  Table,
+  FloatMenu,
+  PageHeader,
+  SearchBar,
+  EmptyState,
+  Alert,
+  Container,
+} from '@/components/ui';
 import { ClientDetailModal, ClientFormModal } from '@/components/clients';
 import type { Client } from '@/types';
 import type { AxiosError } from 'axios';
@@ -178,162 +187,151 @@ export default function ClientsPage() {
         fieldErrors={fieldErrors}
       />
 
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Clientes
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Mantén un registro claro de tus clientes para ofrecerles un servicio memorable en cada visita.
-          </p>
-        </div>
-        <Button type="button" onClick={openCreateModal} size="md">
-          <span className="mr-2 text-base">＋</span>
-          Nuevo cliente
-        </Button>
-      </header>
-
-      <section className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
-          <div className="relative">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre, correo o teléfono..."
-              inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
-              🔍
-            </span>
-          </div>
-        </div>
-        <div className="text-[11px] text-slate-500">
-          {filteredClients.length} cliente
-          {filteredClients.length === 1 ? '' : 's'} visibles
-        </div>
-      </section>
-
-      {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando clientes...
-        </div>
-      ) : filteredClients.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            👤
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Aún no tienes clientes registrados
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Registra tus primeros clientes para comenzar a llevar historial, preferencias y comunicación personalizada.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-4 bg-slate-100 text-slate-900 hover:bg-slate-200 border-transparent"
-            onClick={openCreateModal}
-          >
-            Crear cliente
-          </Button>
-        </div>
-      ) : (
-        <Table<Client>
-          columns={[
-            { key: 'name', header: 'Nombre' },
-            { key: 'contact', header: 'Contacto' },
-            { key: 'birthday', header: 'Cumpleaños' },
-            { key: 'preferred', header: 'Estilista preferido' },
-            { key: 'actions', header: 'Acciones', align: 'right' },
-          ]}
-          items={filteredClients}
-          getItemKey={(client) => client.id}
-          renderCell={(client, key) => {
-            if (key === 'name') {
-              return (
-                <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-700/80 bg-slate-800">
-                    {client.photo_url ? (
-                      <img
-                        src={clientPhotoUrl(client.photo_url) ?? ''}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-400">
-                        {client.name?.[0]?.toUpperCase() ?? '?'}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-slate-50">{client.name}</span>
-                </div>
-              );
-            }
-
-            if (key === 'contact') {
-              return (
-                <div className="space-y-0.5 text-xs text-slate-400">
-                  {client.email && <div>{client.email}</div>}
-                  {client.phone && (
-                    <div className="text-slate-500">{client.phone}</div>
-                  )}
-                  {!client.email && !client.phone && '—'}
-                </div>
-              );
-            }
-
-            if (key === 'birthday') {
-              return (
-                <span className="text-xs text-slate-200">
-                  {formatDate(client.birthday)}
-                </span>
-              );
-            }
-
-            if (key === 'preferred') {
-              return (
-                <span className="text-xs text-slate-400">
-                  {client.preferred_stylist || '—'}
-                </span>
-              );
-            }
-
-            if (key === 'actions') {
-              return (
-                <div className="flex justify-end">
-                  <FloatMenu
-                    placement="bottom-end"
-                    options={[
-                      { label: 'Ver detalle', onClick: () => setDetailClient(client) },
-                      { label: 'Editar', onClick: () => openEditModal(client) },
-                      { divider: true },
-                      {
-                        label: deletingId === client.id ? 'Eliminando...' : 'Eliminar',
-                        onClick: () => handleDeleteClient(client.id),
-                        disabled: deletingId === client.id,
-                      },
-                    ]}
-                  >
-                    <Button type="button" variant="ghost" size="sm" className="text-slate-400 hover:text-slate-200" aria-label="Acciones">
-                      ⋮
-                    </Button>
-                  </FloatMenu>
-                </div>
-              );
-            }
-
-            return null;
-          }}
+      <Container>
+        <PageHeader
+          title="Clientes"
+          subtitle="Mantén un registro claro de tus clientes para ofrecerles un servicio memorable en cada visita."
+          action={
+            <Button type="button" onClick={openCreateModal} size="md">
+              <span className="mr-2 text-base" aria-hidden>＋</span>
+              Nuevo cliente
+            </Button>
+          }
         />
-      )}
+
+        <SearchBar
+          value={search}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre, correo o teléfono..."
+          count={filteredClients.length}
+          countLabel="clientes"
+          id="clients-search"
+          className="mb-4"
+        />
+
+        {error && (
+          <div className="mb-4">
+            <Alert variant="error">{error}</Alert>
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex min-h-[200px] items-center justify-center text-sm text-slate-400">
+            Cargando clientes...
+          </div>
+        ) : filteredClients.length === 0 ? (
+          <EmptyState
+            icon="👤"
+            title="Aún no tienes clientes registrados"
+            description="Registra tus primeros clientes para comenzar a llevar historial, preferencias y comunicación personalizada."
+            action={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-slate-600 text-slate-200 hover:bg-slate-800"
+                onClick={openCreateModal}
+              >
+                Crear cliente
+              </Button>
+            }
+          />
+        ) : (
+          <Table<Client>
+            columns={[
+              { key: 'name', header: 'Nombre' },
+              { key: 'contact', header: 'Contacto' },
+              { key: 'birthday', header: 'Cumpleaños' },
+              { key: 'preferred', header: 'Estilista preferido' },
+              { key: 'actions', header: 'Acciones', align: 'right' },
+            ]}
+            items={filteredClients}
+            getItemKey={(client) => client.id}
+            renderCell={(client, key) => {
+              if (key === 'name') {
+                return (
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--color-border)] bg-slate-800">
+                      {client.photo_url ? (
+                        <img
+                          src={clientPhotoUrl(client.photo_url) ?? ''}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-xs font-medium text-slate-400">
+                          {client.name?.[0]?.toUpperCase() ?? '?'}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm font-medium text-slate-50">{client.name}</span>
+                  </div>
+                );
+              }
+
+              if (key === 'contact') {
+                return (
+                  <div className="space-y-0.5 text-xs text-slate-400">
+                    {client.email && <div>{client.email}</div>}
+                    {client.phone && (
+                      <div className="text-slate-500">{client.phone}</div>
+                    )}
+                    {!client.email && !client.phone && '—'}
+                  </div>
+                );
+              }
+
+              if (key === 'birthday') {
+                return (
+                  <span className="text-xs text-slate-200">
+                    {formatDate(client.birthday)}
+                  </span>
+                );
+              }
+
+              if (key === 'preferred') {
+                return (
+                  <span className="text-xs text-slate-400">
+                    {client.preferred_stylist || '—'}
+                  </span>
+                );
+              }
+
+              if (key === 'actions') {
+                return (
+                  <div className="flex justify-end">
+                    <FloatMenu
+                      placement="bottom-end"
+                      options={[
+                        { label: 'Ver detalle', onClick: () => setDetailClient(client) },
+                        { label: 'Editar', onClick: () => openEditModal(client) },
+                        { divider: true },
+                        {
+                          label: deletingId === client.id ? 'Eliminando...' : 'Eliminar',
+                          onClick: () => handleDeleteClient(client.id),
+                          disabled: deletingId === client.id,
+                        },
+                      ]}
+                    >
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-slate-200 min-h-[36px]"
+                        aria-label="Acciones"
+                      >
+                        ⋮
+                      </Button>
+                    </FloatMenu>
+                  </div>
+                );
+              }
+
+              return null;
+            }}
+          />
+        )}
+      </Container>
     </>
   );
 }

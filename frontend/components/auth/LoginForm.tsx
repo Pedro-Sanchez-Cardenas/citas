@@ -2,7 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import { fetchCsrfCookie, loginRequest } from '@/lib/api/auth';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, Alert } from '@/components/ui';
 import type { User } from '@/types';
 import type { AxiosError } from 'axios';
 
@@ -37,46 +37,42 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="relative w-full max-w-md rounded-3xl border border-slate-800/80 bg-slate-950/80 px-8 py-9 shadow-[0_0_60px_rgba(15,23,42,0.9)] backdrop-blur-2xl">
-      <div className="mb-7 flex items-center justify-between gap-3">
+    <div className="relative w-full max-w-md rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/90 px-6 py-8 shadow-[var(--shadow-modal)] backdrop-blur-xl sm:px-8 sm:py-9">
+      <div className="mb-6 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-slate-50">Iniciar sesión</h2>
           <p className="mt-1 text-xs text-slate-400">
             Acceso privado para tu negocio de belleza.
           </p>
         </div>
-        <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-cyan-500 text-lg shadow-[0_10px_30px_rgba(34,211,238,0.55)]">
+        <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-xl shadow-lg shadow-teal-500/25 ring-1 ring-white/10">
           🗓
         </div>
       </div>
       {error && (
-        <div className="mb-5 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-5">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <Input
-            label="Correo electrónico"
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="tu@correo.com"
-            required
-          />
-        </div>
-        <div>
-          <Input
-            label="Contraseña"
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="********"
-            required
-          />
-        </div>
+        <Input
+          label="Correo electrónico"
+          id="login-email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="tu@correo.com"
+          required
+        />
+        <Input
+          label="Contraseña"
+          id="login-password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="********"
+          required
+        />
         <Button type="submit" disabled={loading} size="full">
           {loading ? 'Entrando...' : 'Iniciar sesión'}
         </Button>

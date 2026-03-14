@@ -42,6 +42,12 @@ export interface DatePickerProps {
   useAltInput?: boolean;
 }
 
+const inputBase =
+  'w-full min-h-[var(--touch-min)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 pl-10 pr-4 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-500';
+
+const inputError =
+  'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30';
+
 export default function DatePicker({
   label,
   hint,
@@ -130,7 +136,7 @@ export default function DatePicker({
     <div className={clsx('space-y-1.5', className)}>
       {label && (
         <label
-          className="block text-xs font-medium uppercase tracking-[0.16em] text-slate-400"
+          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400"
           htmlFor={id}
         >
           {label}
@@ -145,13 +151,13 @@ export default function DatePicker({
           placeholder={resolvedPlaceholder}
           disabled={disabled}
           className={clsx(
-            'flatpickr-input w-full rounded-2xl border border-slate-800/80 bg-slate-950/80 pl-9 pr-3 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-sky-500 focus:ring-2 focus:ring-sky-500/40 disabled:cursor-not-allowed disabled:opacity-60',
+            'flatpickr-input',
+            inputBase,
             inputClassName,
-            effectiveError &&
-              'border-red-500/80! bg-red-950/30! focus:border-red-500! focus:ring-red-500/40!'
+            effectiveError && inputError
           )}
           aria-invalid={!!effectiveError}
-          aria-describedby={hint ? `${id}-hint` : undefined}
+          aria-describedby={hint && id ? `${id}-hint` : undefined}
           onInvalid={(e) => {
             if (error) return;
             setNativeError(
@@ -160,10 +166,10 @@ export default function DatePicker({
           }}
           {...rest}
         />
-        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
+        <span className="pointer-events-none absolute inset-y-0 left-3 flex min-h-[var(--touch-min)] items-center text-slate-500">
           <svg
             aria-hidden="true"
-            className="h-4 w-4"
+            className="h-4 w-4 shrink-0"
             viewBox="0 0 20 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
