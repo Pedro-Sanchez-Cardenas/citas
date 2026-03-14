@@ -26,7 +26,7 @@ class ReportService
         $attended = (clone $appointmentsQuery)->where('status', 'attended')->count();
 
         $revenueCents = Payment::query()
-            ->where('business_id', $businessId)
+            ->whereHas('branch', fn ($q) => $q->where('business_id', $businessId))
             ->where('status', 'paid')
             ->whereBetween('created_at', [$from, $to])
             ->sum('amount_cents');
@@ -87,7 +87,7 @@ class ReportService
             ->groupBy('professional_id');
 
         $payments = Payment::query()
-            ->where('business_id', $businessId)
+            ->whereHas('branch', fn ($q) => $q->where('business_id', $businessId))
             ->where('status', 'paid')
             ->whereBetween('created_at', [$from, $to])
             ->get()
@@ -161,7 +161,7 @@ class ReportService
                 $service = Service::find($row->service_id);
 
                 $revenueCents = Payment::query()
-                    ->where('business_id', $businessId)
+                    ->whereHas('branch', fn ($q) => $q->where('business_id', $businessId))
                     ->where('status', 'paid')
                     ->whereBetween('created_at', [$from, $to])
                     ->whereHas('appointment', function ($q) use ($row, $branchId) {

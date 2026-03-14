@@ -68,7 +68,7 @@ class DashboardService
             ->count();
 
         $todayRevenueCents = Payment::query()
-            ->where('business_id', $businessId)
+            ->whereHas('branch', fn ($q) => $q->where('business_id', $businessId))
             ->whereDate('created_at', $today->toDateString())
             ->where('status', 'paid')
             ->sum('amount_cents');

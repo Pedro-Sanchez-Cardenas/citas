@@ -27,7 +27,7 @@ return new class extends Migration {
             $table->index(['branch_id', 'created_at']);
         });
 
-        Schema::table('payment_items', function (Blueprint $table) {
+        Schema::create('payment_items', function (Blueprint $table) {
             $table->foreignId('payment_id')->constrained('payments')->cascadeOnUpdate()->cascadeOnDelete();
 
             $table->foreignId('service_id')->constrained('services')->cascadeOnUpdate()->cascadeOnDelete();
