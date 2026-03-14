@@ -9,20 +9,11 @@ return new class extends Migration {
     {
         Schema::create('working_hours', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('branch_id')
-                ->nullable()
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->foreignId('professional_id')
-                ->nullable()
-                ->constrained('professionals')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+
+            $table->foreignId('professional_id')->nullable()->constrained('professionals')->cascadeOnUpdate()->nullOnDelete();
+
             $table->unsignedTinyInteger('weekday'); // 0 (domingo) - 6 (sábado)
             $table->time('start_time');
             $table->time('end_time');
@@ -40,4 +31,3 @@ return new class extends Migration {
         Schema::dropIfExists('working_hours');
     }
 };
-

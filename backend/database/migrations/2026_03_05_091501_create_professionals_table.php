@@ -17,6 +17,7 @@ return new class extends Migration {
                 ->constrained('branches')
                 ->cascadeOnUpdate()
                 ->restrictOnDelete();
+
             $table->string('name');
             $table->string('email')->nullable()->unique();
             $table->string('phone')->nullable();

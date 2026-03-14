@@ -9,10 +9,9 @@ return new class extends Migration {
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+
             $table->string('name');
             $table->string('sku')->unique();
             $table->string('category')->nullable();
@@ -25,18 +24,9 @@ return new class extends Migration {
 
         Schema::create('product_stocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('branch_id')
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('product_id')
-                ->constrained('products')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->constrained('branches')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('quantity', 12, 3)->default(0);
             $table->decimal('min_quantity', 12, 3)->default(0);
             $table->timestamps();
@@ -44,46 +34,27 @@ return new class extends Migration {
             $table->unique(['branch_id', 'product_id']);
         });
 
-        Schema::create('product_movements', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('branch_id')
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('product_id')
-                ->constrained('products')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-            $table->foreignId('appointment_id')
-                ->nullable()
-                ->constrained('appointments')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->enum('type', ['in', 'out'])->default('out');
-            $table->decimal('quantity', 12, 3);
-            $table->string('reason')->nullable(); // compra, consumo_servicio, ajuste
-            $table->timestamps();
-        });
-
         // Relación servicio -> productos requeridos (consumo automático)
         Schema::create('service_product', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('service_id')
-                ->constrained('services')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-            $table->foreignId('product_id')
-                ->constrained('products')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
+            $table->foreignId('service_id')->constrained('services')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnUpdate()->cascadeOnDelete();
             $table->decimal('quantity', 12, 3);
             $table->timestamps();
 
             $table->unique(['service_id', 'product_id']);
+        });
+
+        Schema::create('product_movements', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->constrained('branches')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('product_id')->constrained('products')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('appointment_id')->nullable()->constrained('appointments')->cascadeOnUpdate()->nullOnDelete();
+            $table->enum('type', ['in', 'out'])->default('out');
+            $table->decimal('quantity', 12, 3);
+            $table->string('reason')->nullable(); // compra, consumo_servicio, ajuste
+            $table->timestamps();
         });
     }
 
@@ -95,4 +66,3 @@ return new class extends Migration {
         Schema::dropIfExists('products');
     }
 };
-

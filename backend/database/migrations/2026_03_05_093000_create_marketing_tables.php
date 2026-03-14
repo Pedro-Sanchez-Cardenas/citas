@@ -9,10 +9,9 @@ return new class extends Migration {
     {
         Schema::create('automations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+
             $table->string('name');
             $table->enum('trigger', ['appointment_reminder', 'inactive_client', 'birthday', 'promotion'])->index();
             $table->json('conditions')->nullable(); // reglas específicas (días inactivo, servicio, etc.)
@@ -23,15 +22,8 @@ return new class extends Migration {
 
         Schema::create('automation_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('automation_id')
-                ->constrained('automations')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-            $table->foreignId('client_id')
-                ->nullable()
-                ->constrained('clients')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
+            $table->foreignId('automation_id')->constrained('automations')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('client_id')->nullable()->constrained('clients')->cascadeOnUpdate()->nullOnDelete();
             $table->string('channel')->nullable(); // email, whatsapp, sms
             $table->string('status')->default('sent'); // sent, failed, skipped
             $table->text('error')->nullable();
@@ -45,4 +37,3 @@ return new class extends Migration {
         Schema::dropIfExists('automations');
     }
 };
-

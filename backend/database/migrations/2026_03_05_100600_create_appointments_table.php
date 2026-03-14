@@ -9,41 +9,20 @@ return new class extends Migration {
     {
         Schema::create('appointments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('branch_id')
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('professional_id')
-                ->constrained('professionals')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('service_id')
-                ->nullable()
-                ->constrained('services')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->foreignId('combined_service_id')
-                ->nullable()
-                ->constrained('combined_services')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->foreignId('client_id')
-                ->nullable()
-                ->constrained('clients')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->string('client_name');
-            $table->string('client_phone')->nullable();
-            $table->string('client_email')->nullable();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('professional_id')->nullable()->constrained('professionals')->cascadeOnUpdate()->nullOnDelete();
+
+            $table->foreignId('service_id')->nullable()->constrained('services')->cascadeOnUpdate()->nullOnDelete();
+            $table->foreignId('combined_service_id')->nullable()->constrained('combined_services')->cascadeOnUpdate()->nullOnDelete();
+
+            $table->foreignId('client_id')->nullable()->constrained('clients')->cascadeOnUpdate()->nullOnDelete();
+
             $table->dateTime('start_at');
             $table->dateTime('end_at');
-            $table->enum('status', ['scheduled', 'confirmed', 'attended', 'cancelled', 'no_show'])
-                ->default('scheduled');
+            $table->enum('status', ['scheduled', 'confirmed', 'attended', 'cancelled', 'no_show'])->default('scheduled');
             $table->string('source')->nullable(); // online, teléfono, interno, etc.
+            
             $table->unsignedInteger('deposit_amount_cents')->default(0);
             $table->enum('deposit_status', ['pending', 'paid', 'refunded'])->default('pending');
             $table->boolean('overbooking_allowed')->default(false);
@@ -62,4 +41,3 @@ return new class extends Migration {
         Schema::dropIfExists('appointments');
     }
 };
-

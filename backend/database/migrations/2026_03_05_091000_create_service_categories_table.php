@@ -9,15 +9,9 @@ return new class extends Migration {
     {
         Schema::create('service_categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('branch_id')
-                ->nullable()
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+
             $table->string('name');
             $table->string('description')->nullable();
             $table->unsignedSmallInteger('position')->default(1);
@@ -31,4 +25,3 @@ return new class extends Migration {
         Schema::dropIfExists('service_categories');
     }
 };
-

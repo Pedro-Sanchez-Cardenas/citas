@@ -9,20 +9,10 @@ return new class extends Migration {
     {
         Schema::create('services', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('service_category_id')
-                ->nullable()
-                ->constrained('service_categories')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->foreignId('branch_id')
-                ->nullable()
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+
+            $table->foreignId('service_category_id')->nullable()->constrained('service_categories')->cascadeOnUpdate()->nullOnDelete();
             $table->string('name');
             $table->string('code')->unique();
             $table->unsignedInteger('duration_minutes'); // duración base, soporta servicios de duración variable
@@ -35,14 +25,8 @@ return new class extends Migration {
         // Tabla pivote para servicios que pueden ser realizados por profesionales específicos
         Schema::create('professional_service', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('professional_id')
-                ->constrained('professionals')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-            $table->foreignId('service_id')
-                ->constrained('services')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
+            $table->foreignId('professional_id')->constrained('professionals')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('service_id')->constrained('services')->cascadeOnUpdate()->cascadeOnDelete();
             $table->timestamps();
 
             $table->unique(['professional_id', 'service_id']);
@@ -55,4 +39,3 @@ return new class extends Migration {
         Schema::dropIfExists('services');
     }
 };
-

@@ -9,21 +9,11 @@ return new class extends Migration {
     {
         Schema::create('client_media', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('business_id')
-                ->constrained('businesses')
-                ->cascadeOnUpdate()
-                ->restrictOnDelete();
-            $table->foreignId('client_id')
-                ->constrained('clients')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-            $table->foreignId('appointment_id')
-                ->nullable()
-                ->constrained('appointments')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
+            $table->foreignId('client_id')->constrained('clients')->cascadeOnUpdate()->cascadeOnDelete();
+            $table->foreignId('appointment_id')->nullable()->constrained('appointments')->cascadeOnUpdate()->nullOnDelete();
+
             $table->string('type')->default('other'); // before, after, other
-            $table->string('url'); // ruta o URL de la foto
+            $table->string('photo_path');
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -34,4 +24,3 @@ return new class extends Migration {
         Schema::dropIfExists('client_media');
     }
 };
-

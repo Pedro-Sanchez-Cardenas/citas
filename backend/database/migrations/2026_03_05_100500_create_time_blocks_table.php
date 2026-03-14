@@ -9,16 +9,11 @@ return new class extends Migration {
     {
         Schema::create('time_blocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('branch_id')
-                ->nullable()
-                ->constrained('branches')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
-            $table->foreignId('professional_id')
-                ->nullable()
-                ->constrained('professionals')
-                ->cascadeOnUpdate()
-                ->nullOnDelete();
+            $table->foreignId('business_id')->constrained('businesses')->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('branch_id')->nullable()->constrained('branches')->cascadeOnUpdate()->nullOnDelete();
+
+            $table->foreignId('professional_id')->nullable()->constrained('professionals')->cascadeOnUpdate()->nullOnDelete();
+
             $table->dateTime('start_at');
             $table->dateTime('end_at');
             $table->string('reason')->nullable();
@@ -34,4 +29,3 @@ return new class extends Migration {
         Schema::dropIfExists('time_blocks');
     }
 };
-
