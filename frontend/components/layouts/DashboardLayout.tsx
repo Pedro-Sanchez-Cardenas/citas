@@ -43,7 +43,6 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'Calendario',
     items: [
       { label: 'Horarios', href: '/working-hours', icon: '⏰' },
-      { label: 'Bloqueos', href: '/blocks', icon: '🚫' },
     ],
   },
   {
@@ -105,7 +104,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
         if (item.href === '/professionals') {
           return hasPermission(user, 'manage_professionals');
         }
-        if (item.href === '/working-hours' || item.href === '/blocks') {
+        if (item.href === '/working-hours') {
           return hasPermission(user, 'manage_appointments');
         }
         if (item.href === '/payments') {
