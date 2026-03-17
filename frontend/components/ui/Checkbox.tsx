@@ -27,7 +27,7 @@ export default function Checkbox({
         type="checkbox"
         id={id}
         className={clsx(
-          'h-5 w-5 shrink-0 rounded-sm border-2 border-[var(--color-border)] bg-surface-elevated/80 text-teal-500 transition',
+          'h-5 w-5 shrink-0 rounded-sm border-2 border-slate-700/80 bg-surface-elevated/80 text-teal-500 transition',
           'focus:ring-2 focus:ring-teal-500/40 focus:ring-offset-2 focus:ring-offset-surface',
           'checked:border-teal-500 checked:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60',
           className

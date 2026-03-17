@@ -86,8 +86,8 @@ function Sidebar({
 
   const content = (
     <>
-      <div className="flex shrink-0 items-center gap-3 border-b border-[var(--color-border)] pb-4">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-xl shadow-lg shadow-teal-500/20 ring-1 ring-white/10">
+      <div className="flex shrink-0 items-center gap-3 border-b border-slate-700/80 pb-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-cyan-500 text-xl shadow-lg shadow-teal-500/20 ring-1 ring-white/10">
           {BRAND.icon}
         </div>
         <div className="min-w-0">
@@ -122,7 +122,7 @@ function Sidebar({
       </nav>
 
       <div className="shrink-0 pt-2">
-        <div className="rounded-2xl border border-[var(--color-border)] bg-surface-elevated/80 px-3.5 py-3 shadow-[var(--shadow-card)]">
+        <div className="rounded-2xl border border-slate-700/80 bg-surface-elevated/80 px-3.5 py-3 shadow-(--shadow-card)">
           <div className="flex items-start justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-sm font-semibold text-slate-100 ring-1 ring-slate-700/80">
@@ -171,7 +171,7 @@ function Sidebar({
         />
         <aside
           className={clsx(
-            'fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col bg-[var(--color-surface)] px-4 pb-6 pt-6 shadow-2xl ring-1 ring-[var(--color-border)] transition-transform duration-300 ease-out lg:hidden safe-top safe-bottom',
+            'fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col bg-surface px-4 pb-6 pt-6 shadow-2xl ring-1 ring-border transition-transform duration-300 ease-out lg:hidden safe-top safe-bottom',
             open ? 'translate-x-0' : '-translate-x-full'
           )}
           aria-label="Menú de navegación"
@@ -180,7 +180,7 @@ function Sidebar({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-[var(--touch-min)] w-[var(--touch-min)] items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+              className="inline-flex h-(--touch-min) w-(--touch-min) items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-800 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
               aria-label="Cerrar menú"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -196,7 +196,7 @@ function Sidebar({
 
   return (
     <aside
-      className="flex h-full w-64 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] px-3 pb-5 pt-6"
+      className="flex h-full w-64 flex-col border-r border-slate-700/80 bg-surface px-3 pb-5 pt-6"
       aria-label="Barra lateral"
     >
       {content}

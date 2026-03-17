@@ -149,7 +149,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
   );
 
   return (
-    <div className="relative flex min-h-[100dvh] flex-col overflow-hidden bg-[var(--color-surface)] text-slate-100 lg:flex-row">
+    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-surface text-slate-100 lg:flex-row">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -top-40 left-0 h-72 w-72 rounded-full bg-teal-500/[0.07] blur-[100px]" />
         <div className="absolute -bottom-40 right-0 h-96 w-96 rounded-full bg-cyan-500/5 blur-[120px]" />

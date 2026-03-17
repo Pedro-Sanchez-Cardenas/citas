@@ -8,12 +8,12 @@ const variants = {
   primary:
     'bg-gradient-to-r from-teal-500 via-cyan-500 to-teal-500 text-white shadow-[0_4px_24px_-4px_rgba(20,184,166,0.5)] hover:brightness-110 focus-visible:ring-teal-400',
   subtle:
-    'border border-[var(--color-border)] bg-surface-elevated/80 text-slate-100 hover:bg-slate-800/90 focus-visible:ring-slate-500',
+    'border border-slate-700/80 bg-surface-elevated/80 text-slate-100 hover:bg-slate-800/90 focus-visible:ring-slate-500',
   ghost: 'text-slate-200 hover:bg-slate-800/70 focus-visible:ring-slate-500',
   danger:
     'border border-red-500/40 bg-red-500/10 text-red-100 hover:bg-red-500/20 focus-visible:ring-red-400',
   outline:
-    'border border-[var(--color-border)] bg-transparent text-slate-100 hover:bg-slate-800/70 focus-visible:ring-slate-500',
+    'border border-slate-700/80 bg-transparent text-slate-100 hover:bg-slate-800/70 focus-visible:ring-slate-500',
 };
 
 const sizes: Record<string, string> = {

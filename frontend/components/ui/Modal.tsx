@@ -52,13 +52,13 @@ export default function Modal({
     >
       <div
         className={clsx(
-          'flex w-full flex-col max-h-[calc(100dvh-2rem)] border border-[var(--color-border)] bg-[var(--color-surface)] shadow-[var(--shadow-modal)]',
+          'flex w-full flex-col max-h-[calc(100dvh-2rem)] border border-slate-700/80 bg-surface shadow-(--shadow-modal)',
           sizeClasses
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {(title || description || onClose) && (
-          <header className="flex shrink-0 items-start justify-between gap-3 border-b border-[var(--color-border)] px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
+          <header className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-700/80 px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
             <div className="min-w-0">
               {title && (
                 <h2 id="modal-title" className="text-lg font-semibold text-slate-50">
@@ -73,7 +73,7 @@ export default function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                className="shrink-0 flex h-[var(--touch-min)] w-[var(--touch-min)] items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-800/80 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+                className="shrink-0 flex h-(--touch-min) w-(--touch-min) items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-800/80 hover:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50"
                 aria-label="Cerrar modal"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>

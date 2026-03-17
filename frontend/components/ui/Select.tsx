@@ -44,7 +44,7 @@ export default function Select({
       <select
         id={id}
         className={clsx(
-          'w-full min-h-(--touch-min) rounded-xl border border-[var(--color-border)] bg-surface-elevated/60 pl-4 pr-10 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 appearance-none bg-no-repeat bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center]',
+          'w-full min-h-(--touch-min) rounded-xl border border-slate-700/80 bg-surface-elevated/60 pl-4 pr-10 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 appearance-none bg-no-repeat bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center]',
           selectClassName,
           effectiveError &&
             'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30'

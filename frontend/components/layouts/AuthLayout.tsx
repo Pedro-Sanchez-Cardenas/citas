@@ -6,7 +6,7 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden bg-[var(--color-surface)]">
+    <div className="relative min-h-dvh flex items-center justify-center overflow-hidden bg-surface">
       <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute -top-40 -right-32 h-72 w-72 rounded-full bg-teal-500/12 blur-3xl" />
         <div className="absolute -bottom-32 -left-32 h-80 w-80 rounded-full bg-cyan-500/10 blur-3xl" />

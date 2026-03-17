@@ -250,7 +250,7 @@ export default function ClientsPage() {
               if (key === 'name') {
                 return (
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-[var(--color-border)] bg-slate-800">
+                    <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-slate-700/80 bg-slate-800">
                       {client.photo_url ? (
                         <img
                           src={clientPhotoUrl(client.photo_url) ?? ''}
