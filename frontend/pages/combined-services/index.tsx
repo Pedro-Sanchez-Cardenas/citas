@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/combinedServices';
 import { fetchServices } from '@/lib/api/services';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
 import {
   CombinedServiceFormModal,
   type CombinedServiceRecord,
@@ -219,26 +219,22 @@ export default function CombinedServicesPage() {
           Cargando servicios combinados...
         </div>
       ) : filteredCombined.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            💫
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Aún no tienes servicios combinados
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Combina varios servicios en un solo paquete para vender experiencias completas.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-4 border-transparent bg-slate-100 text-slate-900 hover:bg-slate-200"
-            onClick={openCreateModal}
-          >
-            Crear combinado
-          </Button>
-        </div>
+        <EmptyState
+          icon="💫"
+          title="Aún no tienes servicios combinados"
+          description="Combina varios servicios en un solo paquete para vender experiencias completas."
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-200 hover:bg-slate-800"
+              onClick={openCreateModal}
+            >
+              Crear combinado
+            </Button>
+          }
+        />
       ) : (
         <Table<CombinedServiceRecord>
           columns={[

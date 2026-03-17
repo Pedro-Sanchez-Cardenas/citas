@@ -12,7 +12,7 @@ import {
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { formatDateTime } from '@/lib/format';
-import { Button, Input, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
 import { BlockFormModal } from '@/components/blocks';
 import type { Professional } from '@/types';
 import type { AxiosError } from 'axios';
@@ -207,17 +207,22 @@ export default function BlocksPage() {
           Cargando bloqueos...
         </div>
       ) : filteredBlocks.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            🚫
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Aún no hay bloqueos de tiempo
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Crea bloqueos para que tu agenda no acepte citas en horarios no disponibles.
-          </p>
-        </div>
+        <EmptyState
+          icon="🚫"
+          title="Aún no hay bloqueos de tiempo"
+          description="Crea bloqueos para que tu agenda no acepte citas en horarios no disponibles (vacaciones, descansos, etc.)."
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-200 hover:bg-slate-800"
+              onClick={openCreateModal}
+            >
+              Crear bloqueo
+            </Button>
+          }
+        />
       ) : (
         <Table<Block>
           columns={[

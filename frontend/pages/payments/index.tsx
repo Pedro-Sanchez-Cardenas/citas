@@ -8,7 +8,7 @@ import { fetchAppointments } from '@/lib/api/appointments';
 import { fetchClients } from '@/lib/api/clients';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { formatDate } from '@/lib/format';
-import { Button, Input, Select, Table } from '@/components/ui';
+import { Button, Input, Select, Table, EmptyState } from '@/components/ui';
 import {
   PaymentFormModal,
   formatMoney,
@@ -230,17 +230,25 @@ export default function PaymentsPage() {
           Cargando pagos...
         </div>
       ) : filteredPayments.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            💳
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Aún no hay pagos registrados
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Cuando registres pagos asociados a citas o ventas, aparecerán aquí.
-          </p>
-        </div>
+        <EmptyState
+          icon="💳"
+          title="Aún no hay pagos registrados"
+          description="Cuando registres pagos asociados a citas o ventas, aparecerán aquí. Registra tu primer pago para llevar el control de cobros."
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-200 hover:bg-slate-800"
+              onClick={() => {
+                setFieldErrors({});
+                setModalOpen(true);
+              }}
+            >
+              Registrar pago
+            </Button>
+          }
+        />
       ) : (
         <Table<PaymentItem>
           columns={[

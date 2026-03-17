@@ -4,7 +4,7 @@ import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
 import {
   InventoryAdjustModal,
   type StockRow,
@@ -180,17 +180,11 @@ export default function InventoryPage() {
           Cargando inventario...
         </div>
       ) : filteredStocks.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            📦
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Aún no hay registros de inventario
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Una vez que registres productos y movimientos, verás aquí el stock por sucursal.
-          </p>
-        </div>
+        <EmptyState
+          icon="📦"
+          title="Aún no hay registros de inventario"
+          description="Una vez que registres productos y movimientos, verás aquí el stock por sucursal. Ve a Productos para dar de alta tus primeros artículos."
+        />
       ) : (
         <Table<StockRow>
           columns={[

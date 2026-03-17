@@ -9,7 +9,7 @@ import {
   deleteProduct,
 } from '@/lib/api/products';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
 import {
   ProductFormModal,
   formatMoneyFromCents,
@@ -210,26 +210,22 @@ export default function ProductsPage() {
           Cargando productos...
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            🧴
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Aún no tienes productos registrados
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Registra los productos que usas y vendes para controlar mejor tus costos y stock.
-          </p>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="mt-4 bg-slate-100 text-slate-900 hover:bg-slate-200 border-transparent"
-            onClick={openCreateModal}
-          >
-            Crear producto
-          </Button>
-        </div>
+        <EmptyState
+          icon="🧴"
+          title="Aún no tienes productos registrados"
+          description="Registra los productos que usas y vendes para controlar mejor tus costos y stock."
+          action={
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="border-slate-600 text-slate-200 hover:bg-slate-800"
+              onClick={openCreateModal}
+            >
+              Crear producto
+            </Button>
+          }
+        />
       ) : (
         <Table<ProductItem>
           columns={[
