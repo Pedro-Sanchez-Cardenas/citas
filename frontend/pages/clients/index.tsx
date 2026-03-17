@@ -20,7 +20,6 @@ import {
   SearchBar,
   EmptyState,
   Alert,
-  Container,
 } from '@/components/ui';
 import { ClientDetailModal, ClientFormModal } from '@/components/clients';
 import type { Client } from '@/types';
@@ -187,7 +186,7 @@ export default function ClientsPage() {
         fieldErrors={fieldErrors}
       />
 
-      <Container>
+      <>
         <PageHeader
           title="Clientes"
           subtitle="Mantén un registro claro de tus clientes para ofrecerles un servicio memorable en cada visita."
@@ -331,7 +330,7 @@ export default function ClientsPage() {
             }}
           />
         )}
-      </Container>
+      </>
     </>
   );
 }

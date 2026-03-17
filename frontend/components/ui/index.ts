@@ -12,7 +12,6 @@ export { default as Card } from './Card';
 export { default as PageHeader } from './PageHeader';
 export { default as EmptyState } from './EmptyState';
 export { default as SearchBar } from './SearchBar';
-export { default as Container } from './Container';
 export { default as Alert } from './Alert';
 export { default as AppointmentCalendar } from './AppointmentCalendar';
 export type { AppointmentCalendarEvent } from './AppointmentCalendar';

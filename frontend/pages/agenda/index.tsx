@@ -10,7 +10,6 @@ import {
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import {
   PageHeader,
-  Container,
   Select,
   Checkbox,
   AppointmentCalendar,
@@ -137,7 +136,7 @@ export default function AgendaPage() {
   const isOwner = hasAnyRole(user, ['business_owner']);
 
   return (
-    <Container>
+    <>
       <AppointmentFormModal
         open={modalOpen}
         onClose={() => {
@@ -201,6 +200,6 @@ export default function AgendaPage() {
         height="calc(100vh - 16rem)"
         className="mt-2"
       />
-    </Container>
+    </>
   );
 }

@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchDashboardCards } from '@/lib/api/dashboard';
 import type { DashboardCard } from '@/components/dashboard/types';
-import { PageHeader, Card, Container, Alert } from '@/components/ui';
+import { PageHeader, Card, Alert } from '@/components/ui';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,17 +41,17 @@ export default function DashboardPage() {
   const isLoading = authLoading || loading;
   if (isLoading) {
     return (
-      <Container className="flex min-h-[40vh] items-center justify-center">
+      <div className="flex min-h-[40vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3 text-slate-400">
           <div className="h-10 w-10 animate-pulse rounded-2xl bg-slate-700/80" />
           <span className="text-sm">Cargando dashboard...</span>
         </div>
-      </Container>
+      </div>
     );
   }
 
   return (
-    <Container>
+    <>
       <PageHeader
         title="Panel de belleza"
         subtitle="Resumen de tus citas, servicios y actividad reciente del salón, barbería o spa."
@@ -77,6 +77,6 @@ export default function DashboardPage() {
           </Card>
         ))}
       </section>
-    </Container>
+    </>
   );
 }

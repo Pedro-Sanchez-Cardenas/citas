@@ -28,7 +28,6 @@ import {
   FloatMenu,
   EmptyState,
   Alert,
-  Container,
   PageHeader,
 } from '@/components/ui';
 import { WorkingHourFormModal, WEEKDAYS } from '@/components/working-hours';
@@ -283,7 +282,7 @@ export default function WorkingHoursPage() {
         fieldErrors={fieldErrors}
       />
 
-      <Container>
+      <>
         <PageHeader
           title="Horarios y disponibilidad"
           subtitle="Configura los horarios en los que tu equipo puede recibir citas y los bloqueos de tiempo (descansos, vacaciones, cierres). Todo en un solo lugar."
@@ -592,7 +591,7 @@ export default function WorkingHoursPage() {
             )}
           </div>
         )}
-      </Container>
+      </>
     </>
   );
 }
