@@ -18,7 +18,7 @@ export default function Checkbox({
   return (
     <label
       className={clsx(
-        'inline-flex min-h-[var(--touch-min)] cursor-pointer items-center gap-3 rounded-[var(--radius-md)] py-1 pr-2 text-sm text-slate-300 transition hover:text-slate-100 active:scale-[0.99]',
+        'inline-flex min-h-(--touch-min) cursor-pointer items-center gap-3 rounded-md py-1 pr-2 text-sm text-slate-300 transition hover:text-slate-100 active:scale-[0.99]',
         wrapperClassName
       )}
       htmlFor={id}
@@ -27,8 +27,8 @@ export default function Checkbox({
         type="checkbox"
         id={id}
         className={clsx(
-          'h-5 w-5 shrink-0 rounded-[var(--radius-sm)] border-2 border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 text-teal-500 transition',
-          'focus:ring-2 focus:ring-teal-500/40 focus:ring-offset-2 focus:ring-offset-[var(--color-surface)]',
+          'h-5 w-5 shrink-0 rounded-sm border-2 border-[var(--color-border)] bg-surface-elevated/80 text-teal-500 transition',
+          'focus:ring-2 focus:ring-teal-500/40 focus:ring-offset-2 focus:ring-offset-surface',
           'checked:border-teal-500 checked:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-60',
           className
         )}

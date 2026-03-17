@@ -21,8 +21,7 @@ export default function EmptyState({
   return (
     <div
       className={clsx(
-        'flex flex-col items-center justify-center rounded-[var(--radius-2xl)]',
-        'border border-dashed border-slate-700/70 bg-slate-900/30',
+        'flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30',
         'px-5 py-10 sm:px-8 sm:py-12 text-center',
         className
       )}

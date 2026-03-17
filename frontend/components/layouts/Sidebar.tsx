@@ -37,7 +37,7 @@ function NavLink({ item, isActive, onClose }: NavLinkProps) {
       href={item.href}
       onClick={onClose}
       className={clsx(
-        'group relative flex w-full items-center gap-3 rounded-[var(--radius-xl)] px-3 py-2.5 text-[13px] font-medium transition-all duration-200 min-h-[44px]',
+        'group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 min-h-[44px]',
         active
           ? 'bg-teal-500/15 text-teal-200 shadow-[0_0_0_1px_rgba(20,184,166,0.2)]'
           : 'text-slate-400 hover:bg-slate-800/70 hover:text-slate-100'
@@ -122,7 +122,7 @@ function Sidebar({
       </nav>
 
       <div className="shrink-0 pt-2">
-        <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/80 px-3.5 py-3 shadow-[var(--shadow-card)]">
+        <div className="rounded-2xl border border-[var(--color-border)] bg-surface-elevated/80 px-3.5 py-3 shadow-[var(--shadow-card)]">
           <div className="flex items-start justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-sm font-semibold text-slate-100 ring-1 ring-slate-700/80">

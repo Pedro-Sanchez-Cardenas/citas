@@ -123,7 +123,7 @@ export default function FloatMenu({
   const menuContent = open && (
     <div
       ref={menuRef}
-      className="fixed z-[100] min-w-40 rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-overlay)] py-1 shadow-[var(--shadow-modal)] backdrop-blur-xl"
+      className="fixed z-[100] min-w-40 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-overlay)] py-1 shadow-[var(--shadow-modal)] backdrop-blur-xl"
       style={{ top: position.top, left: position.left }}
       role="menu"
       aria-orientation="vertical"

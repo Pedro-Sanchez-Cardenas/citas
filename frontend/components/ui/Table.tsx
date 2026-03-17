@@ -42,7 +42,7 @@ export default function Table<T = unknown>({
 
   return (
     <div
-      className={`overflow-hidden rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 shadow-[var(--shadow-card)] ${className}`}
+      className={`overflow-hidden rounded-2xl border border-[var(--color-border)] bg-surface-elevated/60 shadow-[var(--shadow-card)] ${className}`}
     >
       <div className="hidden w-full overflow-x-auto md:block">
         <table className="w-full border-collapse text-sm">
@@ -103,14 +103,14 @@ export default function Table<T = unknown>({
 
       <div className="space-y-2 p-3 text-sm md:hidden">
         {!hasItems ? (
-          <div className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)]/80 px-4 py-6 text-center text-xs text-slate-400">
+          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 px-4 py-6 text-center text-xs text-slate-400">
             {emptyMessage}
           </div>
         ) : (
           items.map((item, rowIndex) => (
             <div
               key={getItemKey ? String(getItemKey(item, rowIndex)) : rowIndex}
-              className="rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface)]/80 px-4 py-3.5"
+              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)]/80 px-4 py-3.5"
             >
               {columns.map((col) => (
                 <div

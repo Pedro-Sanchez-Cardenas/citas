@@ -43,7 +43,7 @@ export interface DatePickerProps {
 }
 
 const inputBase =
-  'w-full min-h-[var(--touch-min)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 pl-10 pr-4 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-500';
+  'w-full min-h-(--touch-min) rounded-xl border border-[var(--color-border)] bg-surface-elevated/60 pl-10 pr-4 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-500';
 
 const inputError =
   'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30';
@@ -166,7 +166,7 @@ export default function DatePicker({
           }}
           {...rest}
         />
-        <span className="pointer-events-none absolute inset-y-0 left-3 flex min-h-[var(--touch-min)] items-center text-slate-500">
+        <span className="pointer-events-none absolute inset-y-0 left-3 flex min-h-(--touch-min) items-center text-slate-500">
           <svg
             aria-hidden="true"
             className="h-4 w-4 shrink-0"

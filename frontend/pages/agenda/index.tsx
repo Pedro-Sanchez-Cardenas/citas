@@ -169,7 +169,7 @@ export default function AgendaPage() {
               label={null}
               value={selectedBranchId}
               onChange={(e) => setSelectedBranchId(e.target.value)}
-              selectClassName="rounded-[var(--radius-xl)] border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60"
+              selectClassName="rounded-xl border-[var(--color-border)] bg-surface-elevated/60"
             >
               <option value="">Todas las sucursales</option>
               {branches.map((branch) => (

@@ -37,7 +37,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="relative w-full max-w-md rounded-[var(--radius-2xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/90 px-6 py-8 shadow-[var(--shadow-modal)] backdrop-blur-xl sm:px-8 sm:py-9">
+    <div className="relative w-full max-w-md rounded-2xl border border-[var(--color-border)] bg-surface-elevated/90 px-6 py-8 shadow-[var(--shadow-modal)] backdrop-blur-xl sm:px-8 sm:py-9">
       <div className="mb-6 flex items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold text-slate-50">Iniciar sesión</h2>

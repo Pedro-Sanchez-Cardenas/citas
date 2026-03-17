@@ -42,3 +42,4 @@ pnpm-debug.log*
 .fleet/
 .zed/
 
+frontend/tsconfig.tsbuildinfo

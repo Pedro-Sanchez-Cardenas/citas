@@ -35,12 +35,12 @@ export default function Modal({
 
   const sizeClasses =
     size === 'sm'
-      ? 'max-w-sm rounded-[var(--radius-2xl)]'
+      ? 'max-w-sm rounded-2xl'
       : size === 'lg'
-        ? 'max-w-2xl rounded-[var(--radius-2xl)]'
+        ? 'max-w-2xl rounded-2xl'
         : size === 'full'
-          ? 'max-w-[min(100vw,28rem)] max-h-[85dvh] rounded-t-3xl sm:rounded-[var(--radius-2xl)]'
-          : 'max-w-md rounded-[var(--radius-2xl)]';
+          ? 'max-w-[min(100vw,28rem)] max-h-[85dvh] rounded-t-3xl sm:rounded-2xl'
+          : 'max-w-md rounded-2xl';
 
   const modal = (
     <div

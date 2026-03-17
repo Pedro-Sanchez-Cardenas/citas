@@ -47,7 +47,7 @@ export default function Textarea({
         id={id}
         rows={rows}
         className={clsx(
-          'w-full min-h-[calc(var(--touch-min)*2)] rounded-[var(--radius-xl)] border border-[var(--color-border)] bg-[var(--color-surface-elevated)]/60 px-4 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-500',
+          'w-full min-h-[calc(var(--touch-min)*2)] rounded-xl border border-[var(--color-border)] bg-surface-elevated/60 px-4 py-2.5 text-sm text-slate-50 outline-none ring-0 transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-slate-500',
           resize ? 'resize-y' : 'resize-none',
           textareaClassName,
           effectiveError &&

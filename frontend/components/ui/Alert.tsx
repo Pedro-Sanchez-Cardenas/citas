@@ -30,7 +30,7 @@ export default function Alert({
   return (
     <div
       className={clsx(
-        'rounded-[var(--radius-xl)] border px-4 py-3 text-sm shadow-[0_0_0_1px_var(--alert-ring)]',
+        'rounded-xl border px-4 py-3 text-sm shadow-[0_0_0_1px_var(--alert-ring)]',
         variantMap[variant],
         className
       )}
