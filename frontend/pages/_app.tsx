@@ -16,12 +16,12 @@ const DASHBOARD_PATHS = [
   '/products',
   '/inventory',
   '/working-hours',
-  '/blocks',
   '/payments',
   '/reports',
   '/automations',
   '/profile',
   '/billing',
+  '/branches',
 ];
 
 function isDashboardRoute(pathname: string): boolean {

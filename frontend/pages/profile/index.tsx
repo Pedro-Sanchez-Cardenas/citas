@@ -1,13 +1,13 @@
 import { useEffect, useState, FormEvent } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchBusinessSetup } from '@/lib/api/businessSetup';
 import { updateProfileRequest } from '@/lib/api/auth';
-import { Button, Input } from '@/components/ui';
 import type { UpdateProfilePayload } from '@/lib/api/auth';
 import type { BusinessSetup } from '@/components/profile/types';
 import type { AxiosError } from 'axios';
+import { UserProfilePanel } from '@/components/profile/UserProfilePanel';
+import { BusinessOnboardingPanel } from '@/components/profile/BusinessOnboardingPanel';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -111,172 +111,24 @@ export default function ProfilePage() {
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)] lg:col-span-1">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-teal-500 to-cyan-500 text-lg font-semibold text-slate-950">
-              {user?.name?.[0]?.toUpperCase() ?? 'U'}
-            </div>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-50">
-                {user?.name ?? 'Usuario'}
-              </p>
-              <p className="truncate text-xs text-slate-400">{user?.email}</p>
-              {user?.roles && (
-                <span className="items-center gap-1 rounded-full border border-teal-500/40 bg-teal-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-teal-200">
-                  <span className="h-1.5 w-1.5 rounded-full bg-teal-400" aria-hidden />
-                  {user?.roles[0].replace('_', ' ')}
-                </span>
-              )}
-            </div>
-          </div>
+        <UserProfilePanel
+          user={user}
+          profileName={profileName}
+          profileEmail={profileEmail}
+          currentPassword={currentPassword}
+          newPassword={newPassword}
+          newPasswordConfirm={newPasswordConfirm}
+          profileSaving={profileSaving}
+          profileSuccess={profileSuccess}
+          onChangeProfileName={setProfileName}
+          onChangeProfileEmail={setProfileEmail}
+          onChangeCurrentPassword={setCurrentPassword}
+          onChangeNewPassword={setNewPassword}
+          onChangeNewPasswordConfirm={setNewPasswordConfirm}
+          onSubmit={handleSubmitProfile}
+        />
 
-          <div className="mb-4 space-y-3 text-xs text-slate-300">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.16em] text-slate-500">
-                Negocio
-              </p>
-              <p className="mt-1 text-sm">
-                {(user as { business?: { name?: string } })?.business?.name ?? 'Sin negocio asignado'}
-              </p>
-            </div>
-            <div>
-              <Link
-                href="/billing"
-                className="text-teal-400 hover:text-teal-300 underline underline-offset-2"
-              >
-                Gestionar facturación →
-              </Link>
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmitProfile} className="space-y-3">
-            <Input
-              label="Nombre"
-              id="profile-name"
-              value={profileName}
-              onChange={(e) => setProfileName(e.target.value)}
-              placeholder="Tu nombre"
-            />
-            <Input
-              label="Correo electrónico"
-              id="profile-email"
-              type="email"
-              value={profileEmail}
-              onChange={(e) => setProfileEmail(e.target.value)}
-              placeholder="correo@ejemplo.com"
-            />
-            <p className="text-[11px] text-slate-500">
-              Para cambiar la contraseña, rellena los tres campos siguientes.
-            </p>
-            <Input
-              label="Contraseña actual"
-              id="profile-current-password"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="current-password"
-            />
-            <Input
-              label="Nueva contraseña"
-              id="profile-password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
-            <Input
-              label="Confirmar nueva contraseña"
-              id="profile-password-confirm"
-              type="password"
-              value={newPasswordConfirm}
-              onChange={(e) => setNewPasswordConfirm(e.target.value)}
-              placeholder="••••••••"
-              autoComplete="new-password"
-            />
-            {profileSuccess && (
-              <p className="text-xs text-emerald-300">Perfil actualizado correctamente.</p>
-            )}
-            <Button type="submit" size="sm" disabled={profileSaving}>
-              {profileSaving ? 'Guardando...' : 'Guardar cambios'}
-            </Button>
-          </form>
-        </section>
-
-        <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)] lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
-                Onboarding del negocio
-              </p>
-              <p className="mt-1 text-sm text-slate-400">
-                Completa estos pasos para dejar listo tu panel y empezar a
-                agendar citas.
-              </p>
-            </div>
-            {!isLoading && setup && (
-              <span
-                className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-medium ${
-                  setup.completed
-                    ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-                    : 'border-amber-500/40 bg-amber-500/10 text-amber-200'
-                }`}
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                {setup.completed ? 'Onboarding completado' : 'Configuración pendiente'}
-              </span>
-            )}
-          </div>
-
-          {isLoading && (
-            <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-3 text-sm text-slate-300">
-              Cargando estado de configuración...
-            </div>
-          )}
-
-          {!isLoading && setup && setup.steps && setup.steps.length > 0 && (
-            <ul className="mt-2 space-y-2">
-              {setup.steps.map((step) => (
-                <li
-                  key={step.key}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-900/70 px-3.5 py-2.5 text-xs sm:text-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] ${
-                        step.completed
-                          ? 'bg-emerald-500/20 text-emerald-300'
-                          : 'bg-slate-800 text-slate-300'
-                      }`}
-                    >
-                      {step.completed ? '✓' : '•'}
-                    </span>
-                    <div>
-                      <p className="font-medium text-slate-100">{step.label}</p>
-                      <p className="text-[11px] text-slate-400">
-                        {step.completed
-                          ? 'Listo'
-                          : 'Pendiente de configurar en el panel'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right text-[11px] text-slate-400">
-                    <p className="font-mono text-xs text-slate-200">{step.count}</p>
-                    <p>elementos</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {!isLoading && setup && setup.steps?.length === 0 && (
-            <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-3 text-sm text-slate-300">
-              El usuario aún no tiene un negocio asociado. Crea un negocio para
-              empezar el onboarding.
-            </div>
-          )}
-        </section>
+        <BusinessOnboardingPanel setup={setup} isLoading={isLoading} />
       </div>
     </>
   );
