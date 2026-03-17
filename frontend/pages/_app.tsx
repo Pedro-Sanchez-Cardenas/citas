@@ -7,7 +7,6 @@ import DashboardLayout from '@/components/layouts/DashboardLayout';
 const DASHBOARD_PATHS = [
   '/dashboard',
   '/agenda',
-  '/appointments',
   '/clients',
   '/professionals',
   '/services',

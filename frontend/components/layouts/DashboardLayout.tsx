@@ -19,7 +19,6 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { label: 'Dashboard', href: '/dashboard', icon: '🏠' },
       { label: 'Agenda', href: '/agenda', icon: '📅' },
-      { label: 'Citas', href: '/appointments', icon: '📝' },
     ],
   },
   {
@@ -61,7 +60,7 @@ const NAV_SECTIONS: NavSection[] = [
   },
 ];
 
-const BOTTOM_NAV_HREF_ORDER = ['/dashboard', '/agenda', '/appointments', '/clients'];
+const BOTTOM_NAV_HREF_ORDER = ['/dashboard', '/agenda', '/clients'];
 
 interface DashboardLayoutProps {
   user: User | null;
@@ -106,7 +105,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
         if (item.href === '/professionals') {
           return hasPermission(user, 'manage_professionals');
         }
-        if (item.href === '/working-hours' || item.href === '/blocks' || item.href === '/appointments') {
+        if (item.href === '/working-hours' || item.href === '/blocks') {
           return hasPermission(user, 'manage_appointments');
         }
         if (item.href === '/payments') {

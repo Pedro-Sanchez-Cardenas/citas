@@ -3,6 +3,12 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchBranches } from '@/lib/api/branches';
 import {
+  createAppointment,
+  updateAppointment,
+  type CreateAppointmentPayload,
+} from '@/lib/api/appointments';
+import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
+import {
   PageHeader,
   Container,
   Select,
@@ -10,7 +16,8 @@ import {
   AppointmentCalendar,
 } from '@/components/ui';
 import { hasAnyRole } from '@/lib/auth';
-import type { Branch } from '@/types';
+import { AppointmentFormModal } from '@/components/appointments';
+import type { Appointment, Branch, Professional, Service } from '@/types';
 import type { AppointmentCalendarEvent } from '@/components/ui/AppointmentCalendar';
 
 export default function AgendaPage() {
@@ -20,6 +27,11 @@ export default function AgendaPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [showCancelled, setShowCancelled] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FormFieldErrors>({});
+  const [initialAppointment, setInitialAppointment] = useState<Appointment | null>(null);
+  const [calendarKey, setCalendarKey] = useState(0);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -47,8 +59,77 @@ export default function AgendaPage() {
     return () => { cancelled = true; };
   }, [user]);
 
+  const buildInitialFromEvent = (event: AppointmentCalendarEvent): Appointment => {
+    return {
+      id: event.id,
+      branch_id: event.branch_id ?? undefined,
+      professional_id: event.professional_id ?? undefined,
+      service_id: (event as any).service_id ?? undefined,
+      client_name: event.client_name ?? '',
+      client_phone: (event as any).client_phone ?? null,
+      client_email: (event as any).client_email ?? null,
+      start_at: event.start_at,
+      end_at: event.end_at,
+      status: event.status ?? 'scheduled',
+      notes: (event as any).notes ?? null,
+      professional: null,
+      service: null,
+    } as Appointment;
+  };
+
+  const buildInitialFromDate = (date: Date): Appointment => {
+    const start = new Date(date);
+    const end = new Date(start.getTime() + 30 * 60 * 1000);
+    const base: Appointment = {
+      id: 0,
+      branch_id: selectedBranchId ? Number(selectedBranchId) : undefined,
+      professional_id:
+        user && typeof (user as any).professional_id === 'number'
+          ? (user as any).professional_id
+          : undefined,
+      service_id: undefined,
+      client_name: '',
+      client_phone: null,
+      client_email: null,
+      start_at: start.toISOString(),
+      end_at: end.toISOString(),
+      status: 'scheduled',
+      notes: null,
+      professional: null,
+      service: null,
+    };
+    return base;
+  };
+
+  const openCreateFromDate = (date: Date) => {
+    setFieldErrors({});
+    setInitialAppointment(buildInitialFromDate(date));
+    setModalOpen(true);
+  };
+
   const handleEventClick = (event: AppointmentCalendarEvent) => {
-    router.push(`/appointments?highlight=${event.id}`);
+    setFieldErrors({});
+    setInitialAppointment(buildInitialFromEvent(event));
+    setModalOpen(true);
+  };
+
+  const handleSubmitAppointment = async (payload: CreateAppointmentPayload) => {
+    setModalLoading(true);
+    setFieldErrors({});
+    try {
+      if (initialAppointment?.id) {
+        await updateAppointment(initialAppointment.id, payload);
+      } else {
+        await createAppointment(payload);
+      }
+      setModalOpen(false);
+      setInitialAppointment(null);
+      setCalendarKey((prev) => prev + 1);
+    } catch (err) {
+      setFieldErrors(extractFieldErrors(err));
+    } finally {
+      setModalLoading(false);
+    }
   };
 
   if (!authLoading && !user) return null;
@@ -57,9 +138,27 @@ export default function AgendaPage() {
 
   return (
     <Container>
+      <AppointmentFormModal
+        open={modalOpen}
+        onClose={() => {
+          if (!modalLoading) {
+            setFieldErrors({});
+            setModalOpen(false);
+            setInitialAppointment(null);
+          }
+        }}
+        onSubmit={handleSubmitAppointment}
+        initialData={initialAppointment}
+        loading={modalLoading}
+        branches={branches}
+        professionals={[] as Professional[]}
+        services={[] as Service[]}
+        fieldErrors={fieldErrors}
+      />
+
       <PageHeader
         title="Agenda"
-        subtitle="Visualiza las citas por sucursal. Los profesionales solo ven sus propias citas."
+        subtitle="Crea y gestiona todas tus citas desde una vista de calendario elegante y responsiva."
       />
 
       <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -92,10 +191,12 @@ export default function AgendaPage() {
       </div>
 
       <AppointmentCalendar
+        key={calendarKey}
         user={user}
         branchId={selectedBranchId || null}
         showCancelled={showCancelled}
         onEventClick={handleEventClick}
+        onDateClick={openCreateFromDate}
         initialView="timeGridWeek"
         height="calc(100vh - 16rem)"
         className="mt-2"
