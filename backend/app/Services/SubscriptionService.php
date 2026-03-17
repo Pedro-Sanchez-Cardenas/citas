@@ -4,32 +4,161 @@ namespace App\Services;
 
 use App\Models\Business;
 use Illuminate\Support\Arr;
+use Stripe\Price as StripePrice;
+use Stripe\Product as StripeProduct;
+use Stripe\Stripe;
 
 class SubscriptionService
 {
+    /**
+     * Obtiene los planes desde Stripe.
+     *
+     * Convención:
+     * - Precio recurrente activo en Stripe.
+     * - El producto asociado debe tener metadata:
+     *   - kind = "plan"
+     *   - slug (opcional; si no, se usa el product id)
+     *   - included_users (opcional, número entero)
+     *   - features (opcional, texto con viñetas separadas por saltos de línea)
+     */
     public function getPlans(): array
     {
-        return config('subscription.plans', []);
+        $this->ensureStripeConfigured();
+
+        $prices = StripePrice::all([
+            'active' => true,
+            'type' => 'recurring',
+            'limit' => 100,
+            'expand' => ['data.product'],
+        ]);
+
+        $plans = [];
+
+        foreach ($prices->data as $price) {
+            /** @var \Stripe\Product|string|null $product */
+            $product = $price->product;
+            if (is_string($product)) {
+                $product = StripeProduct::retrieve($product);
+            }
+            if (! $product instanceof StripeProduct) {
+                continue;
+            }
+
+            $kind = $product->metadata['kind'] ?? 'plan';
+            if ($kind !== 'plan') {
+                continue;
+            }
+
+            $slug = $product->metadata['slug'] ?? $product->id;
+            $includedUsers = isset($product->metadata['included_users'])
+                ? (int) $product->metadata['included_users']
+                : 0;
+
+            $featuresRaw = $product->metadata['features'] ?? '';
+            $features = array_values(array_filter(array_map('trim', preg_split("/\\r?\\n/", (string) $featuresRaw))));
+
+            $plans[$slug] = [
+                'name' => $product->name,
+                'slug' => $slug,
+                'included_users' => $includedUsers,
+                'features' => $features,
+                'stripe' => [
+                    'id' => $price->id,
+                    'currency' => $price->currency,
+                    'unit_amount' => $price->unit_amount,
+                    'nickname' => $price->nickname,
+                    'interval' => $price->recurring->interval ?? null,
+                    'interval_count' => $price->recurring->interval_count ?? null,
+                    'product' => $product->id,
+                ],
+            ];
+        }
+
+        return $plans;
     }
 
+    /**
+     * Obtiene addons desde Stripe.
+     *
+     * Convención:
+     * - Precio recurrente activo.
+     * - Producto con metadata kind = "addon".
+     */
     public function getAddons(): array
     {
-        return config('subscription.addons', []);
+        $this->ensureStripeConfigured();
+
+        $prices = StripePrice::all([
+            'active' => true,
+            'type' => 'recurring',
+            'limit' => 100,
+            'expand' => ['data.product'],
+        ]);
+
+        $addons = [];
+
+        foreach ($prices->data as $price) {
+            /** @var \Stripe\Product|string|null $product */
+            $product = $price->product;
+            if (is_string($product)) {
+                $product = StripeProduct::retrieve($product);
+            }
+            if (! $product instanceof StripeProduct) {
+                continue;
+            }
+
+            $kind = $product->metadata['kind'] ?? null;
+            if ($kind !== 'addon') {
+                continue;
+            }
+
+            $slug = $product->metadata['slug'] ?? $product->id;
+
+            $addons[$slug] = [
+                'name' => $product->name,
+                'slug' => $slug,
+                'type' => 'recurring',
+                'stripe' => [
+                    'id' => $price->id,
+                    'currency' => $price->currency,
+                    'unit_amount' => $price->unit_amount,
+                    'nickname' => $price->nickname,
+                    'interval' => $price->recurring->interval ?? null,
+                    'interval_count' => $price->recurring->interval_count ?? null,
+                    'product' => $product->id,
+                ],
+            ];
+        }
+
+        return $addons;
     }
 
+    /**
+     * Precio usado para usuarios extra.
+     *
+     * Convención simple: se toma de env STRIPE_EXTRA_USER_PRICE_ID.
+     */
     public function getExtraUserPriceId(): ?string
     {
-        return config('subscription.extra_user.stripe_price_id');
+        return env('STRIPE_EXTRA_USER_PRICE_ID');
+    }
+
+    protected function ensureStripeConfigured(): void
+    {
+        $secret = config('cashier.secret') ?? env('STRIPE_SECRET');
+        if ($secret) {
+            Stripe::setApiKey($secret);
+        }
     }
 
     public function getPlanBySlug(string $slug): ?array
     {
-        return Arr::get(config('subscription.plans'), $slug);
+        return Arr::get($this->getPlans(), $slug);
     }
 
     public function getAddonBySlug(string $slug): ?array
     {
-        return Arr::get(config('subscription.addons'), $slug);
+        return Arr::get($this->getAddons(), $slug);
     }
 
     /**
@@ -48,8 +177,8 @@ class SubscriptionService
 
         if ($subscription && $subscription->items->isNotEmpty()) {
             $extraUserPriceId = $this->getExtraUserPriceId();
-            $plansConfig = config('subscription.plans', []);
-            $addonsConfig = config('subscription.addons', []);
+            $plansConfig = $this->getPlans();
+            $addonsConfig = $this->getAddons();
 
             foreach ($subscription->items as $item) {
                 $priceId = $item->stripe_price;
@@ -58,7 +187,7 @@ class SubscriptionService
                     continue;
                 }
                 foreach ($plansConfig as $slug => $plan) {
-                    if (($plan['stripe_price_id'] ?? null) === $priceId) {
+                    if (Arr::get($plan, 'stripe.id') === $priceId) {
                         $planSlug = $slug;
                         $planName = $plan['name'] ?? $slug;
                         $includedUsers = (int) ($plan['included_users'] ?? 0);
@@ -66,7 +195,7 @@ class SubscriptionService
                     }
                 }
                 foreach ($addonsConfig as $slug => $addon) {
-                    if (($addon['stripe_price_id'] ?? null) === $priceId) {
+                    if (Arr::get($addon, 'stripe.id') === $priceId) {
                         $addonSlugs[] = $slug;
                         break;
                     }
@@ -109,20 +238,25 @@ class SubscriptionService
         array $addonSlugs = []
     ): string {
         $plan = $this->getPlanBySlug($planSlug);
-        if (! $plan || empty($plan['stripe_price_id'])) {
+        $planPriceId = Arr::get($plan, 'stripe.id');
+        if (! $plan || ! $planPriceId) {
             throw new \InvalidArgumentException("Plan no encontrado: {$planSlug}");
         }
 
-        $builder = $business->newSubscription('default', $plan['stripe_price_id']);
+        $builder = $business->newSubscription('default', $planPriceId);
 
         foreach ($addonSlugs as $slug) {
             $addon = $this->getAddonBySlug($slug);
-            if ($addon && ! empty($addon['stripe_price_id'])) {
-                $builder->addPrice($addon['stripe_price_id']);
+            $addonPriceId = Arr::get($addon, 'stripe.id');
+            if ($addon && $addonPriceId) {
+                $builder->addPrice($addonPriceId);
             }
         }
 
-        $checkout = $builder->checkout($successUrl, $cancelUrl);
+        $checkout = $builder->checkout([
+            'success_url' => $successUrl,
+            'cancel_url' => $cancelUrl,
+        ]);
 
         return $checkout->url;
     }

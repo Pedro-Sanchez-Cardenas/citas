@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Services\SubscriptionService;
 
 class CheckoutRequest extends FormRequest
 {
@@ -17,8 +18,10 @@ class CheckoutRequest extends FormRequest
      */
     public function rules(): array
     {
-        $planSlugs = array_keys(config('subscription.plans', []));
-        $addonSlugs = array_keys(config('subscription.addons', []));
+        /** @var SubscriptionService $subscriptionService */
+        $subscriptionService = app(SubscriptionService::class);
+        $planSlugs = array_keys($subscriptionService->getPlans());
+        $addonSlugs = array_keys($subscriptionService->getAddons());
 
         return [
             'plan' => ['required', 'string', Rule::in($planSlugs)],
