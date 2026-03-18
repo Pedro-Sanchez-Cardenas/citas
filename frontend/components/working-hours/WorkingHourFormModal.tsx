@@ -10,16 +10,27 @@ import {
 	DatePicker,
 } from '@/components/ui';
 import type { FormFieldErrors } from '@/lib/formErrors';
-import type { WorkingHour, CreateWorkingHourPayload } from '@/lib/api/workingHours';
+import type {
+	WorkingHourBlock,
+	CreateWorkingHourPayload,
+} from '@/components/working-hours/api/workingHours';
 import type { Branch, Professional } from '@/types';
 import { WEEKDAY_SHORT, TIME_PRESETS } from './utils';
+
+type WorkingHourInitialData = WorkingHourBlock & {
+	branch_id?: number | null;
+	professional_id?: number | null;
+	weekday?: number;
+	weekdays?: number[];
+};
 
 export interface WorkingHourFormModalProps {
 	open: boolean;
 	onClose: () => void;
-	/** Al crear con varios días se puede enviar un array (un horario por día). Al editar siempre es un solo payload. */
-	onSubmit: (payload: CreateWorkingHourPayload | CreateWorkingHourPayload[]) => Promise<void>;
-	initialData: WorkingHour | null;
+	onSubmit: (payload: CreateWorkingHourPayload) => Promise<void>;
+	initialData: WorkingHourInitialData | null;
+	/** En edición: todos los bloques de tiempo existentes para ese día (weekday / sucursal / profesional). */
+	initialBlocks?: { start_time?: string; end_time?: string }[] | null;
 	loading: boolean;
 	branches: Branch[];
 	professionals: Professional[];
@@ -39,18 +50,37 @@ export function WorkingHourFormModal({
 	onClose,
 	onSubmit,
 	initialData,
+	initialBlocks,
 	loading,
 	branches,
 	professionals,
 	fieldErrors,
 }: WorkingHourFormModalProps) {
+	// El input `type="time"` acepta HH:MM, pero en BD guardamos HH:MM:SS.
+	const toHHMM = (time?: string | null) => (time ? String(time).slice(0, 5) : '');
+
 	const [branchId, setBranchId] = useState<string | number>(initialData?.branch_id ?? '');
-	/** Múltiples días seleccionados (0=Dom … 6=Sáb). En edición solo hay uno. */
+	/** Múltiples días seleccionados (0=Dom … 6=Sáb). */
 	const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(
-		initialData?.weekday != null ? [initialData.weekday] : [1, 2, 3, 4, 5]
+		initialData?.weekdays?.length
+			? initialData.weekdays
+			: initialData?.weekday != null
+				? [initialData.weekday]
+				: [1, 2, 3, 4, 5]
 	);
-	const [startTime, setStartTime] = useState(initialData?.start_time ?? '09:00');
-	const [endTime, setEndTime] = useState(initialData?.end_time ?? '18:00');
+	/** Bloques horarios en el día: permite mañana/tarde, etc. */
+	const [timeBlocks, setTimeBlocks] = useState<{ start: string; end: string }[]>(() => {
+		if (initialBlocks && initialBlocks.length > 0) {
+			return initialBlocks
+				.filter((b) => b.start_time && b.end_time)
+				.map((b) => ({ start: toHHMM(b.start_time), end: toHHMM(b.end_time) }))
+				.sort((a, b) => a.start.localeCompare(b.start));
+		}
+		if (initialData?.start_time && initialData?.end_time) {
+			return [{ start: toHHMM(initialData.start_time), end: toHHMM(initialData.end_time) }];
+		}
+		return [{ start: '09:00', end: '18:00' }];
+	});
 	const [professionalId, setProfessionalId] = useState(
 		initialData?.professional_id ?? ''
 	);
@@ -72,67 +102,86 @@ export function WorkingHourFormModal({
 				(branches.length === 1 ? branches[0]?.id : '');
 			setBranchId(defaultBranch);
 			setSelectedWeekdays(
-				initialData?.weekday != null ? [initialData.weekday] : [1, 2, 3, 4, 5]
+				initialData?.weekdays?.length
+					? initialData.weekdays
+					: initialData?.weekday != null
+						? [initialData.weekday]
+						: [1, 2, 3, 4, 5]
 			);
-			setStartTime(initialData?.start_time ?? '09:00');
-			setEndTime(initialData?.end_time ?? '18:00');
+			if (initialBlocks && initialBlocks.length > 0) {
+				const blocks = initialBlocks
+					.filter((b) => b.start_time && b.end_time)
+					.map((b) => ({ start: toHHMM(b.start_time), end: toHHMM(b.end_time) }))
+					.sort((a, b) => a.start.localeCompare(b.start));
+				setTimeBlocks(blocks);
+			} else {
+				setTimeBlocks(
+					initialData?.start_time && initialData?.end_time
+						? [{ start: toHHMM(initialData.start_time), end: toHHMM(initialData.end_time) }]
+						: [{ start: '09:00', end: '18:00' }]
+				);
+			}
 			setProfessionalId(initialData?.professional_id ?? '');
 			setEffectiveFrom(initialData?.effective_from ?? '');
 			setEffectiveUntil(initialData?.effective_until ?? '');
 			setIsActive(initialData?.is_active ?? true);
 			setShowVigencia(!!(initialData?.effective_from || initialData?.effective_until));
 		}
-	}, [open, initialData, branches]);
+	}, [open, initialData, initialBlocks, branches]);
 
 	const isEdit = !!initialData?.id;
 
 	const applyPreset = (start: string, end: string) => {
-		setStartTime(start);
-		setEndTime(end);
+		// Aplicamos el preset al primer bloque para mantener la UI simple.
+		setTimeBlocks((prev) => {
+			if (prev.length === 0) return [{ start, end }];
+			const next = [...prev];
+			next[0] = { start, end };
+			return next;
+		});
 	};
 
 	const toggleWeekday = (index: number) => {
-		if (isEdit) return;
 		setSelectedWeekdays((prev) =>
 			prev.includes(index) ? prev.filter((d) => d !== index) : [...prev, index].sort((a, b) => a - b)
 		);
 	};
 
 	const selectAllWeekdays = () => {
-		if (isEdit) return;
 		setSelectedWeekdays([0, 1, 2, 3, 4, 5, 6]);
 	};
 
 	const selectWeekdays = () => {
-		if (isEdit) return;
 		setSelectedWeekdays([1, 2, 3, 4, 5]);
 	};
 
 	const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const base: Omit<CreateWorkingHourPayload, 'weekday'> = {
+		const base: Omit<CreateWorkingHourPayload, 'weekday' | 'hours'> = {
 			branch_id: branchId !== '' ? Number(branchId) : null,
-			start_time: startTime,
-			end_time: endTime,
 			professional_id: professionalId ? Number(professionalId) : null,
 			effective_from: effectiveFrom || null,
 			effective_until: effectiveUntil || null,
 			is_active: !!isActive,
 		};
-		if (isEdit) {
-			void onSubmit({ ...base, weekday: selectedWeekdays[0] } as CreateWorkingHourPayload);
-			return;
-		}
+
+		// Validaciones mínimas
+		if (timeBlocks.length === 0) return;
 		if (selectedWeekdays.length === 0) return;
-		if (selectedWeekdays.length === 1) {
-			void onSubmit({ ...base, weekday: selectedWeekdays[0] } as CreateWorkingHourPayload);
-			return;
-		}
-		const payloads: CreateWorkingHourPayload[] = selectedWeekdays.map((weekday) => ({
+
+		// Enviamos siempre un único payload donde:
+		// - `weekday` es un array de días seleccionados
+		// - `hours` es un array con todos los bloques horarios
+		const payload: CreateWorkingHourPayload = {
 			...base,
-			weekday,
-		}));
-		void onSubmit(payloads);
+			weekday: selectedWeekdays,
+			hours: timeBlocks.map((block) => ({
+				start_time: block.start,
+				end_time: block.end,
+			})),
+		};
+
+		void onSubmit(payload);
 	};
 
 	return (
@@ -181,118 +230,172 @@ export function WorkingHourFormModal({
 					</Select>
 				</div>
 
-        {/* Días de la semana (múltiple en creación, fijo en edición) */}
-        <div className="space-y-3">
-          <SectionTitle>Días de la semana</SectionTitle>
-          <p className="text-[13px] text-slate-400">
-            {isEdit
-              ? 'Este horario aplica al día indicado (en edición no se pueden cambiar los días).'
-              : 'Elige uno o varios días. Se creará el mismo horario para cada día seleccionado.'}
-          </p>
-          <div
-            className="flex flex-wrap items-center gap-2"
-            role="group"
-            aria-label="Días de la semana"
-          >
-            {WEEKDAY_SHORT.map((label, index) => (
-              <button
-                key={index}
-                type="button"
-                onClick={() => (isEdit ? null : toggleWeekday(index))}
-                disabled={isEdit}
-                className={clsx(
-                  'min-w-11 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
-                  selectedWeekdays.includes(index)
-                    ? 'border-teal-500/60 bg-teal-500/20 text-teal-300'
-                    : 'border-slate-700/80 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-200',
-                  isEdit && 'cursor-default opacity-90'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-            {!isEdit && (
-              <>
-                <span className="mx-1 text-slate-600" aria-hidden>|</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-400 hover:text-slate-200"
-                  onClick={selectWeekdays}
-                >
-                  Lun–Vie
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-slate-400 hover:text-slate-200"
-                  onClick={selectAllWeekdays}
-                >
-                  Todos
-                </Button>
-              </>
-            )}
-          </div>
-          {!isEdit && selectedWeekdays.length === 0 && (
-            <p className="text-xs text-amber-400" role="alert">
-              Selecciona al menos un día.
-            </p>
-          )}
-          {fieldErrors.weekday && (
-            <p className="text-xs text-red-400" role="alert">
-              {fieldErrors.weekday}
-            </p>
-          )}
-        </div>
+				{/* Días de la semana */}
+				<div className="space-y-3">
+					<SectionTitle>Días de la semana</SectionTitle>
+					<p className="text-[13px] text-slate-400">
+						Elige uno o varios días. Se creará o actualizará el mismo horario para cada día seleccionado.
+					</p>
+					<div
+						className="flex flex-wrap items-center gap-2"
+						role="group"
+						aria-label="Días de la semana"
+					>
+						{WEEKDAY_SHORT.map((label, index) => (
+							<button
+								key={index}
+								type="button"
+								onClick={() => toggleWeekday(index)}
+								className={clsx(
+									'min-w-11 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
+									selectedWeekdays.includes(index)
+										? 'border-teal-500/60 bg-teal-500/20 text-teal-300'
+										: 'border-slate-700/80 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-200',
+								)}
+							>
+								{label}
+							</button>
+						))}
+						<>
+							<span className="mx-1 text-slate-600" aria-hidden>|</span>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="text-slate-400 hover:text-slate-200"
+								onClick={selectWeekdays}
+							>
+								Lun–Vie
+							</Button>
+							<Button
+								type="button"
+								variant="ghost"
+								size="sm"
+								className="text-slate-400 hover:text-slate-200"
+								onClick={selectAllWeekdays}
+							>
+								Todos
+							</Button>
+						</>
+					</div>
+					{selectedWeekdays.length === 0 && (
+						<p className="text-xs text-amber-400" role="alert">
+							Selecciona al menos un día.
+						</p>
+					)}
+					{fieldErrors.weekday && (
+						<p className="text-xs text-red-400" role="alert">
+							{fieldErrors.weekday}
+						</p>
+					)}
+				</div>
 
-				{/* Horario (de - a) + presets */}
+				{/* Horario (de - a) + presets + múltiples bloques */}
 				<div className="space-y-3">
 					<SectionTitle>Horario de atención</SectionTitle>
 					<p className="text-[13px] text-slate-400">
-						Franja en la que se pueden agendar citas este día.
+						Define una o varias franjas en las que se pueden agendar citas este día. Por ejemplo:
+						{' '}
+						mañana y tarde.
 					</p>
-					<div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
-						<div className="flex flex-1 items-end gap-2">
-							<Input
-								label="Desde"
-								id="wh-start-time"
-								type="time"
-								required
-								value={startTime}
-								onChange={(e: ChangeEvent<HTMLInputElement>) => setStartTime(e.target.value)}
-								error={fieldErrors.start_time}
-								inputClassName="rounded-xl"
-							/>
-							<span className="mb-2.5 hidden text-slate-500 sm:inline" aria-hidden>
-								a
-							</span>
-							<Input
-								label="Hasta"
-								id="wh-end-time"
-								type="time"
-								required
-								value={endTime}
-								onChange={(e: ChangeEvent<HTMLInputElement>) => setEndTime(e.target.value)}
-								error={fieldErrors.end_time}
-								inputClassName="rounded-xl"
-							/>
-						</div>
-						<div className="flex flex-wrap gap-2 sm:shrink-0">
-							{TIME_PRESETS.map((preset) => (
-								<Button
-									key={preset.label}
-									type="button"
-									variant="subtle"
-									size="sm"
-									className="text-slate-400 hover:text-slate-200"
-									onClick={() => applyPreset(preset.start, preset.end)}
-								>
-									{preset.label}
-								</Button>
-							))}
-						</div>
+					<div className="space-y-2">
+						{timeBlocks.map((block, index) => (
+							<div
+								key={index}
+								className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4"
+							>
+								<div className="flex flex-1 items-end gap-2">
+									<Input
+										label={index === 0 ? 'Desde' : `Desde (bloque ${index + 1})`}
+										id={`wh-start-time-${index}`}
+										type="time"
+										required
+										value={block.start}
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
+											setTimeBlocks((prev) => {
+												const next = [...prev];
+												next[index] = { ...next[index], start: e.target.value };
+												return next;
+											})
+										}
+										error={index === 0 ? fieldErrors.start_time : undefined}
+										inputClassName="rounded-xl"
+									/>
+									<span className="mb-2.5 hidden text-slate-500 sm:inline" aria-hidden>
+										a
+									</span>
+									<Input
+										label={index === 0 ? 'Hasta' : `Hasta (bloque ${index + 1})`}
+										id={`wh-end-time-${index}`}
+										type="time"
+										required
+										value={block.end}
+										onChange={(e: ChangeEvent<HTMLInputElement>) =>
+											setTimeBlocks((prev) => {
+												const next = [...prev];
+												next[index] = { ...next[index], end: e.target.value };
+												return next;
+											})
+										}
+										error={index === 0 ? fieldErrors.end_time : undefined}
+										inputClassName="rounded-xl"
+									/>
+								</div>
+								<div className="flex items-center gap-2 sm:shrink-0">
+									{index === 0 && (
+										<div className="flex flex-wrap gap-2">
+											{TIME_PRESETS.map((preset) => (
+												<Button
+													key={preset.label}
+													type="button"
+													variant="subtle"
+													size="sm"
+													className="text-slate-400 hover:text-slate-200"
+													onClick={() => applyPreset(preset.start, preset.end)}
+												>
+													{preset.label}
+												</Button>
+											))}
+										</div>
+									)}
+									{timeBlocks.length > 1 && index > 0 && (
+										<Button
+											type="button"
+											variant="ghost"
+											size="icon"
+											className="ml-1 text-slate-500 hover:text-red-300"
+											onClick={() =>
+												setTimeBlocks((prev) =>
+													prev.filter((_, i) => i !== index)
+												)
+											}
+											aria-label={`Quitar bloque ${index + 1}`}
+										>
+											✕
+										</Button>
+									)}
+								</div>
+							</div>
+						))}
+					</div>
+					<div className="flex items-center justify-between">
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="text-teal-300 hover:text-teal-100"
+							onClick={() =>
+								setTimeBlocks((prev) => [
+									...prev,
+									{
+										start: prev[prev.length - 1]?.end ?? '09:00',
+										end: prev[prev.length - 1]?.end ?? '18:00',
+									},
+								])
+							}
+						>
+							+ Agregar otro bloque
+						</Button>
 					</div>
 				</div>
 
@@ -339,24 +442,22 @@ export function WorkingHourFormModal({
 					/>
 				</div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-slate-700/60 pt-4">
-          <Button type="button" variant="subtle" size="sm" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            size="sm"
-            disabled={loading || (!isEdit && selectedWeekdays.length === 0)}
-          >
-            {loading
-              ? 'Guardando...'
-              : isEdit
-                ? 'Guardar cambios'
-                : selectedWeekdays.length > 1
-                  ? `Crear ${selectedWeekdays.length} horarios`
-                  : 'Crear horario'}
-          </Button>
-        </div>
+				<div className="flex items-center justify-end gap-2 border-t border-slate-700/60 pt-4">
+					<Button type="button" variant="subtle" size="sm" onClick={onClose}>
+						Cancelar
+					</Button>
+					<Button
+						type="submit"
+						size="sm"
+						disabled={loading || (!isEdit && selectedWeekdays.length === 0)}
+					>
+						{loading
+							? 'Guardando...'
+							: isEdit
+								? 'Guardar cambios'
+								: 'Crear horario'}
+					</Button>
+				</div>
 			</form>
 		</Modal>
 	);

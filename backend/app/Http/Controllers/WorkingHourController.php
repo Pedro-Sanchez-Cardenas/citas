@@ -25,7 +25,7 @@ class WorkingHourController extends Controller
         $branchId = $request->query('branch_id') ? (int) $request->query('branch_id') : null;
         $professionalId = $request->query('professional_id') ? (int) $request->query('professional_id') : null;
 
-        $items = $this->workingHourService->listForBusiness($businessId, $branchId, $professionalId);
+        $items = $this->workingHourService->listGroupedForBusiness($businessId, $branchId, $professionalId);
 
         return response()->json($items);
     }

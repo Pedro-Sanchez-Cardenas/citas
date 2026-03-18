@@ -8,7 +8,7 @@ import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { DatesSetArg, EventClickArg, EventContentArg, DateSelectArg } from '@fullcalendar/core';
 import { fetchAgendaRange } from '@/lib/api/agenda';
-import { fetchWorkingHours, type WorkingHour } from '@/lib/api/workingHours';
+import { fetchWorkingHours, type WorkingHour } from '@/components/working-hours/api/workingHours';
 import { hasAnyRole } from '@/lib/auth';
 import type { User } from '@/types';
 
