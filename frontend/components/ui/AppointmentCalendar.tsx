@@ -1,15 +1,94 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { DatesSetArg, EventClickArg, EventContentArg } from '@fullcalendar/core';
+import type { DatesSetArg, EventClickArg, EventContentArg, DateSelectArg } from '@fullcalendar/core';
 import { fetchAgendaRange } from '@/lib/api/agenda';
+import { fetchWorkingHours, type WorkingHour } from '@/lib/api/workingHours';
 import { hasAnyRole } from '@/lib/auth';
 import type { User } from '@/types';
+
+/** Intervalo de tiempo en formato "HH:mm". */
+type TimeInterval = { start: string; end: string };
+
+/** Agrupa y fusiona intervalos por día de la semana (0=Dom … 6=Sáb). */
+function buildWorkingIntervalsByWeekday(hours: WorkingHour[]): Map<number, TimeInterval[]> {
+  const byWeekday = new Map<number, TimeInterval[]>();
+  hours
+    .filter((h) => h.is_active !== false && h.weekday != null && h.start_time && h.end_time)
+    .forEach((h) => {
+      const w = Number(h.weekday);
+      const start = String(h.start_time).slice(0, 5);
+      const end = String(h.end_time).slice(0, 5);
+      if (!byWeekday.has(w)) byWeekday.set(w, []);
+      byWeekday.get(w)!.push({ start, end });
+    });
+  const result = new Map<number, TimeInterval[]>();
+  byWeekday.forEach((intervals, weekday) => {
+    intervals.sort((a, b) => a.start.localeCompare(b.start));
+    const merged: TimeInterval[] = [];
+    for (const inv of intervals) {
+      const last = merged[merged.length - 1];
+      if (last && inv.start <= last.end) {
+        last.end = last.end < inv.end ? inv.end : last.end;
+      } else {
+        merged.push({ ...inv });
+      }
+    }
+    result.set(weekday, merged);
+  });
+  return result;
+}
+
+/** Convierte intervalos por weekday en businessHours de FullCalendar (daysOfWeek 0=Dom). */
+function workingIntervalsToBusinessHours(byWeekday: Map<number, TimeInterval[]>): { daysOfWeek: number[]; startTime: string; endTime: string }[] {
+  const list: { daysOfWeek: number[]; startTime: string; endTime: string }[] = [];
+  byWeekday.forEach((intervals, weekday) => {
+    intervals.forEach((inv) => {
+      list.push({
+        daysOfWeek: [weekday],
+        startTime: inv.start.length === 5 ? inv.start : `${inv.start}:00`.slice(0, 5),
+        endTime: inv.end.length === 5 ? inv.end : `${inv.end}:00`.slice(0, 5),
+      });
+    });
+  });
+  return list;
+}
+
+/** Devuelve slotMinTime y slotMaxTime desde todos los intervalos (formato "HH:mm:ss"). */
+function slotRangeFromIntervals(byWeekday: Map<number, TimeInterval[]>): { slotMinTime: string; slotMaxTime: string } {
+  let min = '23:59';
+  let max = '00:00';
+  byWeekday.forEach((intervals) => {
+    intervals.forEach((inv) => {
+      if (inv.start < min) min = inv.start;
+      if (inv.end > max) max = inv.end;
+    });
+  });
+  const toFull = (t: string) => (t.length >= 5 ? `${t.slice(0, 5)}:00` : `${t}:00:00`);
+  return {
+    slotMinTime: min === '23:59' ? '06:00:00' : toFull(min),
+    slotMaxTime: max === '00:00' ? '22:00:00' : toFull(max),
+  };
+}
+
+/** Comprueba si la selección [start, end] está dentro de algún intervalo del día. */
+function isSelectionWithinWorkingHours(
+  start: Date,
+  end: Date,
+  byWeekday: Map<number, TimeInterval[]>
+): boolean {
+  const weekday = start.getDay();
+  const intervals = byWeekday.get(weekday);
+  if (!intervals?.length) return false;
+  const startTime = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`;
+  const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`;
+  return intervals.some((inv) => startTime >= inv.start && endTime <= inv.end);
+}
 
 export interface AppointmentCalendarEvent {
   id: number;
@@ -118,6 +197,7 @@ export default function AppointmentCalendar({
   const calendarRef = useRef<FullCalendar>(null);
   const rangeRef = useRef<{ start: Date; end: Date } | null>(null);
   const [events, setEvents] = useState<AppointmentCalendarEvent[]>([]);
+  const [workingHours, setWorkingHours] = useState<WorkingHour[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -205,6 +285,31 @@ export default function AppointmentCalendar({
     if (r) loadEvents(r.start, r.end);
   }, [user, branchId, professionalId, isOwner, showCancelled, loadEvents]);
 
+  useEffect(() => {
+    if (!user) return;
+    const params = fetchParams();
+    fetchWorkingHours(params)
+      .then(setWorkingHours)
+      .catch(() => setWorkingHours([]));
+  }, [user, fetchParams]);
+
+  const workingByWeekday = useMemo(() => buildWorkingIntervalsByWeekday(workingHours), [workingHours]);
+  const businessHoursConfig = useMemo(
+    () => (workingByWeekday.size > 0 ? workingIntervalsToBusinessHours(workingByWeekday) : undefined),
+    [workingByWeekday]
+  );
+  const { slotMinTime, slotMaxTime } = useMemo(
+    () => slotRangeFromIntervals(workingByWeekday),
+    [workingByWeekday]
+  );
+  const selectAllow = useCallback(
+    (selectInfo: DateSelectArg) => {
+      if (workingByWeekday.size === 0) return true;
+      return isSelectionWithinWorkingHours(selectInfo.start, selectInfo.end, workingByWeekday);
+    },
+    [workingByWeekday]
+  );
+
   return (
     <div className={`appointment-calendar-root ${className}`.trim()}>
       {error && (
@@ -243,14 +348,16 @@ export default function AppointmentCalendar({
           }}
           locale="es"
           firstDay={1}
-          slotMinTime="06:00:00"
-          slotMaxTime="22:00:00"
+          slotMinTime={slotMinTime}
+          slotMaxTime={slotMaxTime}
           slotDuration="00:30:00"
           allDaySlot={false}
           nowIndicator
           navLinks
           editable={false}
           selectable={!!onDateClick}
+          selectAllow={onDateClick ? selectAllow : undefined}
+          businessHours={businessHoursConfig}
           dayMaxEvents={4}
           moreLinkClick="popover"
         />
