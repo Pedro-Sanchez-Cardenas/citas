@@ -36,6 +36,11 @@ class Business extends Model
         return $this->hasMany(User::class);
     }
 
+    public function bills(): HasMany
+    {
+        return $this->hasMany(Bill::class);
+    }
+
     /**
      * Email usado por Cashier para el cliente en Stripe (owner_email).
      */

@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BillingController;
-use Laravel\Cashier\Http\Controllers\WebhookController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
@@ -27,7 +27,7 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BusinessSetupController;
 
 // Webhook Stripe (sin auth, Cashier valida firma con STRIPE_WEBHOOK_SECRET)
-Route::post('stripe/webhook', [WebhookController::class, 'handleWebhook'])->name('cashier.webhook');
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
 
 Route::post('/login', [AuthController::class, 'login'])
     ->middleware('throttle:5,1');

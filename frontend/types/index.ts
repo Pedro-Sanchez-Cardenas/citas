@@ -34,9 +34,8 @@ export interface Appointment {
   branch_id?: number;
   professional_id?: number;
   service_id?: number | null;
-  client_name?: string | null;
-  client_phone?: string | null;
-  client_email?: string | null;
+  client_id?: number | null;
+  client?: { id: number; name: string; phone?: string | null; email?: string | null } | null;
   start_at: string;
   end_at: string;
   status?: string;

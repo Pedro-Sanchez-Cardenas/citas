@@ -1,3 +1,3 @@
 export { WorkingHourFormModal } from './WorkingHourFormModal';
 export type { WorkingHourFormModalProps } from './WorkingHourFormModal';
-export { WEEKDAYS } from './utils';
+export { WEEKDAYS, WEEKDAY_SHORT } from './utils';

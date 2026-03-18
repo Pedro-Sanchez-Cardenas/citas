@@ -10,7 +10,7 @@ import {
 } from '@/lib/api/services';
 import { fetchServiceCategories } from '@/lib/api/serviceCategories';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
 import {
   ServiceFormModal,
   formatPriceFromCents,
@@ -182,70 +182,69 @@ export default function ServicesPage() {
         fieldErrors={fieldErrors}
       />
 
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Servicios
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Gestiona el catálogo de servicios de tu negocio: duración, precio, categoría y estado.
-          </p>
-        </div>
-        <Button type="button" onClick={openCreateModal} size="md">
-          <span className="mr-2 text-base">＋</span>
-          Nuevo servicio
-        </Button>
-      </header>
+      <PageHeader
+        title="Servicios"
+        subtitle="Catálogo de servicios: duración, precio y categoría para agendar citas."
+        action={
+          <Button type="button" onClick={openCreateModal} size="md">
+            <span className="mr-2 text-base">+</span>
+            Nuevo servicio
+          </Button>
+        }
+      />
 
-      <section className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
+      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar servicios">
+        <div className="flex-1 max-w-md">
           <div className="relative">
             <Input
               type="text"
               value={search}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               placeholder="Buscar por nombre o código..."
-              inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
+              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
             />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
-              🔍
-            </span>
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
           </div>
         </div>
-        <div className="text-[11px] text-slate-500">
-          {filteredServices.length} servicio
-          {filteredServices.length === 1 ? '' : 's'} visibles
-        </div>
+        <p className="text-xs text-slate-500">
+          {search.trim()
+            ? `${filteredServices.length} de ${services.length} servicios`
+            : `${services.length} servicio${services.length === 1 ? '' : 's'}`}
+        </p>
       </section>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando servicios...
+        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
+            <span className="text-sm">Cargando servicios...</span>
+          </div>
         </div>
       ) : filteredServices.length === 0 ? (
         <EmptyState
           icon="✂️"
-          title="Aún no tienes servicios creados"
-          description="Crea tus primeros servicios para empezar a agendar citas de forma organizada y con precios claros."
+          title={search.trim() ? 'No hay resultados' : 'Aún no hay servicios'}
+          description={
+            search.trim()
+              ? 'Prueba con otro término de búsqueda.'
+              : 'Crea servicios para agendar citas con precios y duración claros.'
+          }
           action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-slate-600 text-slate-200 hover:bg-slate-800"
-              onClick={openCreateModal}
-            >
-              Crear servicio
-            </Button>
+            !search.trim() ? (
+              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+                Crear primer servicio
+              </Button>
+            ) : null
           }
         />
       ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<ServiceWithCategory>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -344,6 +343,7 @@ export default function ServicesPage() {
             return null;
           }}
         />
+        </div>
       )}
     </>
   );

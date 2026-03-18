@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Listeners\StoreStripeInvoiceAsBill;
+use App\Models\Business;
 use App\Repositories\Contracts\AppointmentRepositoryInterface;
 use App\Repositories\Contracts\AutomationRepositoryInterface;
 use App\Repositories\Contracts\ClientRepositoryInterface;
@@ -28,7 +30,10 @@ use App\Repositories\EloquentWorkingHourRepository;
 use App\Repositories\EloquentServiceCategoryRepository;
 use App\Repositories\EloquentServiceRepository;
 use App\Repositories\EloquentUserRepository;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Events\WebhookHandled;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -57,6 +62,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Cashier::useCustomerModel(Business::class);
+
+        Event::listen(WebhookHandled::class, StoreStripeInvoiceAsBill::class);
     }
 }

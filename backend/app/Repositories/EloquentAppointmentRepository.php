@@ -22,6 +22,7 @@ class EloquentAppointmentRepository implements AppointmentRepositoryInterface
         ?int $professionalId = null
     ): Collection {
         return Appointment::query()
+            ->with(['client', 'professional', 'service'])
             ->where('business_id', $businessId)
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
             ->when($professionalId, fn ($q) => $q->where('professional_id', $professionalId))

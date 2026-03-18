@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import type { ChangeEvent } from 'react';
+import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchWorkingHours,
@@ -30,10 +31,17 @@ import {
   Alert,
   PageHeader,
 } from '@/components/ui';
-import { WorkingHourFormModal, WEEKDAYS } from '@/components/working-hours';
+import { WorkingHourFormModal, WEEKDAYS, WEEKDAY_SHORT } from '@/components/working-hours';
 import { BlockFormModal } from '@/components/blocks';
 import type { Branch, Professional } from '@/types';
 import type { AxiosError } from 'axios';
+
+type HourGroup = {
+  key: string;
+  branchName: string;
+  professionalName: string;
+  items: WorkingHour[];
+};
 
 type TabId = 'availability' | 'blocks';
 
@@ -147,6 +155,41 @@ export default function WorkingHoursPage() {
     });
   }, [blocks, search, professionalById]);
 
+  const branchById = useMemo(() => {
+    const map = new Map<number, Branch>();
+    branches.forEach((b) => map.set(b.id, b));
+    return map;
+  }, [branches]);
+
+  const groupedHours = useMemo((): HourGroup[] => {
+    const map = new Map<string, WorkingHour[]>();
+    filteredHours.forEach((row) => {
+      const bid = row.branch_id ?? 'none';
+      const pid = row.professional_id ?? 'sucursal';
+      const key = `${bid}-${pid}`;
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(row);
+    });
+    const groups: HourGroup[] = [];
+    map.forEach((items, key) => {
+      const first = items[0];
+      const branchId = first?.branch_id ?? null;
+      const professionalId = first?.professional_id ?? null;
+      const branchName = branchId != null ? branchById.get(branchId)?.name ?? 'Sucursal' : '—';
+      const professional =
+        (first as WorkingHour & { professional?: { name: string } }).professional ??
+        (professionalId != null ? professionalById.get(professionalId) : null);
+      const professionalName = professional?.name ?? 'Horario de sucursal';
+      groups.push({ key, branchName, professionalName, items });
+    });
+    groups.sort((a, b) => {
+      const cmpBranch = a.branchName.localeCompare(b.branchName);
+      if (cmpBranch !== 0) return cmpBranch;
+      return a.professionalName.localeCompare(b.professionalName);
+    });
+    return groups;
+  }, [filteredHours, branchById, professionalById]);
+
   const isLoading = authLoading || loading;
 
   const openCreateHourModal = () => {
@@ -166,19 +209,29 @@ export default function WorkingHoursPage() {
     setBlockModalOpen(true);
   };
 
-  const handleSubmitHour = async (formData: CreateWorkingHourPayload) => {
+  const handleSubmitHour = async (
+    formData: CreateWorkingHourPayload | CreateWorkingHourPayload[]
+  ) => {
     setHourModalLoading(true);
     setError('');
     setFieldErrors({});
+    const payloads = Array.isArray(formData) ? formData : [formData];
     try {
       if (selectedHour?.id) {
-        const updated = await updateWorkingHour(selectedHour.id, formData);
+        const single = payloads[0];
+        const updated = await updateWorkingHour(selectedHour.id, single);
         setHours((prev) =>
           prev.map((h) => (h.id === selectedHour.id ? updated ?? h : h))
         );
       } else {
-        const created = await createWorkingHour(formData);
-        if (created) setHours((prev) => [created, ...prev]);
+        const createdList: WorkingHour[] = [];
+        for (const payload of payloads) {
+          const created = await createWorkingHour(payload);
+          if (created) createdList.push(created);
+        }
+        if (createdList.length > 0) {
+          setHours((prev) => [...createdList, ...prev]);
+        }
       }
       setHourModalOpen(false);
       setSelectedHour(null);
@@ -285,16 +338,16 @@ export default function WorkingHoursPage() {
       <>
         <PageHeader
           title="Horarios y disponibilidad"
-          subtitle="Configura los horarios en los que tu equipo puede recibir citas y los bloqueos de tiempo (descansos, vacaciones, cierres). Todo en un solo lugar."
+          subtitle="Configura cuándo tu equipo puede recibir citas y bloquea fechas para vacaciones o descansos."
           action={
             activeTab === 'availability' ? (
               <Button type="button" onClick={openCreateHourModal} size="md">
-                <span className="mr-2 text-base" aria-hidden>＋</span>
+                <span className="mr-2 text-base" aria-hidden>+</span>
                 Nuevo horario
               </Button>
             ) : (
               <Button type="button" onClick={openCreateBlockModal} size="md">
-                <span className="mr-2 text-base" aria-hidden>＋</span>
+                <span className="mr-2 text-base" aria-hidden>+</span>
                 Nuevo bloqueo
               </Button>
             )
@@ -303,43 +356,56 @@ export default function WorkingHoursPage() {
 
         <div
           role="tablist"
-          aria-label="Secciones de horarios"
-          className="mb-6 flex gap-1 rounded-xl bg-slate-900/50 p-1"
+          aria-label="Secciones"
+          className="mb-6 flex gap-1 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-1.5"
         >
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`panel-${tab.id}`}
-              id={`tab-${tab.id}`}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setSearch('');
-                router.replace(
-                  { pathname: '/working-hours', query: tab.id === 'blocks' ? { tab: 'blocks' } : {} },
-                  undefined,
-                  { shallow: true }
-                );
-              }}
-              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-slate-700/80 text-slate-50 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <span aria-hidden>{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
+          {TABS.map((tab) => {
+            const count = tab.id === 'availability' ? filteredHours.length : filteredBlocks.length;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`panel-${tab.id}`}
+                id={`tab-${tab.id}`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setSearch('');
+                  router.replace(
+                    { pathname: '/working-hours', query: tab.id === 'blocks' ? { tab: 'blocks' } : {} },
+                    undefined,
+                    { shallow: true }
+                  );
+                }}
+                className={clsx(
+                  'flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+                  isActive
+                    ? 'bg-teal-500/20 text-teal-300 shadow-sm ring-1 ring-teal-500/30'
+                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                )}
+              >
+                <span aria-hidden>{tab.icon}</span>
+                {tab.label}
+                <span
+className={clsx(
+                  'ml-1 min-w-5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
+                    isActive ? 'bg-teal-500/30 text-teal-200' : 'bg-slate-700/80 text-slate-400'
+                  )}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <section
-          className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-          aria-label={activeTab === 'availability' ? 'Buscar horarios' : 'Buscar bloqueos'}
+          className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          aria-label={activeTab === 'availability' ? 'Filtrar horarios' : 'Filtrar bloqueos'}
         >
-          <div className="flex-1">
+          <div className="flex-1 max-w-md">
             <div className="relative">
               <Input
                 type="text"
@@ -347,22 +413,29 @@ export default function WorkingHoursPage() {
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
                 placeholder={
                   activeTab === 'availability'
-                    ? 'Buscar por profesional o día...'
-                    : 'Buscar por profesional, motivo o tipo...'
+                    ? 'Buscar por día o profesional...'
+                    : 'Buscar por profesional o motivo...'
                 }
-                inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
+                inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
               />
-              <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>
+              <span
+                className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500"
+                aria-hidden
+              >
                 🔍
               </span>
             </div>
           </div>
-          <div className="text-[11px] text-slate-500">
+          <p className="text-xs text-slate-500">
             {activeTab === 'availability' &&
-              `${filteredHours.length} horario${filteredHours.length === 1 ? '' : 's'} visibles`}
+              (search.trim()
+                ? `${filteredHours.length} de ${hours.length} horarios`
+                : `${hours.length} horario${hours.length === 1 ? '' : 's'}`)}
             {activeTab === 'blocks' &&
-              `${filteredBlocks.length} bloqueo${filteredBlocks.length === 1 ? '' : 's'} visibles`}
-          </div>
+              (search.trim()
+                ? `${filteredBlocks.length} de ${blocks.length} bloqueos`
+                : `${blocks.length} bloqueo${blocks.length === 1 ? '' : 's'}`)}
+          </p>
         </section>
 
         {error && (
@@ -372,127 +445,126 @@ export default function WorkingHoursPage() {
         )}
 
         {isLoading ? (
-          <div className="flex min-h-[200px] items-center justify-center text-sm text-slate-400">
-            Cargando...
+          <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
+            <div className="flex flex-col items-center gap-3 text-slate-400">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
+              <span className="text-sm">Cargando horarios...</span>
+            </div>
           </div>
         ) : activeTab === 'availability' ? (
           <div
             id="panel-availability"
             role="tabpanel"
             aria-labelledby="tab-availability"
-            className="min-w-0"
+            className="min-w-0 space-y-5"
           >
             {filteredHours.length === 0 ? (
               <EmptyState
                 icon="⏰"
-                title="Aún no has configurado horarios"
-                description="Define los horarios por día y profesional en los que tu equipo puede recibir citas. La agenda usará esta información para validar la disponibilidad."
+                title={search.trim() ? 'No hay resultados' : 'Aún no hay horarios'}
+                description={
+                  search.trim()
+                    ? 'Prueba con otro término de búsqueda.'
+                    : 'Crea horarios por día y profesional para que la agenda sepa cuándo se pueden agendar citas.'
+                }
                 action={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-600 text-slate-200 hover:bg-slate-800"
-                    onClick={openCreateHourModal}
-                  >
-                    Crear horario
-                  </Button>
+                  !search.trim() ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600 text-slate-200 hover:bg-slate-800"
+                      onClick={openCreateHourModal}
+                    >
+                      Crear primer horario
+                    </Button>
+                  ) : null
                 }
               />
             ) : (
-              <Table<WorkingHour>
-                columns={[
-                  { key: 'weekday', header: 'Día' },
-                  { key: 'professional', header: 'Profesional' },
-                  { key: 'time', header: 'Horario' },
-                  { key: 'range', header: 'Vigencia' },
-                  { key: 'status', header: 'Estado' },
-                  { key: 'actions', header: 'Acciones', align: 'right' },
-                ]}
-                items={filteredHours}
-                getItemKey={(row) => row.id}
-                renderCell={(row, key) => {
-                  const rowWithProf = row as WorkingHour & { professional?: { name: string } };
-                  const professional =
-                    rowWithProf.professional ?? professionalById.get(row.professional_id ?? 0);
-                  if (key === 'weekday') {
-                    return (
-                      <span className="text-sm font-medium text-slate-50">
-                        {WEEKDAYS[row.weekday ?? 0]}
-                      </span>
-                    );
-                  }
-                  if (key === 'professional') {
-                    return (
-                      <span className="text-xs text-slate-400">
-                        {professional?.name ?? 'Horario general'}
-                      </span>
-                    );
-                  }
-                  if (key === 'time') {
-                    return (
-                      <span className="text-xs text-slate-400">
-                        {row.start_time} – {row.end_time}
-                      </span>
-                    );
-                  }
-                  if (key === 'range') {
-                    return (
-                      <span className="text-xs text-slate-400">
-                        {row.effective_from ? formatDate(row.effective_from) : 'Desde siempre'}{' '}
-                        {row.effective_until ? `→ ${formatDate(row.effective_until)}` : ''}
-                      </span>
-                    );
-                  }
-                  if (key === 'status') {
-                    return (
-                      <span
-                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] ${
-                          row.is_active
-                            ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-                            : 'border-slate-700/80 bg-slate-800/80 text-slate-300'
-                        }`}
-                      >
-                        <span
-                          className={`mr-1 h-1.5 w-1.5 rounded-full ${
-                            row.is_active ? 'bg-emerald-400' : 'bg-slate-500'
-                          }`}
-                        />
-                        {row.is_active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    );
-                  }
-                  if (key === 'actions') {
-                    return (
-                      <div className="flex justify-end">
-                        <FloatMenu
-                          placement="bottom-end"
-                          options={[
-                            { label: 'Editar', onClick: () => openEditHourModal(row) },
-                            { divider: true },
-                            {
-                              label: deletingHourId === row.id ? 'Eliminando...' : 'Eliminar',
-                              onClick: () => handleDeleteHour(row.id),
-                              disabled: deletingHourId === row.id,
-                            },
-                          ]}
-                        >
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="min-h-[36px] text-slate-400 hover:text-slate-200"
-                            aria-label="Acciones"
-                          >
-                            ⋮
-                          </Button>
-                        </FloatMenu>
+              <div className="space-y-5">
+                {groupedHours.map((group) => (
+                  <article
+                    key={group.key}
+                    className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40 shadow-sm"
+                  >
+                    <header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 bg-slate-800/40 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-slate-100">{group.professionalName}</span>
+                        {branches.length > 1 && (
+                          <span className="rounded-full bg-slate-700/80 px-2 py-0.5 text-[11px] text-slate-400">
+                            {group.branchName}
+                          </span>
+                        )}
                       </div>
-                    );
-                  }
-                  return null;
-                }}
-              />
+                      <span className="text-xs text-slate-500">
+                        {group.items.length} horario{group.items.length === 1 ? '' : 's'}
+                      </span>
+                    </header>
+                    <ul className="divide-y divide-slate-700/50" aria-label="Horarios">
+                      {group.items.map((row) => (
+                        <li
+                          key={row.id}
+                          className="flex flex-wrap items-center gap-3 px-4 py-3 sm:gap-4"
+                        >
+                          <span className="min-w-[4.5rem] text-sm font-medium text-slate-200">
+                            {WEEKDAY_SHORT[row.weekday ?? 0]}
+                          </span>
+                          <span className="text-sm text-slate-400">
+                            {row.start_time} – {row.end_time}
+                          </span>
+                          <span className="text-xs text-slate-500">
+                            {row.effective_from
+                              ? formatDate(row.effective_from)
+                              : 'Siempre'}
+                            {row.effective_until ? ` → ${formatDate(row.effective_until)}` : ''}
+                          </span>
+                          <span
+                            className={clsx(
+                              'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px]',
+                              row.is_active
+                                ? 'bg-emerald-500/15 text-emerald-300'
+                                : 'bg-slate-700/80 text-slate-400'
+                            )}
+                          >
+                            <span
+                              className={clsx(
+                                'h-1.5 w-1.5 rounded-full',
+                                row.is_active ? 'bg-emerald-400' : 'bg-slate-500'
+                              )}
+                            />
+                            {row.is_active ? 'Activo' : 'Inactivo'}
+                          </span>
+                          <div className="ml-auto">
+                            <FloatMenu
+                              placement="bottom-end"
+                              options={[
+                                { label: 'Editar', onClick: () => openEditHourModal(row) },
+                                { divider: true },
+                                {
+                                  label: deletingHourId === row.id ? 'Eliminando...' : 'Eliminar',
+                                  onClick: () => handleDeleteHour(row.id),
+                                  disabled: deletingHourId === row.id,
+                                },
+                              ]}
+                            >
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="min-h-8 text-slate-400 hover:text-slate-200"
+                                aria-label="Acciones"
+                              >
+                                ⋮
+                              </Button>
+                            </FloatMenu>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </article>
+                ))}
+              </div>
             )}
           </div>
         ) : (
@@ -505,22 +577,29 @@ export default function WorkingHoursPage() {
             {filteredBlocks.length === 0 ? (
               <EmptyState
                 icon="🚫"
-                title="Aún no hay bloqueos de tiempo"
-                description="Crea bloqueos para que la agenda no acepte citas en horarios no disponibles: vacaciones, descansos, mantenimiento o eventos internos."
+                title={search.trim() ? 'No hay bloqueos que coincidan' : 'Aún no hay bloqueos'}
+                description={
+                  search.trim()
+                    ? 'Prueba con otro término.'
+                    : 'Crea bloqueos para vacaciones, descansos o cierres y la agenda no ofrecerá citas en esas fechas.'
+                }
                 action={
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-600 text-slate-200 hover:bg-slate-800"
-                    onClick={openCreateBlockModal}
-                  >
-                    Crear bloqueo
-                  </Button>
+                  !search.trim() ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-600 text-slate-200 hover:bg-slate-800"
+                      onClick={openCreateBlockModal}
+                    >
+                      Crear bloqueo
+                    </Button>
+                  ) : null
                 }
               />
             ) : (
-              <Table<Block>
+              <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
+                <Table<Block>
                 columns={[
                   { key: 'professional', header: 'Profesional' },
                   { key: 'start', header: 'Inicio' },
@@ -588,6 +667,7 @@ export default function WorkingHoursPage() {
                   return null;
                 }}
               />
+              </div>
             )}
           </div>
         )}

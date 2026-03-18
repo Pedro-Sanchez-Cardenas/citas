@@ -164,36 +164,30 @@ export default function BranchesPage() {
         subtitle="Gestiona las sucursales de tu negocio para organizar mejor citas, profesionales e inventario."
         action={
           <Button type="button" onClick={openCreateModal} size="md">
-            <span className="mr-2 text-base" aria-hidden>
-              ＋
-            </span>
+            <span className="mr-2 text-base" aria-hidden>+</span>
             Nueva sucursal
           </Button>
         }
       />
 
-      <section className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
+      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar sucursales">
+        <div className="flex-1 max-w-md">
           <div className="relative">
             <Input
               type="text"
               value={search}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               placeholder="Buscar por nombre, código o ciudad..."
-              inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
+              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
             />
-            <span
-              className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500"
-              aria-hidden
-            >
-              🔍
-            </span>
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
           </div>
         </div>
-        <div className="text-[11px] text-slate-500">
-          {filteredBranches.length} sucursal
-          {filteredBranches.length === 1 ? '' : 'es'} visibles
-        </div>
+        <p className="text-xs text-slate-500">
+          {search.trim()
+            ? `${filteredBranches.length} de ${branches.length} sucursales`
+            : `${branches.length} sucursal${branches.length === 1 ? '' : 'es'}`}
+        </p>
       </section>
 
       {error && (
@@ -203,27 +197,31 @@ export default function BranchesPage() {
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando sucursales...
+        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
+            <span className="text-sm">Cargando sucursales...</span>
+          </div>
         </div>
       ) : filteredBranches.length === 0 ? (
         <EmptyState
           icon="📍"
-          title="Aún no has creado sucursales"
-          description="Crea tu primera sucursal (por ejemplo: Sucursal principal, Centro, Norte) para empezar a organizar tus citas."
+          title={search.trim() ? 'No hay resultados' : 'Aún no hay sucursales'}
+          description={
+            search.trim()
+              ? 'Prueba con otro término de búsqueda.'
+              : 'Crea sucursales para organizar citas, profesionales e inventario.'
+          }
           action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-slate-600 text-slate-200 hover:bg-slate-800"
-              onClick={openCreateModal}
-            >
-              Crear sucursal
-            </Button>
+            !search.trim() ? (
+              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+                Crear primera sucursal
+              </Button>
+            ) : null
           }
         />
       ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<Branch>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -289,6 +287,7 @@ export default function BranchesPage() {
             return null;
           }}
         />
+        </div>
       )}
     </>
   );

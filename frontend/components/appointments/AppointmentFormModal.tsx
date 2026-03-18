@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import {
   Button,
-  Input,
   Select,
   Checkbox,
   Modal,
@@ -11,7 +10,7 @@ import {
 } from '@/components/ui';
 import type { FormFieldErrors } from '@/lib/formErrors';
 import type { CreateAppointmentPayload } from '@/lib/api/appointments';
-import type { Appointment, Branch, Professional, Service } from '@/types';
+import type { Appointment, Branch, Client, Professional, Service } from '@/types';
 import { STATUS_OPTIONS } from './utils';
 
 export interface AppointmentFormModalProps {
@@ -23,6 +22,7 @@ export interface AppointmentFormModalProps {
   branches: Branch[];
   professionals: Professional[];
   services: Service[];
+  clients: Client[];
   fieldErrors: FormFieldErrors;
 }
 
@@ -35,14 +35,13 @@ export function AppointmentFormModal({
   branches,
   professionals,
   services,
+  clients,
   fieldErrors,
 }: AppointmentFormModalProps) {
   const [branchId, setBranchId] = useState<string | number>(initialData?.branch_id ?? '');
   const [professionalId, setProfessionalId] = useState<string | number>(initialData?.professional_id ?? '');
   const [serviceId, setServiceId] = useState<string | number>(initialData?.service_id ?? '');
-  const [clientName, setClientName] = useState(initialData?.client_name ?? '');
-  const [clientPhone, setClientPhone] = useState(initialData?.client_phone ?? '');
-  const [clientEmail, setClientEmail] = useState(initialData?.client_email ?? '');
+  const [clientId, setClientId] = useState<string | number>(initialData?.client_id ?? initialData?.client?.id ?? '');
   const [startAt, setStartAt] = useState(
     initialData?.start_at ? initialData.start_at.slice(0, 16) : ''
   );
@@ -61,9 +60,7 @@ export function AppointmentFormModal({
       setBranchId(defaultBranch);
       setProfessionalId(initialData?.professional_id ?? '');
       setServiceId(initialData?.service_id ?? '');
-      setClientName(initialData?.client_name ?? '');
-      setClientPhone(initialData?.client_phone ?? '');
-      setClientEmail(initialData?.client_email ?? '');
+      setClientId(initialData?.client_id ?? initialData?.client?.id ?? '');
       setStartAt(initialData?.start_at ? initialData.start_at.slice(0, 16) : '');
       setEndAt(initialData?.end_at ? initialData.end_at.slice(0, 16) : '');
       setStatus(initialData?.status ?? 'scheduled');
@@ -100,7 +97,10 @@ export function AppointmentFormModal({
     if (serviceId && !filteredServices.some((s) => s.id === Number(serviceId))) {
       setServiceId('');
     }
-  }, [open, professionalId, serviceId, filteredProfessionals, filteredServices]);
+    if (clientId && !clients.some((c) => c.id === Number(clientId))) {
+      setClientId('');
+    }
+  }, [open, professionalId, serviceId, clientId, filteredProfessionals, filteredServices, clients]);
 
   const isEdit = !!initialData?.id;
 
@@ -110,9 +110,7 @@ export function AppointmentFormModal({
       branch_id: Number(branchId),
       professional_id: Number(professionalId),
       service_id: serviceId ? Number(serviceId) : null,
-      client_name: clientName,
-      client_phone: clientPhone || null,
-      client_email: clientEmail || null,
+      client_id: clientId ? Number(clientId) : null,
       start_at: startAt ? new Date(startAt).toISOString() : '',
       end_at: endAt ? new Date(endAt).toISOString() : '',
       status: status || null,
@@ -180,36 +178,21 @@ export function AppointmentFormModal({
           ))}
         </Select>
 
-        <div className="md:col-span-2">
-          <Input
-            label="Nombre del cliente"
-            id="appointment-client-name"
-            required
-            value={clientName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setClientName(e.target.value)}
-            placeholder="Nombre del cliente"
-            error={fieldErrors.client_name}
-          />
-        </div>
-
-        <Input
-          label="Teléfono"
-          id="appointment-client-phone"
-          value={clientPhone}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setClientPhone(e.target.value)}
-          placeholder="+52 ..."
-          error={fieldErrors.client_phone}
-        />
-
-        <Input
-          label="Correo electrónico"
-          id="appointment-client-email"
-          type="email"
-          value={clientEmail}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setClientEmail(e.target.value)}
-          placeholder="cliente@correo.com"
-          error={fieldErrors.client_email}
-        />
+        <Select
+          label="Cliente"
+          id="appointment-client"
+          value={String(clientId)}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setClientId(e.target.value)}
+          error={fieldErrors.client_id}
+        >
+          <option value="">Sin cliente / Cliente ocasional</option>
+          {clients.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+              {c.phone ? ` · ${c.phone}` : ''}
+            </option>
+          ))}
+        </Select>
 
         <DatePicker
           label="Inicio"

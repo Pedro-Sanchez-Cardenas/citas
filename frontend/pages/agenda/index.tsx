@@ -7,6 +7,9 @@ import {
   updateAppointment,
   type CreateAppointmentPayload,
 } from '@/lib/api/appointments';
+import { fetchClients } from '@/lib/api/clients';
+import { fetchProfessionals } from '@/lib/api/professionals';
+import { fetchServices } from '@/lib/api/services';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import {
   PageHeader,
@@ -16,7 +19,7 @@ import {
 } from '@/components/ui';
 import { hasAnyRole } from '@/lib/auth';
 import { AppointmentFormModal } from '@/components/appointments';
-import type { Appointment, Branch, Professional, Service } from '@/types';
+import type { Appointment, Branch, Client, Professional, Service } from '@/types';
 import type { AppointmentCalendarEvent } from '@/components/ui/AppointmentCalendar';
 
 export default function AgendaPage() {
@@ -24,6 +27,9 @@ export default function AgendaPage() {
   const { user, loading: authLoading } = useAuth();
 
   const [branches, setBranches] = useState<Branch[]>([]);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
   const [showCancelled, setShowCancelled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -58,19 +64,43 @@ export default function AgendaPage() {
     return () => { cancelled = true; };
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    async function loadProfessionalsServicesAndClients() {
+      try {
+        const [profs, svcs, clis] = await Promise.all([
+          fetchProfessionals(),
+          fetchServices(),
+          fetchClients(),
+        ]);
+        if (!cancelled) {
+          setProfessionals(Array.isArray(profs) ? profs : []);
+          setServices(Array.isArray(svcs) ? svcs : []);
+          setClients(Array.isArray(clis) ? clis : []);
+        }
+      } catch {
+        // Los selects quedarán vacíos si falla
+      }
+    }
+    void loadProfessionalsServicesAndClients();
+    return () => { cancelled = true; };
+  }, [user]);
+
   const buildInitialFromEvent = (event: AppointmentCalendarEvent): Appointment => {
     return {
       id: event.id,
       branch_id: event.branch_id ?? undefined,
       professional_id: event.professional_id ?? undefined,
-      service_id: (event as any).service_id ?? undefined,
-      client_name: event.client_name ?? '',
-      client_phone: (event as any).client_phone ?? null,
-      client_email: (event as any).client_email ?? null,
+      service_id: event.service_id ?? undefined,
+      client_id: event.client_id ?? undefined,
+      client: event.client_name
+        ? { id: event.client_id ?? 0, name: event.client_name, phone: null, email: null }
+        : null,
       start_at: event.start_at,
       end_at: event.end_at,
       status: event.status ?? 'scheduled',
-      notes: (event as any).notes ?? null,
+      notes: (event as { notes?: string | null }).notes ?? null,
       professional: null,
       service: null,
     } as Appointment;
@@ -83,13 +113,12 @@ export default function AgendaPage() {
       id: 0,
       branch_id: selectedBranchId ? Number(selectedBranchId) : undefined,
       professional_id:
-        user && typeof (user as any).professional_id === 'number'
-          ? (user as any).professional_id
+        user && typeof (user as unknown as { professional_id?: number }).professional_id === 'number'
+          ? (user as unknown as { professional_id: number }).professional_id
           : undefined,
       service_id: undefined,
-      client_name: '',
-      client_phone: null,
-      client_email: null,
+      client_id: undefined,
+      client: null,
       start_at: start.toISOString(),
       end_at: end.toISOString(),
       status: 'scheduled',
@@ -150,8 +179,9 @@ export default function AgendaPage() {
         initialData={initialAppointment}
         loading={modalLoading}
         branches={branches}
-        professionals={[] as Professional[]}
-        services={[] as Service[]}
+        professionals={professionals}
+        services={services}
+        clients={clients}
         fieldErrors={fieldErrors}
       />
 

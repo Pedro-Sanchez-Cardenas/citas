@@ -18,7 +18,7 @@ class StoreAppointmentRequest extends FormRequest
             'professional_id' => ['required', 'integer', 'exists:professionals,id'],
             'service_id' => ['nullable', 'integer', 'exists:services,id'],
             'combined_service_id' => ['nullable', 'integer', 'exists:combined_services,id'],
-            'client_id' => ['required', 'integer', 'exists:clients,id'],
+            'client_id' => ['nullable', 'integer', 'exists:clients,id'],
             'start_at' => ['required', 'date'],
             'end_at' => ['required', 'date', 'after:start_at'],
             'status' => ['nullable', 'in:scheduled,confirmed,attended,cancelled,no_show'],

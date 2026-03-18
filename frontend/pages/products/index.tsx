@@ -9,7 +9,7 @@ import {
   deleteProduct,
 } from '@/lib/api/products';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
 import {
   ProductFormModal,
   formatMoneyFromCents,
@@ -164,69 +164,69 @@ export default function ProductsPage() {
         fieldErrors={fieldErrors}
       />
 
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Productos
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Controla el catálogo de productos que usas en servicios o vendes en tu negocio.
-          </p>
-        </div>
-        <Button type="button" onClick={openCreateModal} size="md">
-          <span className="mr-2 text-base">＋</span>
-          Nuevo producto
-        </Button>
-      </header>
+      <PageHeader
+        title="Productos"
+        subtitle="Catálogo de productos que usas en servicios o vendes. Controla costos y stock."
+        action={
+          <Button type="button" onClick={openCreateModal} size="md">
+            <span className="mr-2 text-base">+</span>
+            Nuevo producto
+          </Button>
+        }
+      />
 
-      <section className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
+      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar productos">
+        <div className="flex-1 max-w-md">
           <div className="relative">
             <Input
               type="text"
               value={search}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               placeholder="Buscar por nombre, SKU o categoría..."
-              inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
+              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
             />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
-              🔍
-            </span>
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
           </div>
         </div>
-        <div className="text-[11px] text-slate-500">
-          {filteredProducts.length} producto{filteredProducts.length === 1 ? '' : 's'} visibles
-        </div>
+        <p className="text-xs text-slate-500">
+          {search.trim()
+            ? `${filteredProducts.length} de ${products.length} productos`
+            : `${products.length} producto${products.length === 1 ? '' : 's'}`}
+        </p>
       </section>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando productos...
+        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
+            <span className="text-sm">Cargando productos...</span>
+          </div>
         </div>
       ) : filteredProducts.length === 0 ? (
         <EmptyState
           icon="🧴"
-          title="Aún no tienes productos registrados"
-          description="Registra los productos que usas y vendes para controlar mejor tus costos y stock."
+          title={search.trim() ? 'No hay resultados' : 'Aún no hay productos'}
+          description={
+            search.trim()
+              ? 'Prueba con otro término de búsqueda.'
+              : 'Registra productos para controlar costos y stock.'
+          }
           action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-slate-600 text-slate-200 hover:bg-slate-800"
-              onClick={openCreateModal}
-            >
-              Crear producto
-            </Button>
+            !search.trim() ? (
+              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+                Crear primer producto
+              </Button>
+            ) : null
           }
         />
       ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<ProductItem>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -315,6 +315,7 @@ export default function ProductsPage() {
             return null;
           }}
         />
+        </div>
       )}
     </>
   );

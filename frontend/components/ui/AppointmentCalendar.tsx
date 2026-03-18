@@ -15,28 +15,33 @@ export interface AppointmentCalendarEvent {
   id: number;
   start_at: string;
   end_at: string;
+  client_id?: number | null;
   client_name?: string | null;
   professional_name?: string | null;
   service_name?: string | null;
   status?: string | null;
   professional_id?: number | null;
   branch_id?: number | null;
+  service_id?: number | null;
   [key: string]: unknown;
 }
 
 function normalizeEvent(raw: Record<string, unknown>): AppointmentCalendarEvent {
   const professional = raw.professional as { name?: string } | undefined;
   const service = raw.service as { name?: string } | undefined;
+  const client = raw.client as { id?: number; name?: string } | undefined;
   return {
     id: Number(raw.id),
     start_at: String(raw.start_at ?? ''),
     end_at: String(raw.end_at ?? ''),
-    client_name: (raw.client_name as string) ?? null,
+    client_id: raw.client_id != null ? Number(raw.client_id) : client?.id ?? null,
+    client_name: client?.name ?? (raw.client_name as string) ?? null,
     professional_name: professional?.name ?? (raw.professional_name as string) ?? null,
     service_name: service?.name ?? (raw.service_name as string) ?? null,
     status: (raw.status as string) ?? null,
     professional_id: raw.professional_id != null ? Number(raw.professional_id) : null,
     branch_id: raw.branch_id != null ? Number(raw.branch_id) : null,
+    service_id: raw.service_id != null ? Number(raw.service_id) : null,
   };
 }
 

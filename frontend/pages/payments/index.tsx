@@ -8,7 +8,7 @@ import { fetchAppointments } from '@/lib/api/appointments';
 import { fetchClients } from '@/lib/api/clients';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { formatDate } from '@/lib/format';
-import { Button, Input, Select, Table, EmptyState } from '@/components/ui';
+import { Button, Input, Select, Table, EmptyState, Alert, PageHeader } from '@/components/ui';
 import {
   PaymentFormModal,
   formatMoney,
@@ -167,47 +167,40 @@ export default function PaymentsPage() {
         fieldErrors={fieldErrors}
       />
 
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Pagos
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Consulta y registra pagos asociados a citas o clientes.
-          </p>
-        </div>
-        <Button
-          type="button"
-          onClick={() => {
-            setFieldErrors({});
-            setModalOpen(true);
-          }}
-          size="md"
-        >
-          <span className="mr-2 text-base">＋</span>
-          Registrar pago
-        </Button>
-      </header>
+      <PageHeader
+        title="Pagos"
+        subtitle="Consulta y registra pagos asociados a citas o clientes."
+        action={
+          <Button
+            type="button"
+            onClick={() => {
+              setFieldErrors({});
+              setModalOpen(true);
+            }}
+            size="md"
+          >
+            <span className="mr-2 text-base">+</span>
+            Registrar pago
+          </Button>
+        }
+      />
 
-      <section className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-center">
-        <div className="flex-1">
-          <div className="relative">
+      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar pagos">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="relative min-w-0 flex-1 max-w-md">
             <Input
               type="text"
               value={search}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               placeholder="Buscar por cliente o referencia..."
-              inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
+              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
             />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
-              🔍
-            </span>
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
           </div>
-        </div>
-        <div className="flex items-center justify-end gap-3">
           <Select
             value={methodFilter}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setMethodFilter(e.target.value)}
+            className="w-full sm:w-auto"
           >
             <option value="">Todos los métodos</option>
             {methods.map((method) => (
@@ -217,39 +210,54 @@ export default function PaymentsPage() {
             ))}
           </Select>
         </div>
+        <p className="text-xs text-slate-500">
+          {(search.trim() || methodFilter)
+            ? `${filteredPayments.length} de ${payments.length} pagos`
+            : `${payments.length} pago${payments.length === 1 ? '' : 's'}`}
+        </p>
       </section>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando pagos...
+        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
+            <span className="text-sm">Cargando pagos...</span>
+          </div>
         </div>
       ) : filteredPayments.length === 0 ? (
         <EmptyState
           icon="💳"
-          title="Aún no hay pagos registrados"
-          description="Cuando registres pagos asociados a citas o ventas, aparecerán aquí. Registra tu primer pago para llevar el control de cobros."
+          title={(search.trim() || methodFilter) ? 'No hay resultados' : 'Aún no hay pagos'}
+          description={
+            (search.trim() || methodFilter)
+              ? 'Prueba con otro filtro o término.'
+              : 'Registra pagos asociados a citas o ventas para llevar el control de cobros.'
+          }
           action={
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="border-slate-600 text-slate-200 hover:bg-slate-800"
-              onClick={() => {
-                setFieldErrors({});
-                setModalOpen(true);
-              }}
-            >
-              Registrar pago
-            </Button>
+            !search.trim() && !methodFilter ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="border-slate-600 text-slate-200 hover:bg-slate-800"
+                onClick={() => {
+                  setFieldErrors({});
+                  setModalOpen(true);
+                }}
+              >
+                Registrar primer pago
+              </Button>
+            ) : null
           }
         />
       ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<PaymentItem>
           columns={[
             { key: 'date', header: 'Fecha' },
@@ -299,6 +307,7 @@ export default function PaymentsPage() {
             return null;
           }}
         />
+        </div>
       )}
     </>
   );

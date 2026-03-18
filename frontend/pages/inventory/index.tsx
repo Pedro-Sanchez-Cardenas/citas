@@ -4,7 +4,7 @@ import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState } from '@/components/ui';
+import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
 import {
   InventoryAdjustModal,
   type StockRow,
@@ -138,54 +138,56 @@ export default function InventoryPage() {
         fieldErrors={fieldErrors}
       />
 
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Inventario
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Visualiza el stock por sucursal y producto, y realiza ajustes rápidos.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Inventario"
+        subtitle="Stock por sucursal y producto. Realiza ajustes cuando lo necesites."
+      />
 
-      <section className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex-1">
+      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar inventario">
+        <div className="flex-1 max-w-md">
           <div className="relative">
             <Input
               type="text"
               value={search}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               placeholder="Buscar por producto o sucursal..."
-              inputClassName="pl-9 rounded-2xl border-slate-800/80 bg-slate-950/70"
+              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
             />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500">
-              🔍
-            </span>
+            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
           </div>
         </div>
-        <div className="text-[11px] text-slate-500">
-          {filteredStocks.length} registro{filteredStocks.length === 1 ? '' : 's'} visibles
-        </div>
+        <p className="text-xs text-slate-500">
+          {search.trim()
+            ? `${filteredStocks.length} de ${stocks.length} registros`
+            : `${stocks.length} registro${stocks.length === 1 ? '' : 's'}`}
+        </p>
       </section>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando inventario...
+        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
+          <div className="flex flex-col items-center gap-3 text-slate-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
+            <span className="text-sm">Cargando inventario...</span>
+          </div>
         </div>
       ) : filteredStocks.length === 0 ? (
         <EmptyState
           icon="📦"
-          title="Aún no hay registros de inventario"
-          description="Una vez que registres productos y movimientos, verás aquí el stock por sucursal. Ve a Productos para dar de alta tus primeros artículos."
+          title={search.trim() ? 'No hay resultados' : 'Aún no hay inventario'}
+          description={
+            search.trim()
+              ? 'Prueba con otro término de búsqueda.'
+              : 'Registra productos y movimientos para ver el stock por sucursal.'
+          }
         />
       ) : (
+        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<StockRow>
           columns={[
             { key: 'product', header: 'Producto' },
@@ -262,6 +264,7 @@ export default function InventoryPage() {
             return null;
           }}
         />
+        </div>
       )}
     </>
   );
