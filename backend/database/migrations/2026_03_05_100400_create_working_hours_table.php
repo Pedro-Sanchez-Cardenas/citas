@@ -14,15 +14,17 @@ return new class extends Migration {
 
             $table->foreignId('professional_id')->nullable()->constrained('professionals')->cascadeOnUpdate()->nullOnDelete();
 
-            $table->unsignedTinyInteger('weekday'); // 0 (domingo) - 6 (sábado)
+            $table->unsignedTinyInteger('weekday');
             $table->time('start_time');
             $table->time('end_time');
-            $table->date('effective_from')->nullable(); // para horarios dinámicos
+            $table->date('effective_from')->nullable();
             $table->date('effective_until')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
 
             $table->index(['branch_id', 'professional_id', 'weekday'], 'working_hours_index');
+
+            $table->unique(['branch_id', 'professional_id', 'weekday', 'start_time', 'end_time'], 'working_hours_unique');
         });
     }
 

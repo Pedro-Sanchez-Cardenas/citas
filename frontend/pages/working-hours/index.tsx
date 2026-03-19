@@ -250,6 +250,40 @@ export default function WorkingHoursPage() {
 		}
 	};
 
+	const handleDeleteGroup = async (group: HourGroup) => {
+		const ids = Array.from(new Set(group.hours.flatMap((h) => h.ids)));
+		if (!ids.length) return;
+
+		if (
+			!window.confirm(
+				'¿Eliminar este grupo de horarios? Esta acción no se puede deshacer.'
+			)
+		) {
+			return;
+		}
+
+		// Usamos el primer id como señal de loading/deshabilitado en UI
+		setDeletingHourId(ids[0]);
+		setError('');
+		try {
+			for (const id of ids) {
+				await deleteWorkingHour(id);
+			}
+			const hoursData = await fetchWorkingHours();
+			setHours(Array.isArray(hoursData) ? hoursData : []);
+			setHourModalOpen(false);
+			setSelectedHour(null);
+		} catch (err) {
+			const ax = err as AxiosError<{ message?: string }>;
+			setError(
+				ax?.response?.data?.message ||
+					'No se pudo eliminar el grupo de horarios. Inténtalo nuevamente.'
+			);
+		} finally {
+			setDeletingHourId(null);
+		}
+	};
+
 	const handleSubmitBlock = async (formData: CreateBlockPayload) => {
 		setBlockModalLoading(true);
 		setError('');
@@ -496,11 +530,6 @@ export default function WorkingHoursPage() {
 														{group.branch_name}
 													</span>
 												)}
-												<span className="hidden text-xs text-slate-400 sm:inline">
-													{group.weekdays
-														.map((weekday) => WEEKDAY_SHORT[weekday])
-														.join(', ')}
-												</span>
 											</div>
 
 											<div className="flex items-center gap-2">
@@ -514,6 +543,18 @@ export default function WorkingHoursPage() {
 														{
 															label: 'Editar',
 															onClick: () => openEditHourModal(group),
+														},
+														{ divider: true },
+														{
+															label:
+																deletingHourId != null &&
+																group.hours.some((h) => h.ids.includes(deletingHourId))
+																	? 'Eliminando…'
+																	: 'Eliminar grupo',
+															onClick: () => handleDeleteGroup(group),
+															disabled:
+																deletingHourId != null &&
+																group.hours.some((h) => h.ids.includes(deletingHourId)),
 														},
 													]}
 												>
@@ -548,7 +589,7 @@ export default function WorkingHoursPage() {
 														key={block.id}
 														className="flex items-center gap-3 rounded-xl border border-slate-700/60 bg-slate-950/20 px-3 py-2"
 													>
-														<span className="min-w-[6.5rem] text-sm font-medium text-slate-200">
+														<span className="min-w-26 text-sm font-medium text-slate-200">
 															{block.start_time} – {block.end_time}
 														</span>
 														<span
