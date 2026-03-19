@@ -143,6 +143,11 @@ export function ClientFormModal({
                   {photoDisplay ? 'Cambiar foto' : 'Subir foto'}
                 </label>
                 <p className="text-[11px] text-slate-500">JPG, PNG o WebP. Máx. 5 MB</p>
+                {fieldErrors.photo && (
+                  <p className="text-[11px] text-red-300" role="alert">
+                    {fieldErrors.photo}
+                  </p>
+                )}
               </div>
             </div>
           </div>

@@ -13,6 +13,7 @@ use App\Models\ServiceCategory;
 use Closure;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 
 class EnsureTenantIsolation
@@ -153,7 +154,9 @@ class EnsureTenantIsolation
                 ->value('branch_id');
 
             if ($professionalBranchId !== null && (int) $professionalBranchId !== $branchId) {
-                abort(422, 'El profesional no pertenece a la sucursal indicada.');
+                throw ValidationException::withMessages([
+                    'professional_id' => 'El profesional no pertenece a la sucursal indicada.',
+                ]);
             }
         }
 
@@ -165,7 +168,9 @@ class EnsureTenantIsolation
                 ->value('branch_id');
 
             if ($serviceBranchId !== null && (int) $serviceBranchId !== $branchId) {
-                abort(422, 'El servicio no pertenece a la sucursal indicada.');
+                throw ValidationException::withMessages([
+                    'service_id' => 'El servicio no pertenece a la sucursal indicada.',
+                ]);
             }
         }
 
@@ -177,7 +182,9 @@ class EnsureTenantIsolation
                 ->value('branch_id');
 
             if ($combinedServiceBranchId !== null && (int) $combinedServiceBranchId !== $branchId) {
-                abort(422, 'El servicio combinado no pertenece a la sucursal indicada.');
+                throw ValidationException::withMessages([
+                    'combined_service_id' => 'El servicio combinado no pertenece a la sucursal indicada.',
+                ]);
             }
         }
     }

@@ -20,7 +20,7 @@ return new class extends Migration {
 
             $table->string('name');
             $table->string('email')->nullable()->unique();
-            $table->string('phone')->nullable();
+            $table->string('phone')->nullable()->unique();
             $table->string('color')->nullable(); // Para identificar al profesional en el calendario
             $table->decimal('commission_rate', 5, 2)->default(0); // %
             $table->unsignedInteger('base_salary_cents')->default(0);

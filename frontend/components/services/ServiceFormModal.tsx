@@ -156,12 +156,17 @@ export function ServiceFormModal({
           ))}
         </Select>
 
-        <div className="md:col-span-2 flex items-center justify-between pt-2">
+        <div className="md:col-span-2 flex flex-col items-start gap-1 pt-2">
           <Checkbox
             checked={!!isActive}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
             label="Servicio activo y visible en la agenda"
           />
+          {fieldErrors.is_active && (
+            <p className="text-[11px] text-red-300" role="alert">
+              {fieldErrors.is_active}
+            </p>
+          )}
         </div>
 
         <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">

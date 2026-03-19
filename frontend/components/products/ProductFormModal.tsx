@@ -150,12 +150,17 @@ export function ProductFormModal({
           error={fieldErrors.price_cents}
         />
 
-        <div className="md:col-span-2 flex items-center justify-between pt-2">
+        <div className="md:col-span-2 flex flex-col items-start gap-1 pt-2">
           <Checkbox
             checked={!!isReusable}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setIsReusable(e.target.checked)}
             label="Producto reutilizable (no se consume: tijeras, máquinas, etc.)"
           />
+          {fieldErrors.is_reusable && (
+            <p className="text-[11px] text-red-300" role="alert">
+              {fieldErrors.is_reusable}
+            </p>
+          )}
         </div>
 
         <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
