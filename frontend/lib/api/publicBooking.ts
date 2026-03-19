@@ -2,13 +2,37 @@ import api from '@/lib/api';
 
 const BASE_PATH = '/api/public';
 
+export interface PublicBookingBusinessInfo {
+  id: number;
+  name: string;
+  slug: string;
+  branding?: {
+    logo_url?: string | null;
+    hero_image_url?: string | null;
+    primary_color?: string | null;
+    public_booking_title?: string | null;
+    public_booking_subtitle?: string | null;
+  };
+}
+
+export interface PublicServicesCatalogResponse {
+  business?: PublicBookingBusinessInfo;
+  branches?: unknown[];
+}
+
 export async function fetchPublicServices(
   businessIdOrSlug: string,
   params: Record<string, unknown> = {}
-): Promise<unknown[]> {
+): Promise<PublicServicesCatalogResponse> {
   const response = await api.get(`${BASE_PATH}/${businessIdOrSlug}/services`, { params });
-  const raw = response.data?.data ?? response.data ?? [];
-  return Array.isArray(raw) ? raw : [];
+  const payload = response.data?.data ?? response.data ?? {};
+  if (Array.isArray(payload)) {
+    return { branches: payload };
+  }
+  return {
+    business: payload?.business,
+    branches: Array.isArray(payload?.branches) ? payload.branches : [],
+  };
 }
 
 export async function fetchPublicProfessionals(

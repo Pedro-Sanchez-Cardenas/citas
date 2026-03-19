@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Branch;
+use App\Models\Business;
 use App\Models\Product;
 use App\Models\Professional;
 use App\Models\Service;
@@ -18,6 +19,7 @@ class BusinessSetupService
      * @return array{
      *     message: string,
      *     completed: bool,
+     *     business?: array<string, mixed>,
      *     steps: array<int, array{
      *         key: string,
      *         label: string,
@@ -102,10 +104,25 @@ class BusinessSetupService
         ];
 
         $completed = collect($steps)->every(fn (array $step) => $step['completed'] === true);
+        $business = Business::query()->find($businessId);
+        $settings = is_array($business?->settings) ? $business->settings : [];
+        $branding = is_array($settings['branding'] ?? null) ? $settings['branding'] : [];
 
         return [
             'message' => 'Estado de configuración del negocio',
             'completed' => $completed,
+            'business' => [
+                'id' => $business?->id,
+                'name' => $business?->name,
+                'slug' => $business?->slug,
+                'branding' => [
+                    'logo_url' => $branding['logo_url'] ?? null,
+                    'hero_image_url' => $branding['hero_image_url'] ?? null,
+                    'primary_color' => $branding['primary_color'] ?? null,
+                    'public_booking_title' => $branding['public_booking_title'] ?? null,
+                    'public_booking_subtitle' => $branding['public_booking_subtitle'] ?? null,
+                ],
+            ],
             'steps' => $steps,
         ];
     }

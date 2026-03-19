@@ -57,6 +57,8 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/business-setup', [BusinessSetupController::class, 'show'])
         ->middleware('role:business_owner');
+    Route::patch('/business-setup/branding', [BusinessSetupController::class, 'updateBranding'])
+        ->middleware('role:business_owner');
     Route::get('/branches', [BranchController::class, 'index']);
 
     // Billing (Stripe Cashier): planes visibles para autenticados; resto solo propietario (Spatie)

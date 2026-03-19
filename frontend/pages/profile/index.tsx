@@ -1,13 +1,14 @@
 import { useEffect, useState, FormEvent } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchBusinessSetup } from '@/lib/api/businessSetup';
+import { fetchBusinessSetup, updateBusinessBranding } from '@/lib/api/businessSetup';
 import { updateProfileRequest } from '@/lib/api/auth';
 import type { UpdateProfilePayload } from '@/lib/api/auth';
 import type { BusinessSetup } from '@/components/profile/types';
 import type { AxiosError } from 'axios';
 import { UserProfilePanel } from '@/components/profile/UserProfilePanel';
 import { BusinessOnboardingPanel } from '@/components/profile/BusinessOnboardingPanel';
+import { Button, Input } from '@/components/ui';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -22,6 +23,13 @@ export default function ProfilePage() {
   const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileSuccess, setProfileSuccess] = useState(false);
+  const [brandingLogoUrl, setBrandingLogoUrl] = useState('');
+  const [brandingHeroImageUrl, setBrandingHeroImageUrl] = useState('');
+  const [brandingPrimaryColor, setBrandingPrimaryColor] = useState('#14b8a6');
+  const [bookingTitle, setBookingTitle] = useState('');
+  const [bookingSubtitle, setBookingSubtitle] = useState('');
+  const [brandingSaving, setBrandingSaving] = useState(false);
+  const [brandingSuccess, setBrandingSuccess] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -35,6 +43,12 @@ export default function ProfilePage() {
       try {
         const data = (await fetchBusinessSetup()) as BusinessSetup;
         setSetup(data);
+        const branding = (data?.business as { branding?: Record<string, string | null> } | undefined)?.branding;
+        setBrandingLogoUrl(String(branding?.logo_url ?? ''));
+        setBrandingHeroImageUrl(String(branding?.hero_image_url ?? ''));
+        setBrandingPrimaryColor(String(branding?.primary_color ?? '#14b8a6'));
+        setBookingTitle(String(branding?.public_booking_title ?? ''));
+        setBookingSubtitle(String(branding?.public_booking_subtitle ?? ''));
       } catch {
         setError('No se pudo cargar el estado de configuración del negocio.');
       } finally {
@@ -86,6 +100,28 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSubmitBranding = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setBrandingSaving(true);
+    setBrandingSuccess(false);
+    setError('');
+    try {
+      await updateBusinessBranding({
+        logo_url: brandingLogoUrl.trim() || null,
+        hero_image_url: brandingHeroImageUrl.trim() || null,
+        primary_color: brandingPrimaryColor.trim() || null,
+        public_booking_title: bookingTitle.trim() || null,
+        public_booking_subtitle: bookingSubtitle.trim() || null,
+      });
+      setBrandingSuccess(true);
+    } catch (err) {
+      const ax = err as AxiosError<{ message?: string }>;
+      setError(ax?.response?.data?.message ?? 'No se pudo actualizar el branding.');
+    } finally {
+      setBrandingSaving(false);
+    }
+  };
+
   if (!authLoading && !user) return null;
 
   const isLoading = authLoading || loadingSetup;
@@ -130,6 +166,62 @@ export default function ProfilePage() {
 
         <BusinessOnboardingPanel setup={setup} isLoading={isLoading} />
       </div>
+
+      <section className="mt-6 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5">
+        <h2 className="text-base font-semibold text-slate-100">Branding del portal de clientes</h2>
+        <p className="mt-1 text-xs text-slate-400">
+          Configura el logo y textos que se muestran en `book/{'{slug}'}` para login, registro y agendado.
+        </p>
+        <form className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmitBranding}>
+          <Input
+            label="URL del logo"
+            id="branding-logo-url"
+            value={brandingLogoUrl}
+            onChange={(e) => setBrandingLogoUrl(e.target.value)}
+            placeholder="https://tu-dominio.com/logo.png"
+            hint="Usa una URL pública (PNG/SVG recomendado)."
+          />
+          <Input
+            label="URL de imagen hero/fondo"
+            id="branding-hero-url"
+            value={brandingHeroImageUrl}
+            onChange={(e) => setBrandingHeroImageUrl(e.target.value)}
+            placeholder="https://tu-dominio.com/hero.jpg"
+            hint="Opcional: fondo visual del portal de reservas."
+          />
+          <Input
+            label="Color primario"
+            id="branding-primary-color"
+            type="text"
+            value={brandingPrimaryColor}
+            onChange={(e) => setBrandingPrimaryColor(e.target.value)}
+            placeholder="#14b8a6"
+            hint="Formato HEX, por ejemplo #14b8a6"
+          />
+          <Input
+            label="Título público"
+            id="branding-booking-title"
+            value={bookingTitle}
+            onChange={(e) => setBookingTitle(e.target.value)}
+            placeholder="Reserva tu próxima cita"
+          />
+          <div className="md:col-span-2">
+            <Input
+              label="Subtítulo público"
+              id="branding-booking-subtitle"
+              value={bookingSubtitle}
+              onChange={(e) => setBookingSubtitle(e.target.value)}
+              placeholder="Inicia sesión para reservar con tu salón"
+            />
+          </div>
+          <div className="md:col-span-2 flex items-center gap-2">
+            <Button type="submit" size="sm" disabled={brandingSaving}>
+              {brandingSaving ? 'Guardando...' : 'Guardar branding'}
+            </Button>
+            {brandingSuccess && <span className="text-xs text-emerald-300">Cambios guardados</span>}
+          </div>
+        </form>
+      </section>
     </>
   );
 }

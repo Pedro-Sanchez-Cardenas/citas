@@ -9,6 +9,7 @@ use App\Services\CalendarService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 
 class PublicBookingController extends Controller
 {
@@ -32,7 +33,23 @@ class PublicBookingController extends Controller
             }])
             ->get();
 
-        return response()->json($services);
+        $branding = Arr::get($business->settings ?? [], 'branding', []);
+
+        return response()->json([
+            'business' => [
+                'id' => $business->id,
+                'name' => $business->name,
+                'slug' => $business->slug,
+                'branding' => [
+                    'logo_url' => Arr::get($branding, 'logo_url'),
+                    'hero_image_url' => Arr::get($branding, 'hero_image_url'),
+                    'primary_color' => Arr::get($branding, 'primary_color'),
+                    'public_booking_title' => Arr::get($branding, 'public_booking_title'),
+                    'public_booking_subtitle' => Arr::get($branding, 'public_booking_subtitle'),
+                ],
+            ],
+            'branches' => $services,
+        ]);
     }
 
     public function professionals(string $businessSlug, Request $request): JsonResponse
