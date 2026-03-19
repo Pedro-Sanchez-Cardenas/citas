@@ -32,9 +32,16 @@ trait CreatesTenantData
 
     protected function createUserForBusiness(Business $business, array $overrides = []): User
     {
-        return User::factory()->create(array_merge([
+        $user = User::factory()->create(array_merge([
             'business_id' => $business->id,
         ], $overrides));
+
+        // Para endpoints protegidos por permisos/roles en tests.
+        if (! $user->hasAnyRole(['business_owner', 'manager', 'worker'])) {
+            $user->assignRole('business_owner');
+        }
+
+        return $user;
     }
 
     protected function createBranch(Business $business, array $overrides = []): Branch

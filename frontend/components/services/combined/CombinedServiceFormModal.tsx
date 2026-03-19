@@ -90,14 +90,14 @@ export function CombinedServiceFormModal({
       code,
       total_duration_minutes: totalDuration ? Number(totalDuration) : null,
       is_active: !!isActive,
-      items: items
-        .filter((item) => item.service_id)
-        .map((item, idx) => ({
-          service_id: Number(item.service_id),
-          position: item.position || idx + 1,
-          offset_minutes: item.offset_minutes ? Number(item.offset_minutes) : 0,
-          duration_minutes: item.duration_minutes ? Number(item.duration_minutes) : null,
-        })),
+      // No filtramos items aquí: así los índices que devuelve el backend (`items.0.*`, `items.1.*`)
+      // coinciden con los inputs visibles.
+      items: items.map((item, idx) => ({
+        service_id: item.service_id ? Number(item.service_id) : null,
+        position: item.position || idx + 1,
+        offset_minutes: item.offset_minutes ? Number(item.offset_minutes) : 0,
+        duration_minutes: item.duration_minutes ? Number(item.duration_minutes) : null,
+      })),
     };
     void onSubmit(payload);
   };
@@ -140,12 +140,17 @@ export function CombinedServiceFormModal({
             placeholder="Ej. 90"
             error={fieldErrors.total_duration_minutes}
           />
-          <div className="flex items-center pt-5">
+          <div className="flex flex-col items-start gap-1 pt-5">
             <Checkbox
               checked={!!isActive}
               onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
               label="Servicio combinado activo"
             />
+            {fieldErrors.is_active && (
+              <p className="text-[11px] text-red-300" role="alert">
+                {fieldErrors.is_active}
+              </p>
+            )}
           </div>
         </div>
 
@@ -158,6 +163,11 @@ export function CombinedServiceFormModal({
               Añadir servicio
             </Button>
           </div>
+          {fieldErrors.items && (
+            <p className="mb-2 text-[11px] text-red-300" role="alert">
+              {fieldErrors.items}
+            </p>
+          )}
           <div className="space-y-3">
             {items.map((item, index) => (
               <div

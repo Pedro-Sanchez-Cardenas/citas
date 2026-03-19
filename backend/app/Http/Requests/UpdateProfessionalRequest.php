@@ -8,12 +8,14 @@ class UpdateProfessionalRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        return $user?->hasPermissionTo('manage_professionals') ?? false;
     }
 
     public function rules(): array
     {
         $professionalId = $this->route('professional')?->id;
+        $updateWorkerPassword = (bool) $this->boolean('update_worker_password');
 
         return [
             'branch_id' => ['sometimes', 'integer', 'exists:branches,id'],
@@ -25,6 +27,13 @@ class UpdateProfessionalRequest extends FormRequest
             'base_salary_cents' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'photo' => ['sometimes', 'nullable', 'image', 'max:5120'],
+            'update_worker_password' => ['sometimes', 'boolean'],
+            'worker_password' => [
+                $updateWorkerPassword ? 'required' : 'nullable',
+                'string',
+                'min:8',
+                'max:255',
+            ],
         ];
     }
 }

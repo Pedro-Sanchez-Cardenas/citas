@@ -318,7 +318,7 @@ export function WorkingHourFormModal({
 												return next;
 											})
 										}
-										error={index === 0 ? fieldErrors.start_time : undefined}
+										error={fieldErrors[`hours.${index}.start_time`]}
 										inputClassName="rounded-xl"
 									/>
 									<span className="mb-2.5 hidden text-slate-500 sm:inline" aria-hidden>
@@ -337,7 +337,7 @@ export function WorkingHourFormModal({
 												return next;
 											})
 										}
-										error={index === 0 ? fieldErrors.end_time : undefined}
+										error={fieldErrors[`hours.${index}.end_time`]}
 										inputClassName="rounded-xl"
 									/>
 								</div>
@@ -440,6 +440,11 @@ export function WorkingHourFormModal({
 						onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
 						label="Horario activo (la agenda tendrá en cuenta este horario)"
 					/>
+					{fieldErrors.is_active && (
+						<p className="mt-2 text-[11px] text-red-300" role="alert">
+							{fieldErrors.is_active}
+						</p>
+					)}
 				</div>
 
 				<div className="flex items-center justify-end gap-2 border-t border-slate-700/60 pt-4">

@@ -85,6 +85,11 @@ class ProfessionalController extends Controller
 
     public function destroy(Request $request, Professional $professional): JsonResponse
     {
+        $user = $request->user();
+        if (! $user?->hasPermissionTo('manage_professionals')) {
+            abort(403, 'No autorizado');
+        }
+
         $businessId = (int) $request->user()->business_id;
 
         $this->assertModelBelongsToRequestBusiness($professional, $request);

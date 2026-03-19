@@ -24,6 +24,9 @@ export interface AppointmentFormModalProps {
   services: Service[];
   clients: Client[];
   fieldErrors: FormFieldErrors;
+  readOnly?: boolean;
+  professionalIdLocked?: number | null;
+  branchIdLocked?: number | null;
 }
 
 export function AppointmentFormModal({
@@ -37,6 +40,9 @@ export function AppointmentFormModal({
   services,
   clients,
   fieldErrors,
+  readOnly = false,
+  professionalIdLocked = null,
+  branchIdLocked = null,
 }: AppointmentFormModalProps) {
   const [branchId, setBranchId] = useState<string | number>(initialData?.branch_id ?? '');
   const [professionalId, setProfessionalId] = useState<string | number>(initialData?.professional_id ?? '');
@@ -52,6 +58,8 @@ export function AppointmentFormModal({
   const [notes, setNotes] = useState(initialData?.notes ?? '');
   const [notifyClient, setNotifyClient] = useState(false);
 
+  const isEdit = !!initialData?.id;
+
   useEffect(() => {
     if (open) {
       const defaultBranch =
@@ -66,8 +74,18 @@ export function AppointmentFormModal({
       setStatus(initialData?.status ?? 'scheduled');
       setNotes(initialData?.notes ?? '');
       setNotifyClient(false);
+
+      // Para workers: al crear, el profesional queda bloqueado a su propio id.
+      if (!isEdit && professionalIdLocked != null) {
+        setProfessionalId(String(professionalIdLocked));
+      }
+
+      // Para workers: al crear, la sucursal queda bloqueada a su sucursal.
+      if (!isEdit && branchIdLocked != null) {
+        setBranchId(String(branchIdLocked));
+      }
     }
-  }, [open, initialData, branches]);
+  }, [open, initialData, branches, professionalIdLocked, branchIdLocked]);
 
   const normalizedBranchId =
     branchId !== '' && Number.isFinite(Number(branchId)) ? Number(branchId) : null;
@@ -102,10 +120,11 @@ export function AppointmentFormModal({
     }
   }, [open, professionalId, serviceId, clientId, filteredProfessionals, filteredServices, clients]);
 
-  const isEdit = !!initialData?.id;
+  const isReadOnly = readOnly;
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isReadOnly) return;
     const payload: CreateAppointmentPayload = {
       branch_id: Number(branchId),
       professional_id: Number(professionalId),
@@ -138,6 +157,7 @@ export function AppointmentFormModal({
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setBranchId(e.target.value)}
           required
           error={fieldErrors.branch_id}
+          disabled={isReadOnly || branchIdLocked != null}
         >
           <option value="">Selecciona sucursal</option>
           {branches.map((b) => (
@@ -154,6 +174,7 @@ export function AppointmentFormModal({
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setProfessionalId(e.target.value)}
           required
           error={fieldErrors.professional_id}
+          disabled={isReadOnly || professionalIdLocked != null}
         >
           <option value="">Selecciona profesional</option>
           {filteredProfessionals.map((p) => (
@@ -169,6 +190,7 @@ export function AppointmentFormModal({
           value={String(serviceId)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setServiceId(e.target.value)}
           error={fieldErrors.service_id}
+          disabled={isReadOnly}
         >
           <option value="">Sin servicio asignado</option>
           {filteredServices.map((s) => (
@@ -184,6 +206,7 @@ export function AppointmentFormModal({
           value={String(clientId)}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setClientId(e.target.value)}
           error={fieldErrors.client_id}
+          disabled={isReadOnly}
         >
           <option value="">Sin cliente / Cliente ocasional</option>
           {clients.map((c) => (
@@ -202,6 +225,7 @@ export function AppointmentFormModal({
           value={startAt || null}
           onChange={(_, dateStr) => setStartAt(dateStr || '')}
           error={fieldErrors.start_at}
+          disabled={isReadOnly}
         />
 
         <DatePicker
@@ -212,6 +236,7 @@ export function AppointmentFormModal({
           value={endAt || null}
           onChange={(_, dateStr) => setEndAt(dateStr || '')}
           error={fieldErrors.end_at}
+          disabled={isReadOnly}
         />
 
         <Select
@@ -220,6 +245,7 @@ export function AppointmentFormModal({
           value={status}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setStatus(e.target.value)}
           error={fieldErrors.status}
+          disabled={isReadOnly}
         >
           <option value="">Sin estado</option>
           {STATUS_OPTIONS.map((opt) => (
@@ -237,6 +263,7 @@ export function AppointmentFormModal({
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)}
           placeholder="Detalles específicos de la cita, preferencias del cliente, etc."
           error={fieldErrors.notes}
+          disabled={isReadOnly}
         />
 
         <div className="flex items-center justify-between pt-2 md:col-span-2">
@@ -244,6 +271,7 @@ export function AppointmentFormModal({
             checked={notifyClient}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setNotifyClient(e.target.checked)}
             label="(Futuro) Notificar al cliente por SMS/email al crear o actualizar"
+            disabled={isReadOnly}
           />
         </div>
 
@@ -251,7 +279,11 @@ export function AppointmentFormModal({
           <Button type="button" variant="subtle" size="sm" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" size="sm" disabled={loading}>
+          <Button
+            type="submit"
+            size="sm"
+            disabled={loading || isReadOnly}
+          >
             {loading ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear cita'}
           </Button>
         </div>

@@ -31,6 +31,7 @@ export default function AgendaPage() {
   const [services, setServices] = useState<Service[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>('');
+  const [workerScope, setWorkerScope] = useState<'mine' | 'branch'>('mine');
   const [showCancelled, setShowCancelled] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
@@ -111,7 +112,13 @@ export default function AgendaPage() {
     const end = new Date(start.getTime() + 30 * 60 * 1000);
     const base: Appointment = {
       id: 0,
-      branch_id: selectedBranchId ? Number(selectedBranchId) : undefined,
+      branch_id: selectedBranchId
+        ? Number(selectedBranchId)
+        : user &&
+            typeof (user as unknown as { professional_branch_id?: number }).professional_branch_id ===
+              'number'
+          ? (user as unknown as { professional_branch_id: number }).professional_branch_id
+          : undefined,
       professional_id:
         user && typeof (user as unknown as { professional_id?: number }).professional_id === 'number'
           ? (user as unknown as { professional_id: number }).professional_id
@@ -162,7 +169,20 @@ export default function AgendaPage() {
 
   if (!authLoading && !user) return null;
 
-  const isOwner = hasAnyRole(user, ['business_owner']);
+  const isOwner = hasAnyRole(user, ['business_owner', 'manager']);
+  const isWorker = hasAnyRole(user, ['worker']);
+  const workerBranchId =
+    user &&
+    typeof (user as unknown as { professional_branch_id?: number }).professional_branch_id ===
+      'number'
+      ? (user as unknown as { professional_branch_id: number }).professional_branch_id
+      : null;
+
+  const workerProfessionalId =
+    user &&
+    typeof (user as unknown as { professional_id?: number }).professional_id === 'number'
+      ? (user as unknown as { professional_id: number }).professional_id
+      : null;
 
   return (
     <>
@@ -183,6 +203,13 @@ export default function AgendaPage() {
         services={services}
         clients={clients}
         fieldErrors={fieldErrors}
+        readOnly={
+          isWorker &&
+          !!initialAppointment?.id &&
+          initialAppointment.professional_id !== workerProfessionalId
+        }
+        professionalIdLocked={isWorker && workerScope === 'mine' ? workerProfessionalId : null}
+        branchIdLocked={isWorker ? workerBranchId : null}
       />
 
       <PageHeader
@@ -209,6 +236,20 @@ export default function AgendaPage() {
             </Select>
           </div>
         )}
+        {isWorker && workerBranchId != null && (
+          <div className="w-full sm:w-56">
+            <Select
+              id="agenda-worker-scope"
+              label={null}
+              value={workerScope}
+              onChange={(e) => setWorkerScope(e.target.value as 'mine' | 'branch')}
+              selectClassName="rounded-xl border-slate-700/80 bg-surface-elevated/60"
+            >
+              <option value="mine">Mis citas</option>
+              <option value="branch">Citas del branch</option>
+            </Select>
+          </div>
+        )}
         <div className="flex items-center gap-3">
           <Checkbox
             id="agenda-show-cancelled"
@@ -222,7 +263,8 @@ export default function AgendaPage() {
       <AppointmentCalendar
         key={calendarKey}
         user={user}
-        branchId={selectedBranchId || null}
+        branchId={isOwner ? selectedBranchId || null : workerBranchId}
+        workerScope={isWorker ? workerScope : undefined}
         showCancelled={showCancelled}
         onEventClick={handleEventClick}
         onDateClick={openCreateFromDate}

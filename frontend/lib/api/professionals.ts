@@ -22,12 +22,24 @@ export async function fetchProfessional(id: number | string): Promise<Profession
 export interface CreateProfessionalPayload {
   name: string;
   branch_id?: number | null;
+  create_worker_user?: boolean;
+  update_worker_password?: boolean;
+  worker_password?: string;
   [key: string]: unknown;
 }
 
 const FORM_KEYS = [
-  'branch_id', 'name', 'email', 'phone', 'color',
-  'commission_rate', 'base_salary_cents', 'is_active',
+  'branch_id',
+  'name',
+  'email',
+  'phone',
+  'color',
+  'commission_rate',
+  'base_salary_cents',
+  'is_active',
+  'create_worker_user',
+  'update_worker_password',
+  'worker_password',
 ] as const;
 
 function buildProfessionalFormData(
@@ -48,6 +60,14 @@ function buildProfessionalFormData(
       return;
     }
     if (key === 'is_active') {
+      form.append(key, v ? '1' : '0');
+      return;
+    }
+    if (key === 'create_worker_user') {
+      form.append(key, v ? '1' : '0');
+      return;
+    }
+    if (key === 'update_worker_password') {
       form.append(key, v ? '1' : '0');
       return;
     }

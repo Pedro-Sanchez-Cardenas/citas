@@ -21,6 +21,11 @@ class UserResource extends JsonResource
             'updated_at' => $this->updated_at?->toIso8601String(),
             'roles' => $this->roles->pluck('name')->values()->toArray(),
             'permissions' => $this->permissions->pluck('name')->values()->toArray(),
+            'professional_id' => $this->professional_id,
+            'professional_branch_id' => $this->whenLoaded(
+                'professional',
+                fn () => $this->professional?->branch_id
+            ),
             'business' => $this->whenLoaded(
                 'business',
                 fn() => [

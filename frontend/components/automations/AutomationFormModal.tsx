@@ -140,12 +140,17 @@ export function AutomationFormModal({
           />
         </div>
 
-        <div className="flex items-center justify-between pt-2 md:col-span-2">
+        <div className="flex flex-col items-start gap-1 pt-2 md:col-span-2">
           <Checkbox
             checked={!!isActive}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
             label="Automatización activa"
           />
+          {fieldErrors.is_active && (
+            <p className="text-[11px] text-red-300" role="alert">
+              {fieldErrors.is_active}
+            </p>
+          )}
         </div>
 
         <div className="mt-2 flex items-center justify-end gap-2 md:col-span-2">

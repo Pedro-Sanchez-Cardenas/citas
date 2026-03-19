@@ -25,11 +25,17 @@ class User extends Authenticatable
         'email',
         'password',
         'business_id',
+        'professional_id',
     ];
 
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function professional(): BelongsTo
+    {
+        return $this->belongsTo(Professional::class, 'professional_id');
     }
 
     /**
