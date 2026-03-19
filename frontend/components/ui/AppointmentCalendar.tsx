@@ -165,8 +165,10 @@ function EventContent({ arg }: { arg: EventContentArg }) {
 export interface AppointmentCalendarProps {
   /** Usuario actual: define si es dueño (ve por branch) o profesional (ve solo las suyas). */
   user: User | null;
-  /** Solo para dueño: filtrar por sucursal. Profesionales ignoran esto y ven solo sus citas. */
+  /** Para dueño: filtrar por sucursal. Para worker en modo 'branch': filtra por sucursal. */
   branchId?: number | string | null;
+  /** Para worker: 'mine' (predeterminado) o 'branch' para ver panorama del branch. */
+  workerScope?: 'mine' | 'branch';
   /** Incluir citas canceladas / no presentado. */
   showCancelled?: boolean;
   /** Callback al cambiar el rango de fechas visibles (para cargar datos). */
@@ -186,6 +188,7 @@ export interface AppointmentCalendarProps {
 export default function AppointmentCalendar({
   user,
   branchId,
+  workerScope = 'mine',
   showCancelled = false,
   onDatesSet,
   onEventClick,
@@ -201,15 +204,21 @@ export default function AppointmentCalendar({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isOwner = hasAnyRole(user, ['business_owner']);
+  const isOwner = hasAnyRole(user, ['business_owner', 'manager']);
   const professionalId = user?.professional_id != null ? Number(user.professional_id) : null;
+  const workerBranchId =
+    branchId != null && String(branchId) !== '' ? Number(branchId) : null;
 
   const fetchParams = useCallback(() => {
     if (isOwner) {
       return branchId != null && branchId !== '' ? { branch_id: Number(branchId) } : {};
     }
+    if (workerScope === 'branch' && workerBranchId != null) {
+      return { branch_id: workerBranchId };
+    }
+
     return professionalId != null ? { professional_id: professionalId } : {};
-  }, [isOwner, branchId, professionalId]);
+  }, [isOwner, branchId, professionalId, workerScope, workerBranchId]);
 
   const loadEvents = useCallback(
     async (start: Date, end: Date) => {

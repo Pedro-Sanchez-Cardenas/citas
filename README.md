@@ -1,7 +1,7 @@
 
 # MODULOS
 - [x] Horarios y bloqueos (`working-hours`, `blocks`)
-- [ ] Profesionales (`professionals`)
+- [x] Profesionales (`professionals`)
 - [ ] Clientes (`clients`)
 - [ ] Categorías de servicios (`service-categories`)
 - [ ] Servicios (`services`)

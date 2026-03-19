@@ -147,6 +147,41 @@ class BusinessSeeder extends Seeder
                 'is_active' => true,
             ]);
 
+            // Usuarios demo para login de worker
+            $workerPassword = 'password123';
+
+            $pro1User = User::firstOrCreate(
+                ['email' => 'alex@example.com'],
+                [
+                    'name' => $pro1->name,
+                    'password' => Hash::make($workerPassword),
+                    'business_id' => $business->id,
+                    'professional_id' => $pro1->id,
+                ]
+            );
+            $pro1User->business_id = $business->id;
+            $pro1User->professional_id = $pro1->id;
+            $pro1User->save();
+            if (! $pro1User->hasAnyRole(['worker'])) {
+                $pro1User->assignRole('worker');
+            }
+
+            $pro2User = User::firstOrCreate(
+                ['email' => 'sarah@example.com'],
+                [
+                    'name' => $pro2->name,
+                    'password' => Hash::make($workerPassword),
+                    'business_id' => $business->id,
+                    'professional_id' => $pro2->id,
+                ]
+            );
+            $pro2User->business_id = $business->id;
+            $pro2User->professional_id = $pro2->id;
+            $pro2User->save();
+            if (! $pro2User->hasAnyRole(['worker'])) {
+                $pro2User->assignRole('worker');
+            }
+
             // Relacionar profesionales con servicios
             $cut->professionals()->sync([$pro1->id, $pro2->id]);
             $color->professionals()->sync([$pro2->id]);

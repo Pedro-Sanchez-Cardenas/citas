@@ -25,6 +25,33 @@ class ClientController extends Controller
     public function index(Request $request): JsonResponse
     {
         $businessId = (int) $request->user()->business_id;
+        $user = $request->user();
+
+        if ($user?->hasRole('worker')) {
+            $workerProfessionalId = (int) ($user->professional_id ?? 0);
+            if ($workerProfessionalId <= 0) {
+                abort(403, 'Usuario worker sin profesional asignado.');
+            }
+
+            $workerBranchId = (int) (Professional::query()
+                ->whereKey($workerProfessionalId)
+                ->value('branch_id') ?? 0);
+
+            if ($workerBranchId <= 0) {
+                abort(403, 'Usuario worker sin sucursal asignada.');
+            }
+
+            $clients = Client::query()
+                ->where('business_id', $businessId)
+                ->where(function ($q) use ($workerBranchId) {
+                    $q->where('branch_id', $workerBranchId)->orWhereNull('branch_id');
+                })
+                ->orderBy('name')
+                ->paginate(15);
+
+            return ClientResource::collection($clients)->response();
+        }
+
         $clients = $this->clientService->listForBusiness($businessId);
 
         return ClientResource::collection($clients)->response();
@@ -36,6 +63,8 @@ class ClientController extends Controller
         $data = $request->validated();
         $photo = $data['photo'] ?? $request->file('photo');
         unset($data['photo']);
+
+        $data['created_by_user_id'] = (int) $request->user()->id;
 
         $client = $this->clientService->createForBusiness($businessId, $data);
 
@@ -57,6 +86,27 @@ class ClientController extends Controller
 
         $this->assertModelBelongsToRequestBusiness($client, $request);
 
+        $user = $request->user();
+        if ($user?->hasRole('worker')) {
+            $workerProfessionalId = (int) ($user->professional_id ?? 0);
+            if ($workerProfessionalId <= 0) {
+                abort(403, 'Usuario worker sin profesional asignado.');
+            }
+
+            $workerBranchId = (int) (Professional::query()
+                ->whereKey($workerProfessionalId)
+                ->value('branch_id') ?? 0);
+
+            if ($workerBranchId <= 0) {
+                abort(404);
+            }
+
+            // Para el worker: puede ver/administrar clientes dentro de su branch (o sin branch asignada).
+            if (! is_null($client->branch_id) && (int) $client->branch_id !== $workerBranchId) {
+                abort(404);
+            }
+        }
+
         return (new ClientResource($client))->response();
     }
 
@@ -69,6 +119,26 @@ class ClientController extends Controller
         $data = $request->validated();
         $photo = $data['photo'] ?? null;
         unset($data['photo']);
+
+        $user = $request->user();
+        if ($user?->hasRole('worker')) {
+            $workerProfessionalId = (int) ($user->professional_id ?? 0);
+            if ($workerProfessionalId <= 0) {
+                abort(403, 'Usuario worker sin profesional asignado.');
+            }
+
+            $workerBranchId = (int) (Professional::query()
+                ->whereKey($workerProfessionalId)
+                ->value('branch_id') ?? 0);
+
+            if ($workerBranchId <= 0) {
+                abort(404);
+            }
+
+            if (! is_null($client->branch_id) && (int) $client->branch_id !== $workerBranchId) {
+                abort(404);
+            }
+        }
 
         if ($photo) {
             $dir = sprintf('clients/%s/%s', $businessId, $client->id);
@@ -90,6 +160,26 @@ class ClientController extends Controller
 
         $this->assertModelBelongsToRequestBusiness($client, $request);
 
+        $user = $request->user();
+        if ($user?->hasRole('worker')) {
+            $workerProfessionalId = (int) ($user->professional_id ?? 0);
+            if ($workerProfessionalId <= 0) {
+                abort(403, 'Usuario worker sin profesional asignado.');
+            }
+
+            $workerBranchId = (int) (Professional::query()
+                ->whereKey($workerProfessionalId)
+                ->value('branch_id') ?? 0);
+
+            if ($workerBranchId <= 0) {
+                abort(404);
+            }
+
+            if (! is_null($client->branch_id) && (int) $client->branch_id !== $workerBranchId) {
+                abort(404);
+            }
+        }
+
         $this->clientService->delete($client);
 
         return response()->json(['deleted' => true]);
@@ -100,6 +190,26 @@ class ClientController extends Controller
         $businessId = (int) $request->user()->business_id;
 
         $this->assertModelBelongsToRequestBusiness($client, $request);
+
+        $user = $request->user();
+        if ($user?->hasRole('worker')) {
+            $workerProfessionalId = (int) ($user->professional_id ?? 0);
+            if ($workerProfessionalId <= 0) {
+                abort(403, 'Usuario worker sin profesional asignado.');
+            }
+
+            $workerBranchId = (int) (Professional::query()
+                ->whereKey($workerProfessionalId)
+                ->value('branch_id') ?? 0);
+
+            if ($workerBranchId <= 0) {
+                abort(404);
+            }
+
+            if (! is_null($client->branch_id) && (int) $client->branch_id !== $workerBranchId) {
+                abort(404);
+            }
+        }
 
         $appointments = $client->appointments()
             ->with(['branch', 'professional', 'service', 'combinedService', 'payments'])

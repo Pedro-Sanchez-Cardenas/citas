@@ -44,6 +44,9 @@ export function ProfessionalFormModal({
     const [email, setEmail] = useState(data?.email ?? '');
     const [phone, setPhone] = useState(data?.phone ?? '');
     const [color, setColor] = useState(data?.color ?? '#22c55e');
+    const [createWorkerUser, setCreateWorkerUser] = useState(!initialData?.id);
+    const [updateWorkerPassword, setUpdateWorkerPassword] = useState(false);
+    const [workerPassword, setWorkerPassword] = useState('');
     const [commissionRate, setCommissionRate] = useState(
         data?.commission_rate != null ? String(data.commission_rate) : ''
     );
@@ -63,6 +66,9 @@ export function ProfessionalFormModal({
             setEmail(data?.email ?? '');
             setPhone(data?.phone ?? '');
             setColor(data?.color ?? '#22c55e');
+            setCreateWorkerUser(!initialData?.id);
+            setUpdateWorkerPassword(false);
+            setWorkerPassword('');
             setCommissionRate(
                 data?.commission_rate != null ? String(data.commission_rate) : ''
             );
@@ -79,6 +85,27 @@ export function ProfessionalFormModal({
     }, [open, initialData, branches]);
 
     const isEdit = !!initialData?.id;
+
+    const generatePassword = () => {
+        const charset =
+            'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*()-_=+[]{};:,.?';
+        const length = 14;
+
+        try {
+            const values = new Uint32Array(length);
+            crypto.getRandomValues(values);
+            const out = Array.from(values)
+                .map((v) => charset[v % charset.length])
+                .join('');
+            setWorkerPassword(out);
+        } catch {
+            const out = Array.from({ length })
+                .map(() => charset[Math.floor(Math.random() * charset.length)])
+                .join('');
+            setWorkerPassword(out);
+        }
+    };
+
     const showBranchSelect = branches.length > 1;
     const effectiveBranchId =
         showBranchSelect ? Number(branchId) : (branches[0]?.id ?? Number(branchId));
@@ -114,6 +141,12 @@ export function ProfessionalFormModal({
                     ? Math.round(Number(baseSalary) * 100)
                     : null,
             is_active: !!isActive,
+            create_worker_user: !isEdit ? createWorkerUser : undefined,
+            update_worker_password: isEdit ? updateWorkerPassword : undefined,
+            worker_password:
+                (!isEdit && createWorkerUser) || (isEdit && updateWorkerPassword)
+                    ? workerPassword
+                    : undefined,
         };
         void onSubmit(payload, photoFile);
     };
@@ -214,6 +247,90 @@ export function ProfessionalFormModal({
                     placeholder="equipo@salon.com"
                     error={fieldErrors.email}
                 />
+
+                {!isEdit && (
+                    <div className="md:col-span-2 flex flex-col gap-3">
+                        <Checkbox
+                            checked={createWorkerUser}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setCreateWorkerUser(e.target.checked)
+                            }
+                            label="Crear cuenta worker para este profesional"
+                        />
+
+                        {createWorkerUser && (
+                            <div className="flex flex-col gap-3">
+                                <Input
+                                    label="Contraseña del worker"
+                                    id="professional-worker-password"
+                                    type="text"
+                                    value={workerPassword}
+                                    required
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setWorkerPassword(e.target.value)
+                                    }
+                                    error={fieldErrors.worker_password}
+                                    placeholder="Escribe una contraseña o genérala"
+                                    hint="Puedes escribir tu propia contraseña o generar una automáticamente."
+                                />
+
+                                <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="subtle"
+                                        size="sm"
+                                        onClick={generatePassword}
+                                    >
+                                        Generar contraseña
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {isEdit && (
+                    <div className="md:col-span-2 flex flex-col gap-3">
+                        <Checkbox
+                            checked={updateWorkerPassword}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                const checked = e.target.checked;
+                                setUpdateWorkerPassword(checked);
+                                if (!checked) setWorkerPassword('');
+                            }}
+                            label="Actualizar/reemplazar contraseña del worker"
+                        />
+
+                        {updateWorkerPassword && (
+                            <div className="flex flex-col gap-3">
+                                <Input
+                                    label="Nueva contraseña del worker"
+                                    id="professional-worker-password-edit"
+                                    type="text"
+                                    value={workerPassword}
+                                    required
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                        setWorkerPassword(e.target.value)
+                                    }
+                                    error={fieldErrors.worker_password}
+                                    placeholder="Escribe una contraseña o genérala"
+                                    hint="Solo se actualizará si activas esta opción."
+                                />
+
+                                <div className="flex items-center justify-end gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="subtle"
+                                        size="sm"
+                                        onClick={generatePassword}
+                                    >
+                                        Generar contraseña
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <Input
                     label="Teléfono"

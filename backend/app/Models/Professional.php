@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Professional extends Model
 {
@@ -62,6 +63,11 @@ class Professional extends Model
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    public function user(): HasOne
+    {
+        return $this->hasOne(User::class, 'professional_id');
     }
 
     public function getPhotoUrlAttribute(): ?string
