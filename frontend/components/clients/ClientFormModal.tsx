@@ -28,9 +28,6 @@ export function ClientFormModal({
   const [phone, setPhone] = useState(initialData?.phone ?? '');
   const [birthday, setBirthday] = useState(initialData?.birthday ?? '');
   const [gender, setGender] = useState(initialData?.gender ?? '');
-  const [preferredStylist, setPreferredStylist] = useState(
-    initialData?.preferred_stylist ?? ''
-  );
   const [notes, setNotes] = useState(initialData?.notes ?? '');
   const [allergies, setAllergies] = useState(initialData?.allergies ?? '');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -43,7 +40,6 @@ export function ClientFormModal({
       setPhone(initialData?.phone ?? '');
       setBirthday(initialData?.birthday ?? '');
       setGender(initialData?.gender ?? '');
-      setPreferredStylist(initialData?.preferred_stylist ?? '');
       setNotes(initialData?.notes ?? '');
       setAllergies(initialData?.allergies ?? '');
       setPhotoFile(null);
@@ -78,7 +74,6 @@ export function ClientFormModal({
       phone: phone || null,
       birthday: birthday || null,
       gender: gender || null,
-      preferred_stylist: preferredStylist || null,
       notes: notes || null,
       allergies: allergies || null,
     };
@@ -194,15 +189,6 @@ export function ClientFormModal({
           <option value="non-binary">No binario</option>
           <option value="other">Otro / Prefiere no decir</option>
         </Select>
-
-        <Input
-          label="Estilista / profesional preferido"
-          id="client-preferred-stylist"
-          value={preferredStylist}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setPreferredStylist(e.target.value)}
-          placeholder="Nombre de la persona de confianza del cliente"
-          error={fieldErrors.preferred_stylist}
-        />
 
         <Textarea
           label="Notas internas"

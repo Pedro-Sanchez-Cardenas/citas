@@ -21,7 +21,6 @@ class ClientResource extends JsonResource
             'phone' => $this->phone,
             'birthday' => $this->birthday?->format('Y-m-d'),
             'gender' => $this->gender,
-            'preferred_stylist' => $this->preferred_stylist,
             'notes' => $this->notes,
             'allergies' => $this->allergies,
             'photo_path' => $this->photo_path,

@@ -52,7 +52,6 @@ export interface Client {
   phone?: string | null;
   birthday?: string | null;
   gender?: string | null;
-  preferred_stylist?: string | null;
   notes?: string | null;
   allergies?: string | null;
   photo_path?: string | null;

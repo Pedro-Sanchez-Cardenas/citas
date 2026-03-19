@@ -260,7 +260,6 @@ export default function ClientsPage() {
               { key: 'name', header: 'Nombre' },
               { key: 'contact', header: 'Contacto' },
               { key: 'birthday', header: 'Cumpleaños' },
-              { key: 'preferred', header: 'Estilista preferido' },
               { key: 'actions', header: 'Acciones', align: 'right' },
             ]}
             items={filteredClients}
@@ -303,14 +302,6 @@ export default function ClientsPage() {
                 return (
                   <span className="text-xs text-slate-200">
                     {formatDate(client.birthday)}
-                  </span>
-                );
-              }
-
-              if (key === 'preferred') {
-                return (
-                  <span className="text-xs text-slate-400">
-                    {client.preferred_stylist || '—'}
                   </span>
                 );
               }

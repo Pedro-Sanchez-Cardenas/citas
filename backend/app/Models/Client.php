@@ -20,7 +20,6 @@ class Client extends Model
         'phone',
         'birthday',
         'gender',
-        'preferred_stylist',
         'notes',
         'allergies',
         'photo_path',

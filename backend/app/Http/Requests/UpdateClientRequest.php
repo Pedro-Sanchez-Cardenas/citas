@@ -20,7 +20,6 @@ class UpdateClientRequest extends FormRequest
             'phone' => ['sometimes', 'nullable', 'string', 'max:50'],
             'birthday' => ['sometimes', 'nullable', 'date'],
             'gender' => ['sometimes', 'nullable', 'string', 'max:20'],
-            'preferred_stylist' => ['sometimes', 'nullable', 'string', 'max:255'],
             'notes' => ['sometimes', 'nullable', 'string'],
             'allergies' => ['sometimes', 'nullable', 'string'],
             'preferences' => ['sometimes', 'nullable', 'array'],

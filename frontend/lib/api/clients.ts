@@ -25,7 +25,6 @@ export interface CreateClientPayload {
   phone?: string | null;
   birthday?: string | null;
   gender?: string | null;
-  preferred_stylist?: string | null;
   notes?: string | null;
   allergies?: string | null;
   [key: string]: unknown;
@@ -34,7 +33,7 @@ export interface CreateClientPayload {
 function buildClientFormData(payload: CreateClientPayload | Partial<CreateClientPayload>, photo?: File | null): FormData | null {
   if (!photo) return null;
   const form = new FormData();
-  const keys = ['name', 'email', 'phone', 'birthday', 'gender', 'preferred_stylist', 'notes', 'allergies'] as const;
+  const keys = ['name', 'email', 'phone', 'birthday', 'gender', 'notes', 'allergies'] as const;
   keys.forEach((key) => {
     const v = payload[key];
     if (v !== undefined && v !== null) form.append(key, v === '' ? '' : String(v));

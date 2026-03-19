@@ -20,7 +20,6 @@ class StoreClientRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:50'],
             'birthday' => ['nullable', 'date'],
             'gender' => ['nullable', 'string', 'max:20'],
-            'preferred_stylist' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'allergies' => ['nullable', 'string'],
             'preferences' => ['nullable', 'array'],
