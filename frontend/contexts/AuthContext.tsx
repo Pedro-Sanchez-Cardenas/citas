@@ -11,6 +11,30 @@ import { setUnauthorizedHandler } from '@/lib/api';
 import { fetchCurrentUser, logoutRequest } from '@/lib/api/auth';
 import type { User } from '@/types';
 
+const DASHBOARD_PATH_PREFIXES = [
+  '/dashboard',
+  '/agenda',
+  '/clients',
+  '/professionals',
+  '/services',
+  '/combined-services',
+  '/service-relations',
+  '/service-categories',
+  '/products',
+  '/inventory',
+  '/working-hours',
+  '/payments',
+  '/reports',
+  '/automations',
+  '/profile',
+  '/billing',
+  '/branches',
+];
+
+function isDashboardPath(pathname: string): boolean {
+  return DASHBOARD_PATH_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
@@ -51,7 +75,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setUnauthorizedHandler(() => {
       setUserState(null);
       setStoredUser(null);
-      router.replace('/');
+      if (isDashboardPath(router.pathname)) {
+        router.replace('/');
+      }
     });
   }, [router]);
 

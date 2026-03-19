@@ -65,7 +65,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const requestUrl = String(error?.config?.url ?? '');
+    const isPublicCustomerRoute = requestUrl.includes('/api/public/');
+    if (error.response?.status === 401 && !isPublicCustomerRoute) {
       onUnauthorized();
     }
     return Promise.reject(error);
