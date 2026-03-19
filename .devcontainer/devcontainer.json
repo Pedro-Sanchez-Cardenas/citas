@@ -7,7 +7,7 @@
 
   "workspaceFolder": "/workspace",
 
-  "runServices": ["mysql", "backend", "frontend", "nginx", "workspace"],
+  "runServices": ["mysql", "backend", "frontend" , "customer-portal", "nginx", "workspace"],
 
   "forwardPorts": [8080, 3306],
 

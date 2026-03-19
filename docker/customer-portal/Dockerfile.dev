@@ -1,0 +1,12 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat bash
+
+COPY customer-portal/package.json customer-portal/package-lock.json* ./
+
+RUN npm install
+
+CMD ["npm", "run", "dev"]
+

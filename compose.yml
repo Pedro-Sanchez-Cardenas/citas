@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     depends_on:
       - frontend
+      - customer-portal
       - backend
     ports:
       - "8080:80" # App (frontend + API vía /api y /sanctum y /storage)
@@ -76,6 +77,27 @@ services:
     volumes:
       - ./backend:/var/www
       - backend_vendor:/var/www/vendor
+    networks:
+      - network
+
+  customer-portal:
+    build:
+      context: .
+      dockerfile: docker/customer-portal/Dockerfile.dev
+    container_name: customer-portal
+    restart: unless-stopped
+    depends_on:
+      - backend
+    expose:
+      - 3001
+    volumes:
+      - ./customer-portal:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     networks:
       - network
 
