@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PublicBookAppointmentRequest;
 use App\Models\Business;
 use App\Models\Branch;
-use App\Models\Client;
 use App\Models\Professional;
-use App\Services\AppointmentService;
 use App\Services\CalendarService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
@@ -16,8 +13,7 @@ use Illuminate\Http\Request;
 class PublicBookingController extends Controller
 {
     public function __construct(
-        protected CalendarService $calendarService,
-        protected AppointmentService $appointmentService
+        protected CalendarService $calendarService
     ) {
     }
 
@@ -94,46 +90,5 @@ class PublicBookingController extends Controller
         ]);
     }
 
-    public function book(string $businessSlug, PublicBookAppointmentRequest $request): JsonResponse
-    {
-        $business = $this->findBusinessOrFail($businessSlug);
-        $validated = $request->validated();
-
-        $client = null;
-        if (! empty($validated['client_email'])) {
-            $client = Client::query()
-                ->where('business_id', $business->id)
-                ->where('email', $validated['client_email'])
-                ->first();
-        }
-
-        if (! $client) {
-            $client = Client::create([
-                'business_id' => $business->id,
-                'branch_id' => $validated['branch_id'] ?? null,
-                'name' => $validated['client_name'],
-                'email' => $validated['client_email'] ?? null,
-                'phone' => $validated['client_phone'] ?? null,
-            ]);
-        }
-
-        $data = [
-            'business_id' => $business->id,
-            'branch_id' => $validated['branch_id'],
-            'professional_id' => $validated['professional_id'],
-            'service_id' => $validated['service_id'] ?? null,
-            'combined_service_id' => $validated['combined_service_id'] ?? null,
-            'client_id' => $client->id,
-            'start_at' => $validated['start_at'],
-            'end_at' => $validated['end_at'],
-            'status' => $validated['status'] ?? 'scheduled',
-            'source' => $validated['source'] ?? 'online',
-            'notes' => $validated['notes'] ?? null,
-        ];
-
-        $appointment = $this->appointmentService->create($data);
-
-        return response()->json($appointment, 201);
-    }
 }
 

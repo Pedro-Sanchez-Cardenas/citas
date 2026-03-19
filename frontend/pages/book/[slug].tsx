@@ -4,8 +4,16 @@ import type { FormEvent, ChangeEvent } from 'react';
 import {
   fetchPublicServices,
   fetchPublicProfessionals,
-  createPublicBooking,
 } from '@/lib/api/publicBooking';
+import {
+  createCustomerBooking,
+  fetchCustomerAppointments,
+  fetchCustomerMe,
+  loginCustomer,
+  logoutCustomer,
+  registerCustomer,
+  type CustomerAccount,
+} from '@/lib/api/customerPortal';
 import { Button, Input, Select, DatePicker } from '@/components/ui';
 import type { AxiosError } from 'axios';
 
@@ -22,6 +30,15 @@ interface PublicProfessional {
   [key: string]: unknown;
 }
 
+interface CustomerAppointment {
+  id: number;
+  start_at?: string;
+  status?: string;
+  service?: { name?: string };
+  combined_service?: { name?: string };
+  professional?: { name?: string };
+}
+
 export default function PublicBookPage() {
   const router = useRouter();
   const { slug } = router.query as { slug?: string };
@@ -32,15 +49,18 @@ export default function PublicBookPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [customer, setCustomer] = useState<{ account: CustomerAccount; name: string } | null>(null);
+  const [customerHistory, setCustomerHistory] = useState<CustomerAppointment[]>([]);
+  const [customerEmail, setCustomerEmail] = useState('');
+  const [customerPassword, setCustomerPassword] = useState('');
+  const [registerName, setRegisterName] = useState('');
+  const [registerPhone, setRegisterPhone] = useState('');
 
   const [branchId, setBranchId] = useState('');
   const [serviceId, setServiceId] = useState('');
   const [professionalId, setProfessionalId] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
-  const [clientName, setClientName] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
-  const [clientEmail, setClientEmail] = useState('');
 
   const branches = useMemo(
     () => (Array.isArray(branchesWithServices) ? branchesWithServices : []),
@@ -91,6 +111,29 @@ export default function PublicBookPage() {
     return () => { cancelled = true; };
   }, [slug]);
 
+  useEffect(() => {
+    if (!slug) return;
+    fetchCustomerMe(slug).then((session) => {
+      if (session?.account) {
+        setCustomer({
+          account: session.account,
+          name: String(session.client?.name ?? 'Cliente'),
+        });
+      }
+    });
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug || !customer) return;
+    fetchCustomerAppointments(slug)
+      .then((rows) => {
+        setCustomerHistory((Array.isArray(rows) ? rows : []) as CustomerAppointment[]);
+      })
+      .catch(() => {
+        setCustomerHistory([]);
+      });
+  }, [slug, customer]);
+
   const professionalsForBranch = useMemo(() => {
     if (!branchId) return professionals;
     return professionals.filter((p) => String(p.branch_id) === String(branchId));
@@ -98,8 +141,12 @@ export default function PublicBookPage() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!slug || !branchId || !professionalId || !date || !time || !clientName.trim()) {
-      setError('Completa sucursal, profesional, fecha, hora y nombre.');
+    if (!customer) {
+      setError('Debes iniciar sesión o registrarte para poder agendar.');
+      return;
+    }
+    if (!slug || !branchId || !professionalId || !date || !time) {
+      setError('Completa sucursal, profesional, fecha y hora.');
       return;
     }
     const [hours, minutes] = time.split(':').map(Number);
@@ -110,26 +157,73 @@ export default function PublicBookPage() {
     setSubmitting(true);
     setError('');
     try {
-      await createPublicBooking(slug, {
+      await createCustomerBooking(slug, {
         branch_id: Number(branchId),
         professional_id: Number(professionalId),
         service_id: serviceId ? Number(serviceId) : Number(selectedService?.id ?? 0),
-        date,
-        time,
-        client_name: clientName.trim(),
-        client_phone: clientPhone.trim() || undefined,
-        client_email: clientEmail.trim() || undefined,
+        start_at: startAt.toISOString(),
+        end_at: endAt.toISOString(),
       });
       setSuccess(true);
+      const rows = await fetchCustomerAppointments(slug);
+      setCustomerHistory((Array.isArray(rows) ? rows : []) as CustomerAppointment[]);
     } catch (err) {
       const ax = err as AxiosError<{ message?: string }>;
       setError(
-        ax?.response?.data?.message ||
-          'No se pudo registrar la cita. Intenta de nuevo.'
+        ax?.response?.data?.message || 'No se pudo registrar la cita. Intenta de nuevo.'
       );
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleCustomerLogin = async () => {
+    if (!slug || !customerEmail || !customerPassword) return;
+    setError('');
+    try {
+      const session = await loginCustomer(slug, {
+        email: customerEmail.trim(),
+        password: customerPassword,
+      });
+      if (session.account) {
+        setCustomer({
+          account: session.account,
+          name: String(session.client?.name ?? 'Cliente'),
+        });
+      }
+    } catch (err) {
+      const ax = err as AxiosError<{ message?: string }>;
+      setError(ax?.response?.data?.message || 'No se pudo iniciar sesión.');
+    }
+  };
+
+  const handleCustomerRegister = async () => {
+    if (!slug || !registerName || !customerEmail || !customerPassword) return;
+    setError('');
+    try {
+      const session = await registerCustomer(slug, {
+        name: registerName.trim(),
+        email: customerEmail.trim(),
+        password: customerPassword,
+        phone: registerPhone.trim() || undefined,
+      });
+      if (session.account) {
+        setCustomer({
+          account: session.account,
+          name: String(session.client?.name ?? registerName.trim()),
+        });
+      }
+    } catch (err) {
+      const ax = err as AxiosError<{ message?: string }>;
+      setError(ax?.response?.data?.message || 'No se pudo crear tu cuenta.');
+    }
+  };
+
+  const handleCustomerLogout = async () => {
+    if (!slug) return;
+    await logoutCustomer(slug);
+    setCustomer(null);
+    setCustomerHistory([]);
   };
 
   if (!slug) return null;
@@ -143,6 +237,67 @@ export default function PublicBookPage() {
         <p className="mt-1 text-sm text-slate-400">
           Completa el formulario para agendar tu cita.
         </p>
+
+        <div className="mt-5 rounded-xl border border-slate-800/80 bg-slate-900/50 p-3">
+          {customer ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs text-slate-300">
+                Sesión iniciada como <span className="font-semibold text-slate-100">{customer.name}</span>
+              </p>
+              <Button type="button" variant="subtle" size="sm" onClick={handleCustomerLogout}>
+                Cerrar sesión
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-300">
+                ¿Ya eres cliente? Inicia sesión o regístrate para ver tu historial y agendar más rápido.
+              </p>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Input
+                  label="Correo"
+                  id="customer-email"
+                  type="email"
+                  value={customerEmail}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setCustomerEmail(e.target.value)}
+                  placeholder="correo@ejemplo.com"
+                />
+                <Input
+                  label="Contraseña"
+                  id="customer-password"
+                  type="password"
+                  value={customerPassword}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => setCustomerPassword(e.target.value)}
+                  placeholder="********"
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <Button type="button" size="sm" onClick={handleCustomerLogin}>
+                  Iniciar sesión
+                </Button>
+                <div className="flex gap-2">
+                  <Input
+                    label="Nombre (registro)"
+                    id="customer-register-name"
+                    value={registerName}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterName(e.target.value)}
+                    placeholder="Tu nombre"
+                  />
+                  <Input
+                    label="Teléfono"
+                    id="customer-register-phone"
+                    value={registerPhone}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setRegisterPhone(e.target.value)}
+                    placeholder="+52..."
+                  />
+                </div>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={handleCustomerRegister}>
+                Registrarme
+              </Button>
+            </div>
+          )}
+        </div>
 
         {success && (
           <div className="mt-6 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
@@ -228,54 +383,53 @@ export default function PublicBookPage() {
               />
             </div>
 
-            <Input
-              label="Nombre completo"
-              id="clientName"
-              value={clientName}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setClientName(e.target.value)}
-              placeholder="Tu nombre"
-              required
-            />
-            <Input
-              label="Teléfono"
-              id="clientPhone"
-              type="tel"
-              value={clientPhone}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setClientPhone(e.target.value)}
-              placeholder="+52 ..."
-            />
-            <Input
-              label="Correo"
-              id="clientEmail"
-              type="email"
-              value={clientEmail}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setClientEmail(e.target.value)}
-              placeholder="correo@ejemplo.com"
-            />
-
             <div className="pt-2">
-              <Button type="submit" size="md" disabled={submitting} className="w-full">
+              <Button type="submit" size="md" disabled={submitting || !customer} className="w-full">
                 {submitting ? 'Enviando...' : 'Reservar cita'}
               </Button>
+              {!customer && (
+                <p className="mt-2 text-xs text-slate-400">
+                  Primero crea tu cuenta o inicia sesión para agendar.
+                </p>
+              )}
             </div>
           </form>
         ) : (
-          <Button
-            type="button"
-            variant="subtle"
-            size="sm"
-            className="mt-4"
-            onClick={() => {
-              setSuccess(false);
-              setClientName('');
-              setClientPhone('');
-              setClientEmail('');
-              setDate('');
-              setTime('09:00');
-            }}
-          >
-            Hacer otra reserva
-          </Button>
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant="subtle"
+              size="sm"
+              className="mt-4"
+              onClick={() => {
+                setSuccess(false);
+                setDate('');
+                setTime('09:00');
+              }}
+            >
+              Hacer otra reserva
+            </Button>
+            {customer && (
+              <div className="rounded-xl border border-slate-800/70 bg-slate-900/60 p-3">
+                <p className="mb-2 text-xs font-medium text-slate-300">Tu historial reciente</p>
+                {customerHistory.length === 0 ? (
+                  <p className="text-xs text-slate-500">Aún no tienes citas registradas.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {customerHistory.slice(0, 6).map((a) => (
+                      <div key={a.id} className="rounded-lg border border-slate-800 bg-slate-950/70 px-3 py-2 text-xs">
+                        <p className="text-slate-200">{new Date(String(a.start_at ?? '')).toLocaleString()}</p>
+                        <p className="text-slate-400">
+                          {a.service?.name ?? a.combined_service?.name ?? 'Servicio'} · {a.professional?.name ?? 'Profesional'}
+                        </p>
+                        <p className="text-slate-500">{a.status ?? 'scheduled'}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>

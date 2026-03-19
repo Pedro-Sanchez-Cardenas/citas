@@ -16,6 +16,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\AutomationController;
 use App\Http\Controllers\PublicBookingController;
+use App\Http\Controllers\PublicCustomerAuthController;
 use App\Http\Controllers\WorkingHourController;
 use App\Http\Controllers\CombinedServiceController;
 use App\Http\Controllers\ServiceProfessionalController;
@@ -38,7 +39,16 @@ Route::prefix('public/{business}')->group(function () {
     Route::get('/services', [PublicBookingController::class, 'services']);
     Route::get('/professionals', [PublicBookingController::class, 'professionals']);
     Route::get('/availability', [PublicBookingController::class, 'availability']);
-    Route::post('/book', [PublicBookingController::class, 'book']);
+    Route::post('/customer/register', [PublicCustomerAuthController::class, 'register'])
+        ->middleware('throttle:10,1');
+    Route::post('/customer/login', [PublicCustomerAuthController::class, 'login'])
+        ->middleware('throttle:10,1');
+    Route::middleware('auth:client')->group(function () {
+        Route::post('/customer/logout', [PublicCustomerAuthController::class, 'logout']);
+        Route::get('/customer/me', [PublicCustomerAuthController::class, 'me']);
+        Route::get('/customer/appointments', [PublicCustomerAuthController::class, 'appointments']);
+        Route::post('/customer/book', [PublicCustomerAuthController::class, 'book']);
+    });
 });
 
 Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function () {
