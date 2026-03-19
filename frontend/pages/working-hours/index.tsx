@@ -36,6 +36,7 @@ import { WorkingHourFormModal, WEEKDAYS, WEEKDAY_SHORT } from '@/components/work
 import { BlockFormModal } from '@/components/blocks';
 import type { Branch, Professional } from '@/types';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSuccess, swalSilentErrorText } from '@/lib/swal';
 
 type HourGroup = WorkingHourGroup;
 
@@ -211,15 +212,14 @@ export default function WorkingHoursPage() {
 			// Tras crear/editar, recargamos los horarios desde el servidor
 			const hoursData = await fetchWorkingHours();
 			setHours(Array.isArray(hoursData) ? hoursData : []);
+			void swalSuccess('Guardado correcto', 'El horario se guardó correctamente.');
 			setHourModalOpen(false);
 			setSelectedHour(null);
 		} catch (err) {
 			setFieldErrors(extractFieldErrors(err));
-			const ax = err as AxiosError<{ message?: string }>;
-			setError(
-				ax?.response?.data?.message ||
-				'No se pudo guardar el horario. Revisa los datos e inténtalo de nuevo.'
-			);
+			const msg = swalSilentErrorText(err);
+			setError(msg);
+			void swalError('Error al guardar', msg);
 		} finally {
 			setHourModalLoading(false);
 		}
@@ -227,7 +227,14 @@ export default function WorkingHoursPage() {
 
 	const handleDeleteHourIds = async (ids: number[]) => {
 		if (!ids.length) return;
-		if (!window.confirm('¿Eliminar este bloque horario? Esta acción no se puede deshacer.')) return;
+		const ok = await swalConfirm({
+			title: 'Eliminar bloque horario',
+			text: 'Esta acción no se puede deshacer.',
+			icon: 'warning',
+			confirmButtonText: 'Eliminar',
+			cancelButtonText: 'Cancelar',
+		});
+		if (!ok) return;
 
 		// Usamos el primer id como "señal" de loading/deshabilitado en UI.
 		setDeletingHourId(ids[0]);
@@ -240,11 +247,11 @@ export default function WorkingHoursPage() {
 			// Recargamos la lista agrupada después de eliminar
 			const hoursData = await fetchWorkingHours();
 			setHours(Array.isArray(hoursData) ? hoursData : []);
+			void swalSuccess('Eliminado', 'El bloque horario se eliminó correctamente.');
 		} catch (err) {
-			const ax = err as AxiosError<{ message?: string }>;
-			setError(
-				ax?.response?.data?.message || 'No se pudo eliminar el horario. Inténtalo nuevamente.'
-			);
+			const msg = swalSilentErrorText(err);
+			setError(msg);
+			void swalError('Error al eliminar', msg);
 		} finally {
 			setDeletingHourId(null);
 		}
@@ -254,11 +261,15 @@ export default function WorkingHoursPage() {
 		const ids = Array.from(new Set(group.hours.flatMap((h) => h.ids)));
 		if (!ids.length) return;
 
-		if (
-			!window.confirm(
-				'¿Eliminar este grupo de horarios? Esta acción no se puede deshacer.'
-			)
-		) {
+		const ok = await swalConfirm({
+			title: 'Eliminar grupo de horarios',
+			text: 'Esta acción no se puede deshacer.',
+			icon: 'warning',
+			confirmButtonText: 'Eliminar',
+			cancelButtonText: 'Cancelar',
+		});
+
+		if (!ok) {
 			return;
 		}
 
@@ -273,12 +284,11 @@ export default function WorkingHoursPage() {
 			setHours(Array.isArray(hoursData) ? hoursData : []);
 			setHourModalOpen(false);
 			setSelectedHour(null);
+			void swalSuccess('Eliminado', 'El grupo de horarios se eliminó correctamente.');
 		} catch (err) {
-			const ax = err as AxiosError<{ message?: string }>;
-			setError(
-				ax?.response?.data?.message ||
-					'No se pudo eliminar el grupo de horarios. Inténtalo nuevamente.'
-			);
+			const msg = swalSilentErrorText(err);
+			setError(msg);
+			void swalError('Error al eliminar', msg);
 		} finally {
 			setDeletingHourId(null);
 		}
@@ -292,30 +302,36 @@ export default function WorkingHoursPage() {
 			const created = await createBlock(formData);
 			if (created) setBlocks((prev) => [created, ...prev]);
 			setBlockModalOpen(false);
+			void swalSuccess('Guardado correcto', 'El bloqueo se guardó correctamente.');
 		} catch (err) {
 			setFieldErrors(extractFieldErrors(err));
-			const ax = err as AxiosError<{ message?: string }>;
-			setError(
-				ax?.response?.data?.message ||
-				'No se pudo guardar el bloqueo. Revisa los datos e inténtalo de nuevo.'
-			);
+			const msg = swalSilentErrorText(err);
+			setError(msg);
+			void swalError('Error al guardar', msg);
 		} finally {
 			setBlockModalLoading(false);
 		}
 	};
 
 	const handleDeleteBlock = async (id: number) => {
-		if (!window.confirm('¿Eliminar este bloqueo? Esta acción no se puede deshacer.')) return;
+		const ok = await swalConfirm({
+			title: 'Eliminar bloqueo',
+			text: 'Esta acción no se puede deshacer.',
+			icon: 'warning',
+			confirmButtonText: 'Eliminar',
+			cancelButtonText: 'Cancelar',
+		});
+		if (!ok) return;
 		setDeletingBlockId(id);
 		setError('');
 		try {
 			await deleteBlock(id);
 			setBlocks((prev) => prev.filter((b) => b.id !== id));
+			void swalSuccess('Eliminado', 'El bloqueo se eliminó correctamente.');
 		} catch (err) {
-			const ax = err as AxiosError<{ message?: string }>;
-			setError(
-				ax?.response?.data?.message || 'No se pudo eliminar el bloqueo. Inténtalo nuevamente.'
-			);
+			const msg = swalSilentErrorText(err);
+			setError(msg);
+			void swalError('Error al eliminar', msg);
 		} finally {
 			setDeletingBlockId(null);
 		}

@@ -14,6 +14,7 @@ import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '
 import { BranchFormModal } from '@/components/branches/BranchFormModal';
 import type { Branch } from '@/types';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function BranchesPage() {
   const router = useRouter();
@@ -108,33 +109,36 @@ export default function BranchesPage() {
       }
       setModalOpen(false);
       setSelectedBranch(null);
+      void swalSuccess('Guardado correcto', 'La sucursal se guardó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar la sucursal. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDeleteBranch = async (id: number) => {
-    if (!window.confirm('¿Eliminar esta sucursal? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await swalConfirm({
+      title: 'Eliminar sucursal',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteBranch(id);
       setBranches((prev) => prev.filter((b) => b.id !== id));
+      void swalSuccess('Eliminado', 'La sucursal se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo eliminar la sucursal. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

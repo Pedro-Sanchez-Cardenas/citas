@@ -18,6 +18,7 @@ import {
 } from '@/components/payments';
 import type { Branch, Client } from '@/types';
 import type { AxiosError } from 'axios';
+import { swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function PaymentsPage() {
   const router = useRouter();
@@ -115,12 +116,12 @@ export default function PaymentsPage() {
         ...(Array.isArray(prev) ? prev : []),
       ]);
       setModalOpen(false);
+      void swalSuccess('Guardado correcto', 'El pago se registró correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message || 'No se pudo registrar el pago.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }

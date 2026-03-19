@@ -19,6 +19,7 @@ import {
   type ServiceCategory,
 } from '@/components/services';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function ServicesPage() {
   const router = useRouter();
@@ -128,33 +129,36 @@ export default function ServicesPage() {
       }
       setModalOpen(false);
       setSelectedService(null);
+      void swalSuccess('Guardado correcto', 'El servicio se guardó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar el servicio. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDeleteService = async (id: number) => {
-    if (!window.confirm('¿Eliminar este servicio? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await swalConfirm({
+      title: 'Eliminar servicio',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteService(id);
       setServices((prev) => prev.filter((s) => s.id !== id));
+      void swalSuccess('Eliminado', 'El servicio se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo eliminar el servicio. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

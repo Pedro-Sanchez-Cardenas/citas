@@ -16,6 +16,7 @@ import {
   type CategoryFormPayload,
 } from '@/components/services/categories';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function ServiceCategoriesPage() {
   const router = useRouter();
@@ -121,33 +122,36 @@ export default function ServiceCategoriesPage() {
       }
       setModalOpen(false);
       setSelectedCategory(null);
+      void swalSuccess('Guardado correcto', 'La categoría se guardó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar la categoría. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDeleteCategory = async (id: number) => {
-    if (!window.confirm('¿Eliminar esta categoría? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await swalConfirm({
+      title: 'Eliminar categoría',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteServiceCategory(id);
       setCategories((prev) => prev.filter((cat) => cat.id !== id));
+      void swalSuccess('Eliminado', 'La categoría se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo eliminar la categoría. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

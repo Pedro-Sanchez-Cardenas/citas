@@ -18,6 +18,7 @@ import {
 } from '@/components/services/combined';
 import type { Service } from '@/types';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function CombinedServicesPage() {
   const router = useRouter();
@@ -121,33 +122,36 @@ export default function CombinedServicesPage() {
       }
       setModalOpen(false);
       setSelected(null);
+      void swalSuccess('Guardado correcto', 'Los datos del combinado se guardaron correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar el combinado. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('¿Eliminar este servicio combinado? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await swalConfirm({
+      title: 'Eliminar servicio combinado',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteCombinedService(id);
       setCombined((prev) => prev.filter((c) => c.id !== id));
+      void swalSuccess('Eliminado', 'El servicio combinado se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo eliminar el combinado. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

@@ -11,6 +11,7 @@ import {
   type AdjustPayload,
 } from '@/components/products/inventory';
 import type { AxiosError } from 'axios';
+import { swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -107,13 +108,12 @@ export default function InventoryPage() {
       }
       setModalOpen(false);
       setSelectedStock(null);
+      void swalSuccess('Guardado correcto', 'El inventario se actualizó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo aplicar el ajuste de inventario.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }

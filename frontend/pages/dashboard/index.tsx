@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { fetchDashboardCards } from '@/lib/api/dashboard';
 import type { DashboardCard } from '@/components/dashboard/types';
 import { PageHeader, Card, Alert } from '@/components/ui';
+import { swalError } from '@/lib/swal';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function DashboardPage() {
         setCards(Array.isArray(cardsFromApi) ? (cardsFromApi as DashboardCard[]) : []);
       } catch {
         setError('No se pudo cargar el dashboard. Vuelve a iniciar sesión.');
+        void swalError('Error', 'No se pudo cargar el dashboard. Vuelve a iniciar sesión.');
         logout();
       } finally {
         setLoading(false);

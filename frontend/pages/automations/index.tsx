@@ -17,6 +17,7 @@ import {
   type AutomationFormPayload,
 } from '@/components/automations';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function AutomationsPage() {
   const router = useRouter();
@@ -117,33 +118,36 @@ export default function AutomationsPage() {
       }
       setModalOpen(false);
       setSelectedAutomation(null);
+      void swalSuccess('Guardado correcto', 'La automatización se guardó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar la automatización. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDeleteAutomation = async (id: number) => {
-    if (!window.confirm('¿Eliminar esta automatización? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await swalConfirm({
+      title: 'Eliminar automatización',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteAutomation(id);
       setAutomations((prev) => prev.filter((a) => a.id !== id));
+      void swalSuccess('Eliminado', 'La automatización se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo eliminar la automatización. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

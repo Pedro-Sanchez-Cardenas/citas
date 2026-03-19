@@ -20,6 +20,7 @@ import {
 } from '@/components/professionals';
 import type { Professional, Branch } from '@/types';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 type ProfessionalRow = Professional & {
   email?: string;
@@ -145,33 +146,36 @@ export default function ProfessionalsPage() {
       }
       setModalOpen(false);
       setSelectedProfessional(null);
+      void swalSuccess('Guardado correcto', 'El profesional se guardó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar el profesional. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDeleteProfessional = async (id: number) => {
-    if (!window.confirm('¿Eliminar este profesional? Esta acción no se puede deshacer.')) {
-      return;
-    }
+    const ok = await swalConfirm({
+      title: 'Eliminar profesional',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteProfessional(id);
       setProfessionals((prev) => prev.filter((p) => p.id !== id));
+      void swalSuccess('Eliminado', 'El profesional se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo eliminar el profesional. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

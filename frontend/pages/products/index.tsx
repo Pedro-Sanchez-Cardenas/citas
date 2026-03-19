@@ -17,6 +17,7 @@ import {
   type ProductFormPayload,
 } from '@/components/products';
 import type { AxiosError } from 'axios';
+import { swalConfirm, swalError, swalSilentErrorText, swalSuccess } from '@/lib/swal';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -115,31 +116,36 @@ export default function ProductsPage() {
       }
       setModalOpen(false);
       setSelectedProduct(null);
+      void swalSuccess('Guardado correcto', 'El producto se guardó correctamente.');
     } catch (err) {
       setFieldErrors(extractFieldErrors(err));
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message ||
-          'No se pudo guardar el producto. Revisa los datos e inténtalo de nuevo.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al guardar', msg);
     } finally {
       setModalLoading(false);
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
-    if (!window.confirm('¿Eliminar este producto? Esta acción no se puede deshacer.'))
-      return;
+    const ok = await swalConfirm({
+      title: 'Eliminar producto',
+      text: 'Esta acción no se puede deshacer.',
+      icon: 'warning',
+      confirmButtonText: 'Eliminar',
+      cancelButtonText: 'Cancelar',
+    });
+    if (!ok) return;
     setDeletingId(id);
     setError('');
     try {
       await deleteProduct(id);
       setProducts((prev) => prev.filter((p) => p.id !== id));
+      void swalSuccess('Eliminado', 'El producto se eliminó correctamente.');
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax?.response?.data?.message || 'No se pudo eliminar el producto. Inténtalo nuevamente.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al eliminar', msg);
     } finally {
       setDeletingId(null);
     }

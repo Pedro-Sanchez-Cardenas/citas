@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button, Input, Alert } from '@/components/ui';
 import type { User } from '@/types';
 import type { AxiosError } from 'axios';
+import { swalError, swalSilentErrorText } from '@/lib/swal';
 
 export default function LoginForm() {
   const router = useRouter();
@@ -27,10 +28,9 @@ export default function LoginForm() {
         router.push('/dashboard');
       }
     } catch (err) {
-      const ax = err as AxiosError<{ message?: string }>;
-      setError(
-        ax.response?.data?.message ?? 'Ha ocurrido un error al iniciar sesión.'
-      );
+      const msg = swalSilentErrorText(err);
+      setError(msg);
+      void swalError('Error al iniciar sesión', msg);
     } finally {
       setLoading(false);
     }
