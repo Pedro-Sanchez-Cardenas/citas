@@ -3,6 +3,8 @@
 Backend para un SaaS multi‑negocio y multi‑sucursal orientado a negocios de belleza (barberías, salones, spas, uñas, pestañas, etc.).  
 Está construido sobre Laravel 12 y expone una API REST pensada para un frontend web/mobile.
 
+Mapa **portal negocio / portal cliente / core** frente a este repo: [`docs/ARQUITECTURA_SAAS.md`](../docs/ARQUITECTURA_SAAS.md).
+
 ### Arquitectura general
 
 - **Multi‑negocio (SaaS)**:

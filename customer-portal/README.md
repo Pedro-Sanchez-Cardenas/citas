@@ -1,6 +1,6 @@
 # Customer Portal (Next.js)
 
-App separada para clientes finales del negocio (slug), independiente del panel interno.
+App separada para **clientes finales** del negocio (`/:slug/...`), independiente del panel interno (`frontend/`). Forma el **portal del cliente** del modelo SaaS descrito en [`docs/ARQUITECTURA_SAAS.md`](../docs/ARQUITECTURA_SAAS.md).
 
 ## Incluye
 

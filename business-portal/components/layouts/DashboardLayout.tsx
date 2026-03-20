@@ -13,49 +13,50 @@ interface NavSection {
   items: { label: string; href: string; icon: string }[];
 }
 
+/** Agrupación alineada al modelo SaaS: portal del negocio por dominio funcional */
 const NAV_SECTIONS: NavSection[] = [
   {
-    label: 'Principal',
+    label: 'Operación diaria',
     items: [
       { label: 'Dashboard', href: '/dashboard', icon: '🏠' },
       { label: 'Agenda', href: '/agenda', icon: '📅' },
+      { label: 'Horarios y bloqueos', href: '/working-hours', icon: '⏰' },
     ],
   },
   {
-    label: 'Clientes y equipo',
-    items: [
-      { label: 'Clientes', href: '/clients', icon: '👥' },
-      { label: 'Profesionales', href: '/professionals', icon: '💇' },
-    ],
+    label: 'Profesionales',
+    items: [{ label: 'Profesionales', href: '/professionals', icon: '💇' }],
   },
   {
-    label: 'Servicios y catálogo',
+    label: 'Servicios e inventario',
     items: [
       { label: 'Categorías', href: '/service-categories', icon: '🧩' },
       { label: 'Servicios', href: '/services', icon: '✨' },
-      { label: 'Productos', href: '/products', icon: '🧴' },
-      { label: 'Inventario', href: '/inventory', icon: '📦' },
       { label: 'Servicios combinados', href: '/combined-services', icon: '💫' },
       { label: 'Relaciones de servicio', href: '/service-relations', icon: '🔗' },
+      { label: 'Productos', href: '/products', icon: '🧴' },
+      { label: 'Inventario', href: '/inventory', icon: '📦' },
     ],
   },
   {
-    label: 'Calendario',
-    items: [
-      { label: 'Horarios', href: '/working-hours', icon: '⏰' },
-    ],
+    label: 'Clientes (CRM)',
+    items: [{ label: 'Clientes', href: '/clients', icon: '👥' }],
   },
   {
-    label: 'Finanzas',
-    items: [{ label: 'Pagos', href: '/payments', icon: '💳' }],
+    label: 'Pagos',
+    items: [{ label: 'Cobros', href: '/payments', icon: '💳' }],
   },
   {
-    label: 'Reportes',
+    label: 'Marketing',
+    items: [{ label: 'Automatizaciones', href: '/automations', icon: '📣' }],
+  },
+  {
+    label: 'Analytics',
     items: [{ label: 'Reportes', href: '/reports', icon: '📊' }],
   },
   {
     label: 'Configuración',
-    items: [{ label: 'Automatizaciones', href: '/automations', icon: '⚙️' }],
+    items: [{ label: 'Sucursales', href: '/branches', icon: '🏢' }],
   },
 ];
 
@@ -111,6 +112,9 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
           return hasPermission(user, 'manage_appointments');
         }
         if (item.href === '/automations') {
+          return hasAnyRole(user, ['business_owner']);
+        }
+        if (item.href === '/branches') {
           return hasAnyRole(user, ['business_owner']);
         }
         if (item.href === '/dashboard' || item.href === '/agenda') {
