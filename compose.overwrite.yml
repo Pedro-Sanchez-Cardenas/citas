@@ -1,30 +1,31 @@
 services:
-  mysql:
-    ports:
-      - "3306:3306"
-  workspace:
-    build:
-      context: .
-      dockerfile: docker/workspace/Dockerfile.dev
-    container_name: workspace
-    depends_on:
-      - mysql
-    volumes:
-      - .:/workspace
-      # Mismo vendor que el backend para poder ejecutar php artisan desde el devcontainer
-      - backend_vendor:/workspace/backend/vendor
-      - /workspace/backend/node_modules
-      - /workspace/frontend/node_modules
-      - /workspace/frontend/.next
-      - /var/run/docker.sock:/var/run/docker.sock
-    working_dir: /workspace
-    environment:
-      DB_CONNECTION: mysql
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: citas
-      DB_USERNAME: citas
-      DB_PASSWORD: citas
-    networks:
-      - network
-    command: sleep infinity
+    mysql:
+        ports:
+            - "3306:3306"
+    workspace:
+        build:
+            context: .
+            dockerfile: docker/workspace/Dockerfile.dev
+        container_name: workspace
+        depends_on:
+            - mysql
+        volumes:
+            - .:/workspace
+            - backend_vendor:/workspace/backend/vendor
+            - /workspace/backend/node_modules
+            - /workspace/business-portal/node_modules
+            - /workspace/business-portal/.next
+            - /workspace/customer-portal/node_modules
+            - /workspace/customer-portal/.next
+            - /var/run/docker.sock:/var/run/docker.sock
+        working_dir: /workspace
+        environment:
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: citas
+            DB_USERNAME: citas
+            DB_PASSWORD: citas
+        networks:
+            - network
+        command: sleep infinity

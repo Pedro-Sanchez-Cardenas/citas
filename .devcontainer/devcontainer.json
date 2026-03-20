@@ -1,29 +1,31 @@
 {
-  "name": "Appointments App - Workspace",
+	"name": "Appointments App - Workspace",
 
-  "dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
+	"dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
 
-  "service": "workspace",
+	"service": "workspace",
 
-  "workspaceFolder": "/workspace",
+	"workspaceFolder": "/workspace",
 
-  "runServices": ["mysql", "backend", "frontend" , "customer-portal", "nginx", "workspace"],
-
-  "forwardPorts": [8080, 3306],
-
-  "shutdownAction": "stopCompose",
-
-  "remoteUser": "root",
-
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-azuretools.vscode-docker",
-        "bmewburn.vscode-intelephense-client",
-        "dbaeumer.vscode-eslint",
-        "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss"
-      ]
-    }
-  }
+	"runServices": [
+		"mysql",
+		"backend",
+		"business-portal",
+		"customer-portal",
+		"nginx"
+	],
+	"forwardPorts": [8080, 3306],
+	"shutdownAction": "stopCompose",
+	"remoteUser": "root",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker",
+				"bmewburn.vscode-intelephense-client",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss"
+			]
+		}
+	}
 }
