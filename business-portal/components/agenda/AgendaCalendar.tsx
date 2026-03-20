@@ -89,8 +89,8 @@ export default function AgendaCalendar({
   const filteredEvents = showCancelled
     ? events
     : events.filter(
-        (e) => e.status !== 'cancelled' && e.status !== 'no_show'
-      );
+      (e) => e.status !== 'cancelled' && e.status !== 'no_show'
+    );
 
   const fcEvents = filteredEvents.map((e) => {
     const { bg, border } = eventStatusColor(e.status ?? null);
