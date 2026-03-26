@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\ClientAccount;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Feature\Support\CreatesTenantData;
@@ -24,24 +25,36 @@ class PublicBookingApiTest extends TestCase
         $professional = $this->createProfessional($business, $branch);
         $service = $this->createService($business, $branch);
 
-        $date = CarbonImmutable::now()->addDay()->setTime(10, 0);
-        $this->createWorkingHour($business, $branch, $professional, $date);
+        $start = CarbonImmutable::now()->addDay()->setTime(10, 0);
+        $end = $start->addMinutes(30);
+        $this->createWorkingHour($business, $branch, $professional, $start);
 
         $this->getJson('/api/public/negocio-publico/services')->assertStatus(200);
         $this->getJson('/api/public/negocio-publico/professionals')->assertStatus(200);
-        $this->getJson('/api/public/negocio-publico/availability?date='.$date->toDateString().'&branch_id='.$branch->id)->assertStatus(200);
+        $this->getJson('/api/public/negocio-publico/availability?date='.$start->toDateString().'&branch_id='.$branch->id)->assertStatus(200);
 
-        $this->postJson('/api/public/negocio-publico/book', [
-            'branch_id' => $branch->id,
-            'professional_id' => $professional->id,
-            'service_id' => $service->id,
-            'client_name' => 'Cliente Web',
-            'client_email' => 'cliente-web@example.com',
-            'start_at' => $date->toIso8601String(),
-            'end_at' => $date->addMinutes(30)->toIso8601String(),
-            'status' => 'scheduled',
-            'source' => 'online',
-        ])->assertStatus(201);
+        $client = $this->createClient($business, $branch, [
+            'email' => 'cliente-web@example.com',
+            'name' => 'Cliente Web',
+        ]);
+        $account = ClientAccount::create([
+            'business_id' => $business->id,
+            'client_id' => $client->id,
+            'email' => 'cliente-web@example.com',
+            'password' => 'password123',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($account, 'client')
+            ->postJson('/api/public/negocio-publico/customer/book', [
+                'branch_id' => $branch->id,
+                'professional_id' => $professional->id,
+                'service_id' => $service->id,
+                'start_at' => $start->toIso8601String(),
+                'end_at' => $end->toIso8601String(),
+            ])
+            ->assertStatus(201)
+            ->assertJsonStructure(['data']);
     }
 
     public function test_public_availability_returns_404_for_branch_from_other_business(): void

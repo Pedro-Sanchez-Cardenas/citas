@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreAutomationRequest;
 use App\Http\Requests\UpdateAutomationRequest;
+use App\Models\Automation;
 use App\Services\AutomationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

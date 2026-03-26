@@ -120,17 +120,27 @@ class ResourceCrudApiTest extends TestCase
         $created = $this->postJson('/api/working-hours', [
             'branch_id' => $branch->id,
             'professional_id' => $professional->id,
-            'weekday' => 1,
-            'start_time' => '09:00',
-            'end_time' => '18:00',
+            'weekday' => [1],
+            'hours' => [
+                ['start_time' => '09:00', 'end_time' => '18:00'],
+            ],
         ])->assertStatus(201)->json();
 
         $id = (int) $created['id'];
 
         $this->getJson('/api/working-hours')->assertStatus(200);
         $this->getJson("/api/working-hours/{$id}")->assertStatus(200);
-        $this->putJson("/api/working-hours/{$id}", ['end_time' => '19:00'])->assertStatus(200);
-        $this->deleteJson("/api/working-hours/{$id}")->assertStatus(200);
+
+        $updated = $this->putJson("/api/working-hours/{$id}", [
+            'hours' => [
+                ['start_time' => '09:00', 'end_time' => '19:00'],
+            ],
+        ])->assertStatus(200)->json();
+
+        // El servicio sustituye filas: el id puede cambiar tras el PUT.
+        $idAfterUpdate = (int) ($updated['id'] ?? $id);
+
+        $this->deleteJson("/api/working-hours/{$idAfterUpdate}")->assertStatus(200);
     }
 
     public function test_time_block_crud_flow(): void

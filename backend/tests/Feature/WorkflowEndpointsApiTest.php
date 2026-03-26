@@ -135,7 +135,7 @@ class WorkflowEndpointsApiTest extends TestCase
 
         $created = $this->postJson("/api/clients/{$client->id}/media", [
             'type' => 'before',
-            'url' => 'https://example.com/before.jpg',
+            'photo_path' => 'https://example.com/before.jpg',
         ])->assertStatus(201)->json();
 
         $id = (int) $created['id'];

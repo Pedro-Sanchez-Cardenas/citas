@@ -51,6 +51,7 @@ class TenantIsolationApiTest extends TestCase
         ]);
 
         $blockB = TimeBlock::create([
+            'business_id' => $businessB->id,
             'branch_id' => $branchB->id,
             'professional_id' => null,
             'start_at' => $start,
