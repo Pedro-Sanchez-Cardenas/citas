@@ -6,6 +6,7 @@ use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreClientMediaRequest;
 use App\Models\Client;
 use App\Models\ClientMedia;
+use App\Services\ClientMediaService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,13 +14,16 @@ class ClientMediaController extends Controller
 {
     use InteractsWithBusiness;
 
+    public function __construct(
+        protected ClientMediaService $clientMediaService
+    ) {
+    }
+
     public function index(Request $request, Client $client): JsonResponse
     {
         $this->assertModelBelongsToRequestBusiness($client, $request);
 
-        $media = $client->media()
-            ->orderByDesc('created_at')
-            ->get();
+        $media = $this->clientMediaService->listForClient($client);
 
         return response()->json($media);
     }
@@ -29,21 +33,18 @@ class ClientMediaController extends Controller
         $this->assertModelBelongsToRequestBusiness($client, $request);
 
         $data = $request->validated();
-        $data['client_id'] = $client->id;
-
-        $media = ClientMedia::create($data);
+        $media = $this->clientMediaService->createForClient($client, $data);
 
         return response()->json($media, 201);
     }
 
     public function destroy(Request $request, ClientMedia $media): JsonResponse
     {
-        $media->load('client');
+        $media = $this->clientMediaService->loadClientForAuthorization($media);
         $this->assertModelBelongsToRequestBusiness($media->client, $request);
 
-        $media->delete();
+        $this->clientMediaService->delete($media);
 
         return response()->json(['deleted' => true]);
     }
 }
-

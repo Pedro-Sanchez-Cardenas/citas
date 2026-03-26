@@ -86,5 +86,10 @@ class CombinedServiceService
     {
         $this->combinedServices->delete($combinedService);
     }
+
+    public function loadItems(CombinedService $combinedService): CombinedService
+    {
+        return $combinedService->load('items');
+    }
 }
 

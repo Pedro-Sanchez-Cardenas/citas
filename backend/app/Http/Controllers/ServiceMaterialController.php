@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\SyncServiceMaterialsRequest;
-use App\Models\Product;
 use App\Models\Service;
+use App\Services\ServiceMaterialsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,14 +13,16 @@ class ServiceMaterialController extends Controller
 {
     use InteractsWithBusiness;
 
+    public function __construct(
+        protected ServiceMaterialsService $serviceMaterialsService
+    ) {
+    }
+
     public function index(Request $request, Service $service): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
         $this->assertModelBelongsToRequestBusiness($service, $request);
 
-        $materials = $service->products()->get();
-
+        $materials = $this->serviceMaterialsService->listForService($service);
         return response()->json($materials);
     }
 
@@ -31,24 +33,8 @@ class ServiceMaterialController extends Controller
         $this->assertModelBelongsToRequestBusiness($service, $request);
 
         $materials = $request->validated()['materials'] ?? [];
-
-        $syncData = [];
-        foreach ($materials as $material) {
-            $product = Product::query()
-                ->where('business_id', $businessId)
-                ->where('id', $material['product_id'])
-                ->first();
-
-            if (! $product) {
-                continue;
-            }
-
-            $syncData[$product->id] = ['quantity' => $material['quantity']];
-        }
-
-        $service->products()->sync($syncData);
-
-        return response()->json($service->products()->get());
+        $products = $this->serviceMaterialsService->syncForService($service, $businessId, $materials);
+        return response()->json($products);
     }
 }
 

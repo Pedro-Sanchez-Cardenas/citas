@@ -6,10 +6,9 @@ use App\Http\Requests\MoveAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\StoreTimeBlockRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
-use App\Models\Appointment;
-use App\Models\TimeBlock;
 use App\Services\AppointmentService;
 use App\Services\CalendarService;
+use App\Services\TimeBlockService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +17,8 @@ class AgendaController extends Controller
 {
     public function __construct(
         protected CalendarService $calendarService,
-        protected AppointmentService $appointmentService
+        protected AppointmentService $appointmentService,
+        protected TimeBlockService $timeBlockService
     ) {
     }
 
@@ -85,14 +85,23 @@ class AgendaController extends Controller
 
     public function storeBlock(StoreTimeBlockRequest $request): JsonResponse
     {
-        $block = TimeBlock::create($request->validated());
+        $businessId = (int) $request->user()->business_id;
+        $data = $request->validated();
+
+        if (! $this->timeBlockService->canCreateForBusiness($businessId, (int) $data['branch_id'], $data['professional_id'] ?? null)) {
+            abort(404);
+        }
+
+        $block = $this->timeBlockService->createForBusiness($businessId, $data);
 
         return response()->json($block, 201);
     }
 
     public function destroyBlock(TimeBlock $block): JsonResponse
     {
-        $block->delete();
+        // Si existiera el endpoint (o se reutiliza en el futuro), aseguramos tenant isolation.
+        $businessId = (int) request()->user()->business_id;
+        $this->timeBlockService->deleteForBusiness($businessId, $block);
 
         return response()->json(['deleted' => true]);
     }

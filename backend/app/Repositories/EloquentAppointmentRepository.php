@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Models\Appointment;
 use App\Repositories\Contracts\AppointmentRepositoryInterface;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class EloquentAppointmentRepository implements AppointmentRepositoryInterface
@@ -12,6 +13,24 @@ class EloquentAppointmentRepository implements AppointmentRepositoryInterface
     public function findById(int $id): ?Appointment
     {
         return Appointment::find($id);
+    }
+
+    public function findForBusiness(int $businessId, int $id): ?Appointment
+    {
+        return Appointment::query()
+            ->where('business_id', $businessId)
+            ->whereKey($id)
+            ->first();
+    }
+
+    public function listForClientInBusiness(int $businessId, int $clientId): Collection
+    {
+        return Appointment::query()
+            ->where('business_id', $businessId)
+            ->where('client_id', $clientId)
+            ->with(['branch:id,name', 'professional:id,name', 'service:id,name', 'combinedService:id,name'])
+            ->orderByDesc('start_at')
+            ->get();
     }
 
     public function getBetween(
@@ -50,6 +69,36 @@ class EloquentAppointmentRepository implements AppointmentRepositoryInterface
         $appointment->save();
 
         return $appointment;
+    }
+
+    public function paginateForIndex(
+        int $businessId,
+        ?int $branchId,
+        ?int $professionalId,
+        int $perPage
+    ): LengthAwarePaginator {
+        return Appointment::query()
+            ->where('business_id', $businessId)
+            ->with(['branch', 'professional', 'service', 'combinedService', 'client'])
+            ->when($branchId !== null, fn ($q) => $q->where('branch_id', $branchId))
+            ->when($professionalId !== null, fn ($q) => $q->where('professional_id', $professionalId))
+            ->orderBy('start_at')
+            ->paginate($perPage);
+    }
+
+    public function delete(Appointment $appointment): void
+    {
+        $appointment->delete();
+    }
+
+    public function loadStandardRelations(Appointment $appointment): Appointment
+    {
+        return $appointment->load(['branch', 'professional', 'service', 'combinedService', 'client']);
+    }
+
+    public function loadPublicBookingRelations(Appointment $appointment): Appointment
+    {
+        return $appointment->load(['branch', 'professional', 'service']);
     }
 }
 

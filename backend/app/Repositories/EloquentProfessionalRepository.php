@@ -6,10 +6,25 @@ use App\Models\User;
 use App\Models\Professional;
 use App\Repositories\Contracts\ProfessionalRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 
 class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
 {
+    public function filterIdsForBusiness(int $businessId, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter($ids, fn ($v) => $v !== null && $v !== '')));
+        if (empty($ids)) {
+            return [];
+        }
+
+        return Professional::query()
+            ->where('business_id', $businessId)
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->all();
+    }
+
     public function paginateForBusiness(int $businessId, ?int $branchId = null, int $perPage = 15): LengthAwarePaginator
     {
         return Professional::query()
@@ -92,6 +107,29 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
     {
         $professional->user?->delete();
         $professional->delete();
+    }
+
+    public function getBranchIdForProfessionalInBusiness(int $businessId, int $professionalId): ?int
+    {
+        if ($professionalId <= 0) {
+            return null;
+        }
+
+        $branchId = Professional::query()
+            ->where('business_id', $businessId)
+            ->whereKey($professionalId)
+            ->value('branch_id');
+
+        return $branchId !== null ? (int) $branchId : null;
+    }
+
+    public function listActiveForPublicBooking(int $businessId): Collection
+    {
+        return Professional::query()
+            ->where('business_id', $businessId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'branch_id']);
     }
 }
 

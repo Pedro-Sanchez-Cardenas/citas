@@ -9,6 +9,8 @@ use App\Models\WorkingHour;
 use App\Repositories\Contracts\AppointmentRepositoryInterface;
 use App\Services\InventoryService;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
@@ -16,7 +18,8 @@ class AppointmentService
 {
     public function __construct(
         protected AppointmentRepositoryInterface $appointmentRepository,
-        protected InventoryService $inventoryService
+        protected InventoryService $inventoryService,
+        protected ProfessionalService $professionalService
     ) {
     }
 
@@ -49,6 +52,62 @@ class AppointmentService
         }
 
         return $this->appointmentRepository->create($data);
+    }
+
+    public function paginateForPanel(Request $request): LengthAwarePaginator
+    {
+        $businessId = (int) $request->user()->business_id;
+        $user = $request->user();
+        $perPage = 50;
+
+        $branchId = $request->query('branch_id') ? (int) $request->query('branch_id') : null;
+        $professionalParam = $request->query('professional_id');
+        $professionalId = $professionalParam !== null && $professionalParam !== ''
+            ? (int) $professionalParam
+            : null;
+
+        if ($user?->hasRole('worker')) {
+            [$workerProfessionalId, $workerBranchId] = $this->professionalService->requireWorkerBranchContext(
+                $businessId,
+                $user->professional_id
+            );
+
+            $branchId = $workerBranchId;
+
+            if ($professionalId !== null && $professionalId !== $workerProfessionalId) {
+                abort(403, 'No autorizado para ver citas de otro profesional.');
+            }
+
+            return $this->appointmentRepository->paginateForIndex($businessId, $branchId, $professionalId, $perPage);
+        }
+
+        return $this->appointmentRepository->paginateForIndex($businessId, $branchId, $professionalId, $perPage);
+    }
+
+    public function showWithRelations(Appointment $appointment): Appointment
+    {
+        return $this->appointmentRepository->loadStandardRelations($appointment);
+    }
+
+    public function deleteForBusiness(Appointment $appointment): void
+    {
+        $this->appointmentRepository->delete($appointment);
+    }
+
+    public function assertWorkerCanCreateAppointment(int $businessId, ?int $workerProfessionalId, array $data): void
+    {
+        [, $workerBranchId] = $this->professionalService->requireWorkerBranchContext($businessId, $workerProfessionalId);
+
+        $targetProfessionalId = (int) $data['professional_id'];
+        $targetProfessional = $this->professionalService->findForBusiness($businessId, $targetProfessionalId);
+
+        if (! $targetProfessional || (int) $targetProfessional->branch_id !== $workerBranchId) {
+            abort(403, 'No autorizado para crear citas para un profesional fuera de tu sucursal.');
+        }
+
+        if ((int) $data['branch_id'] !== $workerBranchId) {
+            abort(403, 'No autorizado para crear citas en otra sucursal.');
+        }
     }
 
     public function update(Appointment $appointment, array $data): Appointment

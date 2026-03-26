@@ -7,8 +7,8 @@ use App\Http\Requests\MoveAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
 use App\Models\Appointment;
-use App\Models\Professional;
 use App\Services\AppointmentService;
+use App\Services\ProfessionalService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,50 +18,14 @@ class AppointmentController extends Controller
     use InteractsWithBusiness;
 
     public function __construct(
-        protected AppointmentService $appointmentService
+        protected AppointmentService $appointmentService,
+        protected ProfessionalService $professionalService
     ) {
     }
 
     public function index(Request $request): JsonResponse
     {
-        $query = Appointment::query()
-            ->where('business_id', $request->user()->business_id)
-            ->with(['branch', 'professional', 'service', 'combinedService', 'client']);
-
-        $user = $request->user();
-        if ($user?->hasRole('worker')) {
-            $workerProfessionalId = (int) ($user->professional_id ?? 0);
-            $workerBranchId = (int) (Professional::query()
-                ->whereKey($workerProfessionalId)
-                ->value('branch_id') ?? 0);
-
-            if ($workerProfessionalId <= 0 || $workerBranchId <= 0) {
-                abort(403, 'Usuario worker sin profesional asignado.');
-            }
-
-            // El worker solo puede ver en su misma sucursal.
-            $query->where('branch_id', $workerBranchId);
-
-            $professionalId = $request->query('professional_id');
-            if ($professionalId !== null && $professionalId !== '') {
-                if ((int) $professionalId !== $workerProfessionalId) {
-                    abort(403, 'No autorizado para ver citas de otro profesional.');
-                }
-                $query->where('professional_id', $workerProfessionalId);
-            }
-        } else {
-            if ($branchId = $request->query('branch_id')) {
-                $query->where('branch_id', (int) $branchId);
-            }
-
-            if ($professionalId = $request->query('professional_id')) {
-                $query->where('professional_id', (int) $professionalId);
-            }
-        }
-
-        $appointments = $query
-            ->orderBy('start_at')
-            ->paginate(50);
+        $appointments = $this->appointmentService->paginateForPanel($request);
 
         return response()->json($appointments);
     }
@@ -70,33 +34,17 @@ class AppointmentController extends Controller
     {
         $data = $request->validated();
         $user = $request->user();
+        $businessId = (int) $request->user()->business_id;
+
         if ($user?->hasRole('worker')) {
-            $workerProfessionalId = (int) ($user->professional_id ?? 0);
-            $workerBranchId = (int) (Professional::query()
-                ->whereKey($workerProfessionalId)
-                ->value('branch_id') ?? 0);
-
-            if ($workerProfessionalId <= 0 || $workerBranchId <= 0) {
-                abort(403, 'Usuario worker sin profesional asignado.');
-            }
-
-            $targetProfessionalId = (int) $data['professional_id'];
-            // El worker puede crear citas para cualquier profesional del MISMO branch.
-            $targetProfessional = Professional::query()
-                ->whereKey($targetProfessionalId)
-                ->where('branch_id', $workerBranchId)
-                ->first();
-
-            if (! $targetProfessional) {
-                abort(403, 'No autorizado para crear citas para un profesional fuera de tu sucursal.');
-            }
-
-            if ((int) $data['branch_id'] !== $workerBranchId) {
-                abort(403, 'No autorizado para crear citas en otra sucursal.');
-            }
+            $this->appointmentService->assertWorkerCanCreateAppointment(
+                $businessId,
+                $user->professional_id,
+                $data
+            );
         }
 
-        $data['business_id'] = (int) $request->user()->business_id;
+        $data['business_id'] = $businessId;
         $appointment = $this->appointmentService->create($data);
 
         return response()->json($appointment, 201);
@@ -108,23 +56,18 @@ class AppointmentController extends Controller
 
         $user = $request->user();
         if ($user?->hasRole('worker')) {
-            $workerProfessionalId = (int) ($user->professional_id ?? 0);
-            $workerBranchId = (int) (Professional::query()
-                ->whereKey($workerProfessionalId)
-                ->value('branch_id') ?? 0);
+            [, $workerBranchId] = $this->professionalService->requireWorkerBranchContext(
+                (int) $request->user()->business_id,
+                $user->professional_id
+            );
 
-            if ($workerProfessionalId <= 0 || $workerBranchId <= 0) {
-                abort(403, 'Usuario worker sin profesional asignado.');
-            }
-
-            // El worker solo puede ver citas dentro de su sucursal.
             if ((int) $appointment->branch_id !== $workerBranchId) {
                 abort(404);
             }
         }
 
         return response()->json(
-            $appointment->load(['branch', 'professional', 'service', 'combinedService', 'client'])
+            $this->appointmentService->showWithRelations($appointment)
         );
     }
 
@@ -135,14 +78,10 @@ class AppointmentController extends Controller
         $data = $request->validated();
         $user = $request->user();
         if ($user?->hasRole('worker')) {
-            $workerProfessionalId = (int) ($user->professional_id ?? 0);
-            $workerBranchId = (int) (Professional::query()
-                ->whereKey($workerProfessionalId)
-                ->value('branch_id') ?? 0);
-
-            if ($workerProfessionalId <= 0 || $workerBranchId <= 0) {
-                abort(403, 'Usuario worker sin profesional asignado.');
-            }
+            [$workerProfessionalId, $workerBranchId] = $this->professionalService->requireWorkerBranchContext(
+                (int) $request->user()->business_id,
+                $user->professional_id
+            );
 
             if ((int) $appointment->professional_id !== $workerProfessionalId) {
                 abort(403, 'No autorizado para actualizar una cita de otro profesional.');
@@ -172,13 +111,17 @@ class AppointmentController extends Controller
 
         $user = $request->user();
         if ($user?->hasRole('worker')) {
-            $workerProfessionalId = (int) ($user->professional_id ?? 0);
-            if ($workerProfessionalId <= 0 || (int) $appointment->professional_id !== $workerProfessionalId) {
+            [$workerProfessionalId] = $this->professionalService->requireWorkerBranchContext(
+                (int) $request->user()->business_id,
+                $user->professional_id
+            );
+
+            if ((int) $appointment->professional_id !== $workerProfessionalId) {
                 abort(403, 'No autorizado para eliminar una cita de otro profesional.');
             }
         }
 
-        $appointment->delete();
+        $this->appointmentService->deleteForBusiness($appointment);
 
         return response()->json(['deleted' => true]);
     }
@@ -199,14 +142,10 @@ class AppointmentController extends Controller
 
         $user = $request->user();
         if ($user?->hasRole('worker')) {
-            $workerProfessionalId = (int) ($user->professional_id ?? 0);
-            $workerBranchId = (int) (Professional::query()
-                ->whereKey($workerProfessionalId)
-                ->value('branch_id') ?? 0);
-
-            if ($workerProfessionalId <= 0 || $workerBranchId <= 0) {
-                abort(403, 'Usuario worker sin profesional asignado.');
-            }
+            [$workerProfessionalId, $workerBranchId] = $this->professionalService->requireWorkerBranchContext(
+                (int) $request->user()->business_id,
+                $user->professional_id
+            );
 
             if ((int) $appointment->professional_id !== $workerProfessionalId) {
                 abort(403, 'No autorizado para mover una cita de otro profesional.');
@@ -226,4 +165,3 @@ class AppointmentController extends Controller
         return response()->json($updated);
     }
 }
-

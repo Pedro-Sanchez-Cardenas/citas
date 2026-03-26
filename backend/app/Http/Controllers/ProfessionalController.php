@@ -9,7 +9,6 @@ use App\Models\Professional;
 use App\Services\ProfessionalService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProfessionalController extends Controller
 {
@@ -36,24 +35,13 @@ class ProfessionalController extends Controller
         $photo = $data['photo'] ?? $request->file('photo');
         unset($data['photo']);
 
-        $professional = $this->professionalService->createForBusiness($businessId, $data);
-
-        if ($photo) {
-            $path = $photo->store(
-                sprintf('professionals/%s/%s', $businessId, $professional->id),
-                'public'
-            );
-            $professional->update(['photo_path' => $path]);
-            $professional->refresh();
-        }
+        $professional = $this->professionalService->createWithOptionalPhoto($businessId, $data, $photo);
 
         return response()->json($professional, 201);
     }
 
     public function show(Request $request, Professional $professional): JsonResponse
     {
-        $businessId = (int) $request->user()->business_id;
-
         $this->assertModelBelongsToRequestBusiness($professional, $request);
 
         return response()->json($professional);
@@ -69,16 +57,7 @@ class ProfessionalController extends Controller
         $photo = $data['photo'] ?? $request->file('photo');
         unset($data['photo']);
 
-        if ($photo) {
-            $dir = sprintf('professionals/%s/%s', $businessId, $professional->id);
-            if ($professional->photo_path) {
-                Storage::disk('public')->delete($professional->photo_path);
-            }
-            $path = $photo->store($dir, 'public');
-            $data['photo_path'] = $path;
-        }
-
-        $updated = $this->professionalService->update($professional, $data);
+        $updated = $this->professionalService->updateWithOptionalPhoto($professional, $businessId, $data, $photo);
 
         return response()->json($updated);
     }
@@ -90,8 +69,6 @@ class ProfessionalController extends Controller
             abort(403, 'No autorizado');
         }
 
-        $businessId = (int) $request->user()->business_id;
-
         $this->assertModelBelongsToRequestBusiness($professional, $request);
 
         $this->professionalService->delete($professional);
@@ -99,4 +76,3 @@ class ProfessionalController extends Controller
         return response()->json(['deleted' => true]);
     }
 }
-

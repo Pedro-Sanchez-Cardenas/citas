@@ -8,7 +8,6 @@ use App\Http\Resources\UserResource;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -34,8 +33,6 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $result['user']->load(['business', 'professional']);
-
         return response()->json([
             'user' => new UserResource($result['user']),
         ]);
@@ -57,7 +54,6 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $this->authService->currentUser();
-        $user?->load(['business', 'professional']);
 
         return response()->json([
             'user' => $user ? new UserResource($user) : null,
@@ -72,19 +68,10 @@ class AuthController extends Controller
         $user = $request->user();
         $data = $request->validated();
 
-        if (! empty($data['name'])) {
-            $user->name = $data['name'];
-        }
-        if (array_key_exists('email', $data) && $data['email'] !== null) {
-            $user->email = $data['email'];
-        }
-        if (! empty($data['password'])) {
-            $user->password = Hash::make($data['password']);
-        }
-        $user->save();
+        $updated = $this->authService->updateProfile($user, $data);
 
         return response()->json([
-            'user' => new UserResource($user->fresh(['business'])),
+            'user' => new UserResource($updated),
         ]);
     }
 }

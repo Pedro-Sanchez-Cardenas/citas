@@ -4,13 +4,15 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Payment;
+use App\Repositories\Contracts\AppointmentRepositoryInterface;
 use App\Repositories\Contracts\PaymentRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PaymentService
 {
     public function __construct(
-        protected PaymentRepositoryInterface $payments
+        protected PaymentRepositoryInterface $payments,
+        protected AppointmentRepositoryInterface $appointments
     ) {
     }
 
@@ -33,6 +35,28 @@ class PaymentService
         ]);
 
         return $this->payments->createForBusiness($businessId, $payload);
+    }
+
+    public function registerAppointmentPaymentWithAppointment(int $businessId, int $appointmentId, array $data): Payment
+    {
+        $appointment = $this->appointments->findForBusiness($businessId, $appointmentId);
+
+        if (! $appointment) {
+            abort(404);
+        }
+
+        return $this->registerAppointmentPayment($businessId, $appointment, $data);
+    }
+
+    public function findForBusinessOrFail(int $businessId, int $paymentId): Payment
+    {
+        $payment = $this->payments->findForBusiness($businessId, $paymentId);
+
+        if (! $payment) {
+            abort(404);
+        }
+
+        return $payment;
     }
 }
 

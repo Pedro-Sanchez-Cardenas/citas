@@ -3,17 +3,51 @@
 namespace App\Services;
 
 use App\Models\TimeBlock;
+use App\Repositories\Contracts\TimeBlockRepositoryInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class TimeBlockService
 {
+    public function __construct(
+        protected TimeBlockRepositoryInterface $timeBlocks
+    ) {
+    }
+
+    public function listForBusiness(
+        int $businessId,
+        ?int $branchId = null,
+        ?int $professionalId = null,
+        int $perPage = 50
+    ): LengthAwarePaginator {
+        return $this->timeBlocks->paginateForBusiness($businessId, $branchId, $professionalId, $perPage);
+    }
+
+    public function canCreateForBusiness(int $businessId, int $branchId, ?int $professionalId): bool
+    {
+        return $this->timeBlocks->belongsToBusiness($businessId, $branchId, $professionalId);
+    }
+
+    public function canAccessBlock(int $businessId, TimeBlock $block): bool
+    {
+        return $this->timeBlocks->blockBelongsToBusiness($businessId, $block);
+    }
+
+    public function deleteForBusiness(int $businessId, TimeBlock $block): void
+    {
+        if (! $this->canAccessBlock($businessId, $block)) {
+            abort(404);
+        }
+
+        $this->timeBlocks->delete($block);
+    }
+
     public function createForBusiness(int $businessId, array $data): TimeBlock
     {
         $data = $this->normalizePayload($data);
-        $data['business_id'] = $businessId;
 
-        return TimeBlock::create($data);
+        return $this->timeBlocks->createForBusiness($businessId, $data);
     }
 
     /**

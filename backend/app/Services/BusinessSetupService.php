@@ -10,9 +10,16 @@ use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\WorkingHour;
+use App\Repositories\Contracts\BusinessRepositoryInterface;
+use Illuminate\Support\Arr;
 
 class BusinessSetupService
 {
+    public function __construct(
+        protected BusinessRepositoryInterface $businesses
+    ) {
+    }
+
     /**
      * Devuelve el estado de onboarding/configuración inicial del negocio del usuario.
      *
@@ -104,7 +111,7 @@ class BusinessSetupService
         ];
 
         $completed = collect($steps)->every(fn (array $step) => $step['completed'] === true);
-        $business = Business::query()->find($businessId);
+        $business = $this->businesses->findById($businessId);
         $settings = is_array($business?->settings) ? $business->settings : [];
         $branding = is_array($settings['branding'] ?? null) ? $settings['branding'] : [];
 
@@ -125,6 +132,55 @@ class BusinessSetupService
             ],
             'steps' => $steps,
         ];
+    }
+
+    /**
+     * Actualiza branding público (portal de reservas) del negocio.
+     *
+     * @return array{logo_url: string|null, hero_image_url: string|null, primary_color: string|null, public_booking_title: string|null, public_booking_subtitle: string|null}
+     */
+    public function updateBranding(Business $business, array $validated): array
+    {
+        $settings = is_array($business->settings) ? $business->settings : [];
+
+        Arr::set($settings, 'branding.logo_url', $validated['logo_url'] ?? null);
+        Arr::set($settings, 'branding.hero_image_url', $validated['hero_image_url'] ?? null);
+        Arr::set($settings, 'branding.primary_color', $validated['primary_color'] ?? null);
+        Arr::set($settings, 'branding.public_booking_title', $validated['public_booking_title'] ?? null);
+        Arr::set($settings, 'branding.public_booking_subtitle', $validated['public_booking_subtitle'] ?? null);
+
+        $this->businesses->updateSettings($business, $settings);
+
+        $branding = $settings['branding'] ?? [];
+
+        return [
+            'logo_url' => $branding['logo_url'] ?? null,
+            'hero_image_url' => $branding['hero_image_url'] ?? null,
+            'primary_color' => $branding['primary_color'] ?? null,
+            'public_booking_title' => $branding['public_booking_title'] ?? null,
+            'public_booking_subtitle' => $branding['public_booking_subtitle'] ?? null,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @return array{logo_url: string|null, hero_image_url: string|null, primary_color: string|null, public_booking_title: string|null, public_booking_subtitle: string|null}
+     */
+    public function updateBrandingForAuthenticatedUser(User $user, array $validated): array
+    {
+        $businessId = $user->business_id ? (int) $user->business_id : null;
+
+        if ($businessId === null) {
+            abort(404, 'No se encontró negocio asociado al usuario.');
+        }
+
+        $business = $this->businesses->findById($businessId);
+
+        if (! $business) {
+            abort(404, 'No se encontró negocio asociado al usuario.');
+        }
+
+        return $this->updateBranding($business, $validated);
     }
 }
 

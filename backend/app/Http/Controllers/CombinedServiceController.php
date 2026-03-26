@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreCombinedServiceRequest;
 use App\Http\Requests\UpdateCombinedServiceRequest;
-use App\Models\CombinedService;
 use App\Services\CombinedServiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -42,7 +41,8 @@ class CombinedServiceController extends Controller
     {
         $this->assertModelBelongsToRequestBusiness($combinedService, $request);
 
-        return response()->json($combinedService->load('items'));
+        $loaded = $this->combinedServiceService->loadItems($combinedService);
+        return response()->json($loaded);
     }
 
     public function update(UpdateCombinedServiceRequest $request, CombinedService $combinedService): JsonResponse

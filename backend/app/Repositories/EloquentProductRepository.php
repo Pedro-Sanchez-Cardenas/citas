@@ -8,6 +8,20 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class EloquentProductRepository implements ProductRepositoryInterface
 {
+    public function filterIdsForBusiness(int $businessId, array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter($ids, fn ($v) => $v !== null && $v !== '')));
+        if (empty($ids)) {
+            return [];
+        }
+
+        return Product::query()
+            ->where('business_id', $businessId)
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->all();
+    }
+
     public function paginateForBusiness(int $businessId, int $perPage = 15): LengthAwarePaginator
     {
         return Product::query()

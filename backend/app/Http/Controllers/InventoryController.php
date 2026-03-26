@@ -2,17 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\AdjustStockRequest;
-use App\Models\Product;
 use App\Services\InventoryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class InventoryController extends Controller
 {
-    use InteractsWithBusiness;
-
     public function __construct(
         protected InventoryService $inventoryService
     ) {
@@ -33,21 +29,8 @@ class InventoryController extends Controller
         $businessId = (int) $request->user()->business_id;
         $data = $request->validated();
 
-        /** @var Product $product */
-        $product = Product::findOrFail($data['product_id']);
-        $this->assertModelBelongsToRequestBusiness($product, $request);
-
-        $stock = $this->inventoryService->adjustStock(
-            $businessId,
-            $data['branch_id'],
-            $product,
-            (float) $data['quantity'],
-            $data['type'],
-            $data['reason'] ?? null,
-            null,
-        );
+        $stock = $this->inventoryService->adjustStockFromValidated($businessId, $data);
 
         return response()->json($stock);
     }
 }
-

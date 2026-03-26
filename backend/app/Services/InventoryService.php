@@ -66,5 +66,27 @@ class InventoryService
             return $stock;
         });
     }
+
+    /**
+     * Ajuste de stock resolviendo el producto por negocio (sin consultas en el controller).
+     */
+    public function adjustStockFromValidated(int $businessId, array $data): ProductStock
+    {
+        $product = $this->products->findForBusiness($businessId, (int) $data['product_id']);
+
+        if (! $product) {
+            abort(404);
+        }
+
+        return $this->adjustStock(
+            $businessId,
+            (int) $data['branch_id'],
+            $product,
+            (float) $data['quantity'],
+            $data['type'],
+            $data['reason'] ?? null,
+            null,
+        );
+    }
 }
 

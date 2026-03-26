@@ -33,6 +33,9 @@ class AuthService
             $request->session()->regenerate();
         }
 
+        // Para que el frontend tenga la información lista en la respuesta.
+        $user->load(['business', 'professional']);
+
         return ['user' => $user];
     }
 
@@ -47,6 +50,34 @@ class AuthService
 
     public function currentUser(): ?User
     {
-        return $this->guard->user();
+        $user = $this->guard->user();
+
+        if ($user) {
+            $user->load(['business', 'professional']);
+        }
+
+        return $user;
+    }
+
+    /**
+     * Actualiza perfil del usuario autenticado.
+     */
+    public function updateProfile(User $user, array $data): User
+    {
+        if (array_key_exists('name', $data)) {
+            $user->name = $data['name'];
+        }
+
+        if (array_key_exists('email', $data) && $data['email'] !== null) {
+            $user->email = $data['email'];
+        }
+
+        if (! empty($data['password'])) {
+            $user->password = Hash::make((string) $data['password']);
+        }
+
+        $user->save();
+
+        return $user;
     }
 }
