@@ -157,6 +157,36 @@ class ResourceCrudApiTest extends TestCase
         $this->deleteJson("/api/blocks/{$id}")->assertStatus(200);
     }
 
+    public function test_time_block_dates_range_crud_flow(): void
+    {
+        $ctx = $this->authenticatedTenant();
+        $business = $ctx['business'];
+        $branch = $ctx['branch'];
+        $professional = $this->createProfessional($business, $branch);
+
+        $startDate = CarbonImmutable::now()->addDay();
+        $endDate = $startDate->addDays(3);
+
+        $created = $this->postJson('/api/blocks', [
+            'branch_id' => $branch->id,
+            'professional_id' => $professional->id,
+            // rango de fechas (lo que manda el BlockFormModal)
+            'dates' => [$startDate->toDateString(), $endDate->toDateString()],
+            'reason' => 'Bloqueo por rango',
+        ])->assertStatus(201)->json();
+
+        $this->assertNotNull($created['id'] ?? null);
+
+        $this->assertEquals(
+            $startDate->toDateString(),
+            CarbonImmutable::parse((string) $created['start_at'])->toDateString()
+        );
+        $this->assertEquals(
+            $endDate->toDateString(),
+            CarbonImmutable::parse((string) $created['end_at'])->toDateString()
+        );
+    }
+
     public function test_combined_service_crud_flow(): void
     {
         $ctx = $this->authenticatedTenant();

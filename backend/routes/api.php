@@ -30,35 +30,16 @@ use App\Http\Controllers\BusinessSetupController;
 // Webhook Stripe (sin auth, Cashier valida firma con STRIPE_WEBHOOK_SECRET)
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
 
-Route::post('/login', [AuthController::class, 'login'])
-    ->middleware('throttle:5,1');
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/logout', [AuthController::class, 'logout']);
-
-// Rutas públicas para reservas online (por negocio)
-Route::prefix('public/{business}')->group(function () {
-    Route::get('/services', [PublicBookingController::class, 'services']);
-    Route::get('/professionals', [PublicBookingController::class, 'professionals']);
-    Route::get('/availability', [PublicBookingController::class, 'availability']);
-    Route::post('/customer/register', [PublicCustomerAuthController::class, 'register'])
-        ->middleware('throttle:10,1');
-    Route::post('/customer/login', [PublicCustomerAuthController::class, 'login'])
-        ->middleware('throttle:10,1');
-    Route::middleware('auth:client')->group(function () {
-        Route::post('/customer/logout', [PublicCustomerAuthController::class, 'logout']);
-        Route::get('/customer/me', [PublicCustomerAuthController::class, 'me']);
-        Route::get('/customer/appointments', [PublicCustomerAuthController::class, 'appointments']);
-        Route::post('/customer/book', [PublicCustomerAuthController::class, 'book']);
-    });
-});
 
 Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
     Route::patch('/me', [AuthController::class, 'updateProfile']);
+
     Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::get('/business-setup', [BusinessSetupController::class, 'show'])
-        ->middleware('role:business_owner');
-    Route::patch('/business-setup/branding', [BusinessSetupController::class, 'updateBranding'])
-        ->middleware('role:business_owner');
+    Route::get('/business-setup', [BusinessSetupController::class, 'show'])->middleware('role:business_owner');
+    Route::patch('/business-setup/branding', [BusinessSetupController::class, 'updateBranding'])->middleware('role:business_owner');
     Route::get('/branches', [BranchController::class, 'index']);
 
     // Billing (Stripe Cashier): planes visibles para autenticados; resto solo propietario (Spatie)
@@ -71,6 +52,9 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
         Route::delete('/billing/addons/{addonSlug}', [BillingController::class, 'removeAddon']);
         Route::put('/billing/extra-users', [BillingController::class, 'setExtraUsers']);
     });
+
+	Route::apiResource('working-hours', WorkingHourController::class);
+	Route::apiResource('blocks', TimeBlockController::class);
 
     Route::prefix('agenda')->group(function () {
         Route::get('/day', [AgendaController::class, 'day']);
@@ -89,9 +73,7 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
     Route::get('/inventory/stocks', [InventoryController::class, 'stocks']);
     Route::post('/inventory/adjust', [InventoryController::class, 'adjust']);
     Route::apiResource('automations', AutomationController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
-    Route::apiResource('working-hours', WorkingHourController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
     Route::apiResource('combined-services', CombinedServiceController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
-    Route::apiResource('blocks', TimeBlockController::class)->only(['index', 'store', 'show', 'destroy']);
 
     Route::get('services/{service}/professionals', [ServiceProfessionalController::class, 'index']);
     Route::put('services/{service}/professionals', [ServiceProfessionalController::class, 'sync']);
@@ -106,4 +88,19 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
     Route::get('reports/business-summary', [ReportController::class, 'businessSummary']);
     Route::get('reports/professionals', [ReportController::class, 'professionals']);
     Route::get('reports/services', [ReportController::class, 'services']);
+});
+
+// Rutas públicas para reservas online (por negocio)
+Route::prefix('public/{business}')->group(function () {
+    Route::get('/services', [PublicBookingController::class, 'services']);
+    Route::get('/professionals', [PublicBookingController::class, 'professionals']);
+    Route::get('/availability', [PublicBookingController::class, 'availability']);
+    Route::post('/customer/register', [PublicCustomerAuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('/customer/login', [PublicCustomerAuthController::class, 'login'])->middleware('throttle:10,1');
+    Route::middleware('auth:client')->group(function () {
+        Route::post('/customer/logout', [PublicCustomerAuthController::class, 'logout']);
+        Route::get('/customer/me', [PublicCustomerAuthController::class, 'me']);
+        Route::get('/customer/appointments', [PublicCustomerAuthController::class, 'appointments']);
+        Route::post('/customer/book', [PublicCustomerAuthController::class, 'book']);
+    });
 });

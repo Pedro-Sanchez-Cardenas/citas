@@ -2,10 +2,10 @@ SaaS Gestión de Salones (Multi-tenant)
 
 ├── Portal del Negocio (Salón)
 │   ├── Operación diaria
-│   │   ├── Agenda / Calendario
-│   │   ├── Gestión de citas
-│   │   ├── Disponibilidad por profesional
-│   │   └── Bloqueos / horarios especiales
+│   │   ├── [ ] Agenda / Calendario
+│   │   ├── [ ] Gestión de citas
+│   │   ├── [ ] Disponibilidad por profesional
+│   │   └── [X] Bloqueos / horarios especiales
 │   │
 │   ├── Profesionales
 │   │   ├── Perfiles (skills, servicios)

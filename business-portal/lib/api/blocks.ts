@@ -11,8 +11,9 @@ export interface Block {
 	id: number;
 	branch_id?: number | null;
 	professional_id?: number | null;
-	start_at: string;
-	end_at: string;
+	start_at?: string | null;
+	end_at?: string | null;
+	dates?: Date[] | null;
 	reason?: string | null;
 	type?: string | null;
 	[key: string]: unknown;
@@ -32,8 +33,13 @@ export async function fetchBlock(id: number | string): Promise<Block | null> {
 export interface CreateBlockPayload {
 	branch_id?: number | null;
 	professional_id?: number | null;
-	start_at: string;
-	end_at: string;
+	start_at?: string | null;
+	end_at?: string | null;
+	/**
+	 * Legacy payload (si algún frontend antiguo lo envía).
+	 * En mode="range" Flatpickr actualmente mandamos start_at/end_at.
+	 */
+	dates?: Date[] | null;
 	reason?: string | null;
 	type?: string | null;
 }

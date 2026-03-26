@@ -382,6 +382,7 @@ export default function WorkingHoursPage() {
 				onSubmit={handleSubmitBlock}
 				loading={blockModalLoading}
 				professionals={professionals}
+				branches={branches}
 				fieldErrors={fieldErrors}
 			/>
 

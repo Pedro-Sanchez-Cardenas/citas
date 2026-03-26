@@ -168,9 +168,12 @@ export default function ProfilePage() {
       </div>
 
       <section className="mt-6 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5">
-        <h2 className="text-base font-semibold text-slate-100">Branding del portal de clientes</h2>
+        <h2 className="text-base font-semibold text-slate-100">
+          Branding del portal público de reservas
+        </h2>
         <p className="mt-1 text-xs text-slate-400">
-          Configura el logo y textos que se muestran en `book/{'{slug}'}` para login, registro y agendado.
+          Configura el logo y los textos que se muestran en el portal público de reservas para login,
+          registro y agendado.
         </p>
         <form className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmitBranding}>
           <Input

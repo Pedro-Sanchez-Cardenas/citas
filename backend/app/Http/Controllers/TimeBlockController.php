@@ -6,11 +6,17 @@ use App\Http\Requests\StoreTimeBlockRequest;
 use App\Models\Branch;
 use App\Models\Professional;
 use App\Models\TimeBlock;
+use App\Services\TimeBlockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TimeBlockController extends Controller
 {
+    public function __construct(
+        protected TimeBlockService $timeBlockService
+    ) {
+    }
+
     public function index(Request $request): JsonResponse
     {
         $businessId = (int) $request->user()->business_id;
@@ -43,7 +49,7 @@ class TimeBlockController extends Controller
             abort(404);
         }
 
-        $block = TimeBlock::create($data);
+        $block = $this->timeBlockService->createForBusiness($businessId, $data);
 
         return response()->json($block, 201);
     }

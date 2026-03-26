@@ -11,6 +11,7 @@ class TimeBlock extends Model
     use HasFactory;
 
     protected $fillable = [
+        'business_id',
         'branch_id',
         'professional_id',
         'start_at',
