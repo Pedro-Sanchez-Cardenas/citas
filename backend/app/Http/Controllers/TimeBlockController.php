@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTimeBlockRequest;
+use App\Models\TimeBlock;
 use App\Services\TimeBlockService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -11,8 +12,7 @@ class TimeBlockController extends Controller
 {
     public function __construct(
         protected TimeBlockService $timeBlockService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -57,9 +57,8 @@ class TimeBlockController extends Controller
         if (! $this->timeBlockService->canAccessBlock($businessId, $block)) {
             abort(404);
         }
-		$this->timeBlockService->deleteForBusiness($businessId, $block);
+        $this->timeBlockService->deleteForBusiness($businessId, $block);
 
         return response()->json(['deleted' => true]);
     }
 }
-

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreCombinedServiceRequest;
 use App\Http\Requests\UpdateCombinedServiceRequest;
+use App\Models\CombinedService;
 use App\Services\CombinedServiceService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,8 +16,7 @@ class CombinedServiceController extends Controller
 
     public function __construct(
         protected CombinedServiceService $combinedServiceService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -42,6 +42,7 @@ class CombinedServiceController extends Controller
         $this->assertModelBelongsToRequestBusiness($combinedService, $request);
 
         $loaded = $this->combinedServiceService->loadItems($combinedService);
+
         return response()->json($loaded);
     }
 
@@ -63,4 +64,3 @@ class CombinedServiceController extends Controller
         return response()->json(['deleted' => true]);
     }
 }
-

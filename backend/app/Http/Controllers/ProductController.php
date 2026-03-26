@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithBusiness;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Models\Product;
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,8 +16,7 @@ class ProductController extends Controller
 
     public function __construct(
         protected ProductRepositoryInterface $products
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -65,4 +65,3 @@ class ProductController extends Controller
         return response()->json(['deleted' => true]);
     }
 }
-

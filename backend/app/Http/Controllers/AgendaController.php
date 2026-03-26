@@ -6,6 +6,7 @@ use App\Http\Requests\MoveAppointmentRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Requests\StoreTimeBlockRequest;
 use App\Http\Requests\UpdateAppointmentRequest;
+use App\Models\TimeBlock;
 use App\Services\AppointmentService;
 use App\Services\CalendarService;
 use App\Services\TimeBlockService;
@@ -19,8 +20,7 @@ class AgendaController extends Controller
         protected CalendarService $calendarService,
         protected AppointmentService $appointmentService,
         protected TimeBlockService $timeBlockService
-    ) {
-    }
+    ) {}
 
     public function day(Request $request): JsonResponse
     {
@@ -106,4 +106,3 @@ class AgendaController extends Controller
         return response()->json(['deleted' => true]);
     }
 }
-
