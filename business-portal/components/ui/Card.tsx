@@ -21,11 +21,11 @@ const paddingMap = {
 
 const variantMap: Record<CardVariant, string> = {
   elevated:
-    'rounded-2xl border border-white/[0.08] bg-slate-950/35 shadow-(--shadow-card) backdrop-blur-xl transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-[var(--shadow-card-hover)]',
+    'rounded-2xl border border-white/10 bg-slate-900/60 shadow-(--shadow-card) backdrop-blur-xl transition-[box-shadow,transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-slate-900/70 hover:shadow-[var(--shadow-card-hover)]',
   outlined:
-    'rounded-2xl border border-white/[0.1] bg-slate-950/25 backdrop-blur-md',
+    'rounded-2xl border border-white/12 bg-slate-900/45 backdrop-blur-md',
   flat:
-    'rounded-xl border border-white/[0.05] bg-slate-900/40 backdrop-blur-sm',
+    'rounded-xl border border-white/8 bg-slate-900/35 backdrop-blur-sm',
 };
 
 export default function Card({

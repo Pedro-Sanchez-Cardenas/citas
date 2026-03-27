@@ -6,15 +6,15 @@ const baseClasses =
 
 const variants = {
   primary:
-    'bg-gradient-to-r from-teal-400 via-cyan-500 to-teal-500 text-white shadow-[0_8px_28px_-6px_rgba(20,184,166,0.55),0_0_40px_-12px_rgba(45,212,191,0.25)] hover:brightness-110 focus-visible:ring-teal-400/80',
+    'bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 text-slate-50 shadow-[0_10px_24px_-10px_rgba(13,148,136,0.55),inset_0_1px_0_rgba(255,255,255,0.08)] hover:from-teal-600 hover:via-teal-500 hover:to-emerald-500 focus-visible:ring-teal-400/60',
   subtle:
-    'border border-white/[0.12] bg-white/[0.06] text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-sm hover:bg-white/[0.1] focus-visible:ring-slate-400/50',
+    'border border-white/12 bg-slate-900/55 text-slate-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)] backdrop-blur-sm hover:bg-slate-800/70 focus-visible:ring-slate-400/50',
   ghost:
-    'text-slate-200 hover:bg-white/[0.06] focus-visible:ring-slate-500/60',
+    'text-slate-200 hover:bg-slate-800/55 focus-visible:ring-slate-500/60',
   danger:
     'border border-red-500/45 bg-red-950/40 text-red-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm hover:bg-red-950/60 focus-visible:ring-red-400/60',
   outline:
-    'border border-white/[0.12] bg-transparent text-slate-100 hover:bg-white/[0.05] focus-visible:ring-slate-400/50',
+    'border border-white/12 bg-transparent text-slate-100 hover:bg-slate-800/45 focus-visible:ring-slate-400/50',
 };
 
 const sizes: Record<string, string> = {

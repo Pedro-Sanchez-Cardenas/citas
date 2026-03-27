@@ -11,7 +11,7 @@ import {
 } from '@/lib/api/services';
 import { fetchProfessionals } from '@/lib/api/professionals';
 import { fetchProducts } from '@/lib/api/products';
-import { Button, Input, Checkbox, Select } from '@/components/ui';
+import { Button, Input, Checkbox, Select, PageHeader, Alert, PageLoading, EmptyState } from '@/components/ui';
 import type { Professional } from '@/types';
 import type { MaterialEntry, ProductItem, ServiceWithCode } from '@/components/services/relations';
 import type { AxiosError } from 'axios';
@@ -203,18 +203,12 @@ export default function ServiceRelationsPage() {
 
   return (
     <>
-      <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Relaciones de servicio
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Asigna qué profesionales pueden realizar cada servicio y qué productos se consumen.
-          </p>
-        </div>
-      </header>
+      <PageHeader
+        title="Relaciones de servicio"
+        subtitle="Asigna qué profesionales pueden realizar cada servicio y qué productos se consumen."
+      />
 
-      <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-center">
+      <section className="surface-inset mb-6 grid grid-cols-1 gap-3 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] sm:items-center">
         <div>
           <Select
             value={selectedServiceId}
@@ -243,30 +237,23 @@ export default function ServiceRelationsPage() {
       </section>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando datos de servicios...
-        </div>
+        <PageLoading label="Cargando datos de servicios..." />
       ) : !selectedService ? (
-        <div className="mt-10 flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-800/80 bg-slate-950/60 px-6 py-10 text-center">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-xl">
-            ✨
-          </div>
-          <h3 className="text-sm font-medium text-slate-100">
-            Selecciona un servicio para configurar relaciones
-          </h3>
-          <p className="mt-1 max-w-md text-xs text-slate-400">
-            Elige un servicio en la parte superior para asignarle profesionales y materiales.
-          </p>
-        </div>
+        <EmptyState
+          icon="✨"
+          title="Selecciona un servicio para configurar relaciones"
+          description="Elige un servicio en la parte superior para asignarle profesionales y materiales."
+          className="mt-8"
+        />
       ) : (
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.85)]">
+          <div className="surface-panel p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-slate-50">
                 Profesionales asignados
@@ -288,7 +275,7 @@ export default function ServiceRelationsPage() {
               {professionals.map((p) => (
                 <label
                   key={p.id}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs text-slate-200"
+                  className="surface-list-row flex items-center justify-between gap-3 px-3 py-2 text-xs text-slate-200"
                 >
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -314,7 +301,7 @@ export default function ServiceRelationsPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.85)]">
+          <div className="surface-panel p-4">
             <div className="mb-3 flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-slate-50">
                 Materiales / productos asociados
@@ -338,7 +325,7 @@ export default function ServiceRelationsPage() {
                 return (
                   <div
                     key={product.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs text-slate-200"
+                    className="surface-list-row flex items-center justify-between gap-3 px-3 py-2 text-xs text-slate-200"
                   >
                     <div className="flex flex-1 items-center gap-2">
                       <Checkbox

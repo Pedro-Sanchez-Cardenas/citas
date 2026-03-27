@@ -8,7 +8,7 @@ import type { BusinessSetup } from '@/components/profile/types';
 import type { AxiosError } from 'axios';
 import { UserProfilePanel } from '@/components/profile/UserProfilePanel';
 import { BusinessOnboardingPanel } from '@/components/profile/BusinessOnboardingPanel';
-import { Button, Input, PageHeader, Alert } from '@/components/ui';
+import { Button, Input, PageHeader, Alert, PageLoading } from '@/components/ui';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -133,6 +133,8 @@ export default function ProfilePage() {
         subtitle="Actualiza tu información de usuario y revisa el progreso del onboarding de tu negocio."
       />
 
+      {isLoading && <PageLoading label="Cargando perfil y onboarding..." className="mb-6" />}
+
       {error && (
         <div className="mb-4">
           <Alert variant="error">{error}</Alert>
@@ -210,7 +212,7 @@ export default function ProfilePage() {
               placeholder="Inicia sesión para reservar con tu salón"
             />
           </div>
-          <div className="md:col-span-2 flex items-center gap-2">
+          <div className="form-divider md:col-span-2 flex items-center gap-2">
             <Button type="submit" size="sm" disabled={brandingSaving}>
               {brandingSaving ? 'Guardando...' : 'Guardar branding'}
             </Button>

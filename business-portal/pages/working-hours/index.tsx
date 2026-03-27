@@ -408,7 +408,7 @@ export default function WorkingHoursPage() {
 				<div
 					role="tablist"
 					aria-label="Secciones"
-					className="mb-6 flex gap-1 rounded-2xl border border-white/[0.08] bg-slate-950/45 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm"
+					className="mb-6 flex gap-1 max-w-fit rounded-2xl border border-white/8 bg-slate-950/45 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm"
 				>
 					{TABS.map((tab) => {
 						const count = tab.id === 'availability' ? filteredHours.length : filteredBlocks.length;

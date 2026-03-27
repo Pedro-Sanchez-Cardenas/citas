@@ -11,7 +11,7 @@ import {
   setExtraUsers,
 } from '@/lib/api/billing';
 import { formatDate } from '@/lib/format';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, PageHeader, Alert, PageLoading, EmptyState } from '@/components/ui';
 import type { BillingPlan, BillingAddon, BillingStatus, PlansData } from '@/components/billing/types';
 import type { AxiosError } from 'axios';
 
@@ -161,37 +161,29 @@ export default function BillingPage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Facturación y suscripción
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Gestiona tu plan, addons y usuarios adicionales de tu negocio.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Facturación y suscripción"
+        subtitle="Gestiona tu plan, addons y usuarios adicionales de tu negocio."
+      />
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
       {successMessage && (
-        <div className="mb-4 rounded-xl border border-emerald-500/45 bg-emerald-500/10 px-3.5 py-2.5 text-sm text-emerald-100">
-          {successMessage}
+        <div className="mb-4">
+          <Alert variant="success">{successMessage}</Alert>
         </div>
       )}
 
       {loading && (
-        <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-8 text-center text-slate-400">
-          Cargando facturación...
-        </div>
+        <PageLoading label="Cargando facturación..." />
       )}
 
       {!loading && (
         <div className="space-y-6">
-          <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)]">
+          <section className="surface-panel p-5">
             <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
               Tu plan actual
             </h2>
@@ -261,7 +253,7 @@ export default function BillingPage() {
           </section>
 
           {planEntries.length > 0 && (
-            <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)]">
+            <section className="surface-panel p-5">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
                 Planes
               </h2>
@@ -273,8 +265,8 @@ export default function BillingPage() {
                       key={slug}
                       className={`rounded-xl border p-4 ${
                         isCurrent
-                          ? 'border-teal-500/50 bg-teal-500/5'
-                          : 'border-slate-800/80 bg-slate-900/50'
+                          ? 'border-teal-500/50 bg-teal-500/10'
+                          : 'border-white/8 bg-slate-900/45'
                       }`}
                     >
                       <h3 className="font-semibold text-slate-100">{plan.name}</h3>
@@ -310,7 +302,7 @@ export default function BillingPage() {
           )}
 
           {addonEntries.length > 0 && (status?.subscribed || status?.on_trial) && (
-            <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)]">
+            <section className="surface-panel p-5">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
                 Addons
               </h2>
@@ -324,7 +316,7 @@ export default function BillingPage() {
                   return (
                     <div
                       key={slug}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 bg-slate-900/50 px-3.5 py-2.5"
+                      className="surface-list-row flex items-center justify-between gap-3 px-3.5 py-2.5"
                     >
                       <div>
                         <p className="text-sm font-medium text-slate-100">{addon.name}</p>
@@ -348,7 +340,7 @@ export default function BillingPage() {
           )}
 
           {(status?.subscribed || status?.on_trial) && status?.plan && (
-            <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)]">
+            <section className="surface-panel p-5">
               <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
                 Usuarios extra
               </h2>
@@ -380,6 +372,14 @@ export default function BillingPage() {
                 configuración: {status.max_users ?? 0}.
               </p>
             </section>
+          )}
+
+          {!status?.subscribed && !status?.on_trial && planEntries.length === 0 && (
+            <EmptyState
+              icon="💳"
+              title="No hay planes disponibles"
+              description="No encontramos planes de suscripción para mostrar en este momento."
+            />
           )}
         </div>
       )}

@@ -258,6 +258,10 @@ export default function AgendaPage() {
         </div>
       </div>
 
+      <p className="mb-3 text-xs text-slate-500">
+        Tip: arrastra o navega en el calendario para cambiar de rango y mantener el contexto de trabajo.
+      </p>
+
       <AppointmentCalendar
         key={calendarKey}
         user={user}

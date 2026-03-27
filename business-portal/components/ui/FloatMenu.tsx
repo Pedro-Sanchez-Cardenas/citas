@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useId } from 'react';
 import { createPortal } from 'react-dom';
 import clsx from 'clsx';
-import type { ReactNode } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react';
 
 export type FloatMenuPlacement = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end';
 
@@ -36,6 +36,7 @@ export default function FloatMenu({
 }: FloatMenuProps) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const menuId = useId();
   const triggerRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -112,6 +113,12 @@ export default function FloatMenu({
   }, [open]);
 
   const handleTriggerClick = () => setOpen((prev) => !prev);
+  const handleTriggerKeyDown = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setOpen((prev) => !prev);
+    }
+  };
 
   const handleOptionClick = (option: FloatMenuOptionItem) => {
     if ('divider' in option && option.divider) return;
@@ -123,14 +130,15 @@ export default function FloatMenu({
   const menuContent = open && (
     <div
       ref={menuRef}
-      className="fixed z-100 min-w-40 rounded-xl border border-white/[0.1] bg-slate-950/85 py-1 shadow-(--shadow-modal) backdrop-blur-2xl backdrop-saturate-150"
+      className="fixed z-100 min-w-40 rounded-xl border border-white/12 bg-slate-900/70 py-1 shadow-(--shadow-modal) backdrop-blur-xl backdrop-saturate-150"
       style={{ top: position.top, left: position.left }}
       role="menu"
+      id={menuId}
       aria-orientation="vertical"
     >
       {options.map((option, i) =>
         'divider' in option && option.divider ? (
-          <div key={i} className="my-1 border-t border-white/[0.08]" role="separator" />
+          <div key={i} className="my-1 border-t border-white/8" role="separator" />
         ) : (
           <button
             key={i}
@@ -142,7 +150,7 @@ export default function FloatMenu({
               'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition',
               'disabled' in option && option.disabled
                 ? 'cursor-not-allowed text-slate-500'
-                : 'text-slate-200 hover:bg-white/[0.08] hover:text-slate-50 active:bg-white/[0.06]'
+                : 'text-slate-200 hover:bg-white/8 hover:text-slate-50 active:bg-white/6'
             )}
           >
             {'icon' in option && option.icon && (
@@ -160,9 +168,13 @@ export default function FloatMenu({
       <div
         ref={triggerRef}
         onClick={handleTriggerClick}
+        onKeyDown={handleTriggerKeyDown}
         className="cursor-pointer"
+        role="button"
+        tabIndex={0}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={open ? menuId : undefined}
       >
         {children}
       </div>

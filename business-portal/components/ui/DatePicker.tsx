@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useCallback, useState } from 'react';
+import type { FormEvent } from 'react';
 import Flatpickr from 'react-flatpickr';
 import clsx from 'clsx';
 import 'flatpickr/dist/themes/dark.css';
@@ -164,7 +165,7 @@ export default function DatePicker({
 					)}
 					aria-invalid={!!effectiveError}
 					aria-describedby={hint && id ? `${id}-hint` : undefined}
-					onInvalid={(e) => {
+					onInvalid={(e: FormEvent<HTMLInputElement>) => {
 						if (error) return;
 						setNativeError(
 							(e.target as HTMLInputElement).validationMessage || 'Campo inválido.'
@@ -172,7 +173,7 @@ export default function DatePicker({
 					}}
 					{...rest}
 				/>
-				<span className="pointer-events-none absolute inset-y-0 left-3 flex min-h-(--touch-min) items-center text-slate-500">
+				<span className="pointer-events-none absolute inset-y-0 left-3 flex min-h-(--touch-min) items-center text-slate-500/90">
 					<svg
 						aria-hidden="true"
 						className="h-4 w-4 shrink-0"

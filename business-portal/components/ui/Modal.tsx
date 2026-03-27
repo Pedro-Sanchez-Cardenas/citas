@@ -45,7 +45,7 @@ export default function Modal({
 
   const modal = (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/75 p-0 backdrop-blur-xl backdrop-saturate-150 sm:items-center sm:p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 p-0 backdrop-blur-sm sm:items-center sm:p-4 overflow-y-auto"
       onClick={onClose ?? undefined}
       role="dialog"
       aria-modal="true"
@@ -53,13 +53,13 @@ export default function Modal({
     >
       <div
         className={clsx(
-          'flex w-full flex-col max-h-[calc(100dvh-2rem)] border border-white/[0.1] bg-slate-950/90 shadow-(--shadow-modal) backdrop-blur-2xl',
+          'flex w-full max-h-[calc(100dvh-2rem)] flex-col border border-white/10 bg-slate-900/70 shadow-(--shadow-modal) backdrop-blur-2xl',
           sizeClasses
         )}
         onClick={(e) => e.stopPropagation()}
       >
         {(title || description || onClose) && (
-          <header className="flex shrink-0 items-start justify-between gap-3 border-b border-white/[0.08] px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
+          <header className="flex shrink-0 items-start justify-between gap-3 border-b border-white/8 px-4 pt-4 pb-3 sm:px-6 sm:pt-6 sm:pb-4">
             <div className="min-w-0">
               {title && (
                 <h2 id="modal-title" className="text-lg font-semibold text-slate-50">
@@ -74,7 +74,7 @@ export default function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-(--touch-min) w-(--touch-min) shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/[0.08] hover:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
+                className="flex h-(--touch-min) w-(--touch-min) shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-white/8 hover:text-slate-100 focus:outline-none focus:ring-2 focus:ring-teal-400/40"
                 aria-label="Cerrar modal"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>

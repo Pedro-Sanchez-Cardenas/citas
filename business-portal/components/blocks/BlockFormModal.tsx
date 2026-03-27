@@ -61,7 +61,7 @@ export function BlockFormModal({
 			size="md"
 		>
 			<form className="mt-1 space-y-4" onSubmit={handleSubmit}>
-				<div className="flex gap-2 flex-wrap">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-2">
 					<Select
 						label="Sucursal"
 						id="block-branch"

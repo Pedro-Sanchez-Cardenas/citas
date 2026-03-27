@@ -6,9 +6,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { DatesSetArg, EventClickArg, EventContentArg, DateSelectArg } from '@fullcalendar/core';
+import type { DatesSetArg, EventClickArg, EventContentArg } from '@fullcalendar/core';
 import { fetchAgendaRange } from '@/lib/api/agenda';
-import { fetchWorkingHours, type WorkingHour } from '@/components/working-hours/api/workingHours';
+import { fetchWorkingHours, type WorkingHourGroup } from '@/components/working-hours/api/workingHours';
 import { hasAnyRole } from '@/lib/auth';
 import type { User } from '@/types';
 
@@ -16,17 +16,23 @@ import type { User } from '@/types';
 type TimeInterval = { start: string; end: string };
 
 /** Agrupa y fusiona intervalos por día de la semana (0=Dom … 6=Sáb). */
-function buildWorkingIntervalsByWeekday(hours: WorkingHour[]): Map<number, TimeInterval[]> {
+function buildWorkingIntervalsByWeekday(groups: WorkingHourGroup[]): Map<number, TimeInterval[]> {
   const byWeekday = new Map<number, TimeInterval[]>();
-  hours
-    .filter((h) => h.is_active !== false && h.weekday != null && h.start_time && h.end_time)
-    .forEach((h) => {
-      const w = Number(h.weekday);
-      const start = String(h.start_time).slice(0, 5);
-      const end = String(h.end_time).slice(0, 5);
+  groups.forEach((group) => {
+    const weekdays = Array.isArray(group.weekdays) ? group.weekdays : [];
+    const blocks = Array.isArray(group.hours) ? group.hours : [];
+    weekdays.forEach((weekday) => {
+      const w = Number(weekday);
       if (!byWeekday.has(w)) byWeekday.set(w, []);
-      byWeekday.get(w)!.push({ start, end });
+      blocks
+        .filter((b) => b.is_active !== false && b.start_time && b.end_time)
+        .forEach((b) => {
+          const start = String(b.start_time).slice(0, 5);
+          const end = String(b.end_time).slice(0, 5);
+          byWeekday.get(w)!.push({ start, end });
+        });
     });
+  });
   const result = new Map<number, TimeInterval[]>();
   byWeekday.forEach((intervals, weekday) => {
     intervals.sort((a, b) => a.start.localeCompare(b.start));
@@ -200,7 +206,7 @@ export default function AppointmentCalendar({
   const calendarRef = useRef<FullCalendar>(null);
   const rangeRef = useRef<{ start: Date; end: Date } | null>(null);
   const [events, setEvents] = useState<AppointmentCalendarEvent[]>([]);
-  const [workingHours, setWorkingHours] = useState<WorkingHour[]>([]);
+  const [workingHours, setWorkingHours] = useState<WorkingHourGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -312,7 +318,7 @@ export default function AppointmentCalendar({
     [workingByWeekday]
   );
   const selectAllow = useCallback(
-    (selectInfo: DateSelectArg) => {
+    (selectInfo: { start: Date; end: Date }) => {
       if (workingByWeekday.size === 0) return true;
       return isSelectionWithinWorkingHours(selectInfo.start, selectInfo.end, workingByWeekday);
     },
@@ -340,8 +346,8 @@ export default function AppointmentCalendar({
           events={fcEvents}
           datesSet={handleDatesSet}
           eventClick={handleEventClick}
-          dateClick={onDateClick ? (arg) => onDateClick(arg.date) : undefined}
-          eventContent={(arg) => <EventContent arg={arg} />}
+          dateClick={onDateClick ? (arg: { date: Date }) => onDateClick(arg.date) : undefined}
+          eventContent={(arg: EventContentArg) => <EventContent arg={arg} />}
           height={height}
           headerToolbar={{
             left: 'prev,next today',
