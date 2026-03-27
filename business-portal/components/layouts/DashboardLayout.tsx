@@ -153,7 +153,7 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
   );
 
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-surface text-slate-100 lg:flex-row">
+    <div className="relative flex h-dvh min-h-0 flex-col overflow-hidden bg-surface text-slate-100 lg:flex-row">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden>
         <div className="absolute -top-40 left-0 h-72 w-72 rounded-full bg-teal-500/[0.07] blur-[100px]" />
         <div className="absolute -bottom-40 right-0 h-96 w-96 rounded-full bg-cyan-500/5 blur-[120px]" />
@@ -179,14 +179,14 @@ export default function DashboardLayout({ user, onLogout, children }: DashboardL
         onClose={closeSidebar}
       />
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col min-h-0">
+      <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <Navbar
           user={user}
           userMenuOptions={userMenuOptions}
           onMenuClick={openSidebar}
-          className="lg:hidden"
+          className="shrink-0 lg:hidden"
         />
-        <main className="flex-1 overflow-y-auto px-4 py-5 pb-24 sm:px-5 sm:py-6 lg:px-6 lg:py-8 lg:pb-8">
+        <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-5 pb-24 sm:px-5 sm:py-6 lg:px-6 lg:py-8 lg:pb-8">
           <div className="mx-auto w-full max-w-6xl lg:max-w-none">
             {children}
           </div>

@@ -8,7 +8,7 @@ import type { BusinessSetup } from '@/components/profile/types';
 import type { AxiosError } from 'axios';
 import { UserProfilePanel } from '@/components/profile/UserProfilePanel';
 import { BusinessOnboardingPanel } from '@/components/profile/BusinessOnboardingPanel';
-import { Button, Input } from '@/components/ui';
+import { Button, Input, PageHeader } from '@/components/ui';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -128,17 +128,10 @@ export default function ProfilePage() {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Perfil y configuración
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Actualiza tu información de usuario y revisa el progreso del
-            onboarding de tu negocio.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Perfil y configuración"
+        subtitle="Actualiza tu información de usuario y revisa el progreso del onboarding de tu negocio."
+      />
 
       {error && (
         <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
