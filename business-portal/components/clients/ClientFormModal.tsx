@@ -111,7 +111,7 @@ export function ClientFormModal({
             <div className="flex items-center gap-3">
               <label
                 htmlFor="client-photo"
-                className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-600 bg-slate-800/60 transition hover:border-slate-500 hover:bg-slate-800/80"
+                className="avatar-upload"
               >
                 {photoDisplay ? (
                   <img
@@ -210,7 +210,7 @@ export function ClientFormModal({
           error={fieldErrors.allergies}
         />
 
-        <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
+        <div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
           <Button
             type="button"
             variant="subtle"

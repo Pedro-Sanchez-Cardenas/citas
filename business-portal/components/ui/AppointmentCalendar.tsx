@@ -373,15 +373,15 @@ export default function AppointmentCalendar({
       </div>
       <style jsx global>{`
         .appointment-calendar-root {
-          --fc-border-color: var(--color-border);
-          --fc-button-bg: var(--color-surface-elevated);
-          --fc-button-border: var(--color-border);
-          --fc-button-hover-bg: rgba(30, 41, 59, 0.95);
-          --fc-button-hover-border: rgba(20, 184, 166, 0.45);
-          --fc-button-active-bg: rgba(20, 184, 166, 0.15);
-          --fc-today-bg: rgba(20, 184, 166, 0.06);
+          --fc-border-color: rgba(148, 163, 184, 0.12);
+          --fc-button-bg: rgba(2, 6, 23, 0.65);
+          --fc-button-border: rgba(255, 255, 255, 0.1);
+          --fc-button-hover-bg: rgba(255, 255, 255, 0.08);
+          --fc-button-hover-border: rgba(45, 212, 191, 0.45);
+          --fc-button-active-bg: rgba(45, 212, 191, 0.18);
+          --fc-today-bg: rgba(45, 212, 191, 0.08);
           --fc-page-bg: transparent;
-          --fc-list-hover: rgba(20, 184, 166, 0.08);
+          --fc-list-hover: rgba(45, 212, 191, 0.12);
         }
 
         .appointment-calendar-error {
@@ -397,8 +397,10 @@ export default function AppointmentCalendar({
         .appointment-calendar-wrapper {
           position: relative;
           border-radius: var(--radius-2xl);
-          border: 1px solid var(--color-border);
-          background: var(--color-surface-elevated);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          background: rgba(2, 6, 23, 0.4);
+          backdrop-filter: blur(20px) saturate(160%);
+          -webkit-backdrop-filter: blur(20px) saturate(160%);
           box-shadow: var(--shadow-card);
           overflow: hidden;
         }
@@ -411,7 +413,9 @@ export default function AppointmentCalendar({
           align-items: center;
           justify-content: center;
           gap: 0.75rem;
-          background: var(--color-surface-overlay);
+          background: rgba(2, 6, 23, 0.72);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
           border-radius: var(--radius-2xl);
           font-size: 0.875rem;
           color: rgb(148, 163, 184);
@@ -440,7 +444,7 @@ export default function AppointmentCalendar({
           --fc-button-active-bg-color: var(--fc-button-active-bg);
           --fc-today-bg-color: var(--fc-today-bg);
           --fc-page-bg-color: var(--fc-page-bg);
-          --fc-neutral-bg-color: rgba(15, 23, 42, 0.35);
+          --fc-neutral-bg-color: rgba(2, 6, 23, 0.35);
           --fc-list-event-hover-bg-color: var(--fc-list-hover);
         }
 

@@ -214,18 +214,17 @@ export default function AgendaPage() {
 
       <PageHeader
         title="Agenda"
-        subtitle="Crea y gestiona todas tus citas desde una vista de calendario elegante y responsiva."
+        subtitle="Visualiza y gestiona citas: haz clic en un hueco para crear una cita o en un evento para editarlo."
       />
 
-      <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="surface-inset mb-4 flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         {isOwner && branches.length > 0 && (
-          <div className="w-full sm:w-56">
+          <div className="w-full sm:max-w-xs">
             <Select
               id="agenda-branch"
-              label={null}
+              label="Sucursal"
               value={selectedBranchId}
               onChange={(e) => setSelectedBranchId(e.target.value)}
-              selectClassName="rounded-xl border-slate-700/80 bg-surface-elevated/60"
             >
               <option value="">Todas las sucursales</option>
               {branches.map((branch) => (
@@ -237,25 +236,24 @@ export default function AgendaPage() {
           </div>
         )}
         {isWorker && workerBranchId != null && (
-          <div className="w-full sm:w-56">
+          <div className="w-full sm:max-w-xs">
             <Select
               id="agenda-worker-scope"
-              label={null}
+              label="Vista"
               value={workerScope}
               onChange={(e) => setWorkerScope(e.target.value as 'mine' | 'branch')}
-              selectClassName="rounded-xl border-slate-700/80 bg-surface-elevated/60"
             >
               <option value="mine">Mis citas</option>
-              <option value="branch">Citas del branch</option>
+              <option value="branch">Toda la sucursal</option>
             </Select>
           </div>
         )}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 sm:ml-auto">
           <Checkbox
             id="agenda-show-cancelled"
             checked={showCancelled}
             onChange={(e) => setShowCancelled(e.target.checked)}
-            label="Mostrar canceladas / no presentados"
+            label="Incluir canceladas y no presentados"
           />
         </div>
       </div>

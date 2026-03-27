@@ -34,7 +34,7 @@ export default function SearchBar({
     >
       <div className="relative flex-1">
         <span
-          className="pointer-events-none absolute inset-y-0 left-3 flex min-h-(--touch-min) items-center text-slate-500"
+          className="pointer-events-none absolute inset-y-0 left-3 flex min-h-(--touch-min) items-center text-slate-500 opacity-80"
           aria-hidden
         >
           <svg

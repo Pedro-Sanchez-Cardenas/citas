@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
 import clsx from 'clsx';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -25,12 +24,13 @@ import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { formatDate, formatDateTime } from '@/lib/format';
 import {
 	Button,
-	Input,
 	Table,
 	FloatMenu,
 	EmptyState,
 	Alert,
 	PageHeader,
+	SearchBar,
+	PageLoading,
 } from '@/components/ui';
 import { WorkingHourFormModal, WEEKDAYS, WEEKDAY_SHORT } from '@/components/working-hours';
 import { BlockFormModal } from '@/components/blocks';
@@ -408,7 +408,7 @@ export default function WorkingHoursPage() {
 				<div
 					role="tablist"
 					aria-label="Secciones"
-					className="mb-6 flex gap-1 rounded-2xl border border-slate-700/60 bg-slate-900/40 p-1.5"
+					className="mb-6 flex gap-1 rounded-2xl border border-white/[0.08] bg-slate-950/45 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] backdrop-blur-sm"
 				>
 					{TABS.map((tab) => {
 						const count = tab.id === 'availability' ? filteredHours.length : filteredBlocks.length;
@@ -434,7 +434,7 @@ export default function WorkingHoursPage() {
 									'flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium transition-all',
 									isActive
 										? 'bg-teal-500/20 text-teal-300 shadow-sm ring-1 ring-teal-500/30'
-										: 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+										: 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
 								)}
 							>
 								<span aria-hidden>{tab.icon}</span>
@@ -442,7 +442,7 @@ export default function WorkingHoursPage() {
 								<span
 									className={clsx(
 										'ml-1 min-w-5 rounded-full px-1.5 py-0.5 text-[11px] font-semibold tabular-nums',
-										isActive ? 'bg-teal-500/30 text-teal-200' : 'bg-slate-700/80 text-slate-400'
+										isActive ? 'bg-teal-500/30 text-teal-200' : 'bg-white/[0.08] text-slate-400'
 									)}
 								>
 									{count}
@@ -452,32 +452,23 @@ export default function WorkingHoursPage() {
 					})}
 				</div>
 
-				<section
-					className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+				<div
+					className="page-filters"
+					role="search"
 					aria-label={activeTab === 'availability' ? 'Filtrar horarios' : 'Filtrar bloqueos'}
 				>
-					<div className="flex-1 max-w-md">
-						<div className="relative">
-							<Input
-								type="text"
-								value={search}
-								onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-								placeholder={
-									activeTab === 'availability'
-										? 'Buscar por día o profesional...'
-										: 'Buscar por profesional o motivo...'
-								}
-								inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-							/>
-							<span
-								className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500"
-								aria-hidden
-							>
-								🔍
-							</span>
-						</div>
-					</div>
-					<p className="text-xs text-slate-500">
+					<SearchBar
+						id="working-hours-search"
+						value={search}
+						onChange={(e) => setSearch(e.target.value)}
+						placeholder={
+							activeTab === 'availability'
+								? 'Buscar por día o profesional...'
+								: 'Buscar por profesional o motivo...'
+						}
+						className="min-w-0 flex-1"
+					/>
+					<p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
 						{activeTab === 'availability' &&
 							(search.trim()
 								? `${filteredHours.length} de ${hours.length} horarios`
@@ -487,7 +478,7 @@ export default function WorkingHoursPage() {
 								? `${filteredBlocks.length} de ${blocks.length} bloqueos`
 								: `${blocks.length} bloqueo${blocks.length === 1 ? '' : 's'}`)}
 					</p>
-				</section>
+				</div>
 
 				{error && (
 					<div className="mb-4">
@@ -496,12 +487,7 @@ export default function WorkingHoursPage() {
 				)}
 
 				{isLoading ? (
-					<div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-						<div className="flex flex-col items-center gap-3 text-slate-400">
-							<div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-							<span className="text-sm">Cargando horarios...</span>
-						</div>
-					</div>
+					<PageLoading label="Cargando horarios y bloqueos..." />
 				) : activeTab === 'availability' ? (
 					<div
 						id="panel-availability"
@@ -524,7 +510,6 @@ export default function WorkingHoursPage() {
 											type="button"
 											variant="outline"
 											size="sm"
-											className="border-slate-600 text-slate-200 hover:bg-slate-800"
 											onClick={openCreateHourModal}
 										>
 											Crear primer horario
@@ -537,13 +522,13 @@ export default function WorkingHoursPage() {
 								{filteredHours.map((group, index) => (
 									<article
 										key={`${group.branch_id ?? 'none'}-${group.professional_id ?? 'sucursal'}-${index}`}
-										className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40 shadow-sm"
+										className="overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-950/35 shadow-(--shadow-card) backdrop-blur-sm"
 									>
-										<header className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700/60 bg-slate-800/40 px-4 py-3">
+										<header className="flex flex-wrap items-center justify-between gap-2 border-b border-white/[0.08] bg-white/[0.03] px-4 py-3 backdrop-blur-sm">
 											<div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
 												<span className="font-medium text-slate-100">{group.professional_name}</span>
 												{branches.length > 1 && (
-													<span className="rounded-full bg-slate-700/80 px-2 py-0.5 text-[11px] text-slate-400">
+													<span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[11px] text-slate-400 ring-1 ring-white/[0.06]">
 														{group.branch_name}
 													</span>
 												)}
@@ -593,7 +578,7 @@ export default function WorkingHoursPage() {
 												{group.weekdays.map((weekday) => (
 													<span
 														key={weekday}
-														className="rounded-full border border-slate-700/70 bg-slate-950/30 px-2.5 py-1 text-xs font-semibold text-slate-200"
+														className="rounded-full border border-white/[0.1] bg-slate-950/40 px-2.5 py-1 text-xs font-semibold text-slate-200"
 													>
 														{WEEKDAY_SHORT[weekday]}
 													</span>
@@ -604,7 +589,7 @@ export default function WorkingHoursPage() {
 												{group.hours.map((block) => (
 													<li
 														key={block.id}
-														className="flex items-center gap-3 rounded-xl border border-slate-700/60 bg-slate-950/20 px-3 py-2"
+														className="flex items-center gap-3 rounded-xl border border-white/[0.08] bg-slate-950/35 px-3 py-2"
 													>
 														<span className="min-w-26 text-sm font-medium text-slate-200">
 															{block.start_time} – {block.end_time}
@@ -691,7 +676,6 @@ export default function WorkingHoursPage() {
 											type="button"
 											variant="outline"
 											size="sm"
-											className="border-slate-600 text-slate-200 hover:bg-slate-800"
 											onClick={openCreateBlockModal}
 										>
 											Crear bloqueo
@@ -700,7 +684,7 @@ export default function WorkingHoursPage() {
 								}
 							/>
 						) : (
-							<div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
+							<div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-950/35 shadow-(--shadow-card) backdrop-blur-sm">
 								<Table<Block>
 									columns={[
 										{ key: 'professional', header: 'Profesional' },

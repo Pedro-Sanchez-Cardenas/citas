@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchAutomations,
@@ -9,7 +8,16 @@ import {
   deleteAutomation,
 } from '@/lib/api/automations';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
+import {
+  Button,
+  Table,
+  FloatMenu,
+  EmptyState,
+  Alert,
+  PageHeader,
+  SearchBar,
+  PageLoading,
+} from '@/components/ui';
 import {
   AutomationFormModal,
   TRIGGER_OPTIONS,
@@ -183,25 +191,20 @@ export default function AutomationsPage() {
         }
       />
 
-      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar automatizaciones">
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre o disparador..."
-              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">
+      <div className="page-filters" role="search" aria-label="Filtrar automatizaciones">
+        <SearchBar
+          id="automations-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o disparador..."
+          className="min-w-0 flex-1"
+        />
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
           {search.trim()
             ? `${filteredAutomations.length} de ${automations.length} automatizaciones`
             : `${automations.length} automatización${automations.length === 1 ? '' : 'es'}`}
         </p>
-      </section>
+      </div>
 
       {error && (
         <div className="mb-4">
@@ -210,12 +213,7 @@ export default function AutomationsPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-            <span className="text-sm">Cargando automatizaciones...</span>
-          </div>
-        </div>
+        <PageLoading label="Cargando automatizaciones..." />
       ) : filteredAutomations.length === 0 ? (
         <EmptyState
           icon="⚙️"
@@ -227,14 +225,13 @@ export default function AutomationsPage() {
           }
           action={
             !search.trim() ? (
-              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+              <Button type="button" variant="outline" size="sm" onClick={openCreateModal}>
                 Crear primera automatización
               </Button>
             ) : null
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<AutomationRecord>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -264,7 +261,7 @@ export default function AutomationsPage() {
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] ${
                     auto.is_active
                       ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-                      : 'border-slate-700/80 bg-slate-800/80 text-slate-300'
+                      : 'border border-white/[0.1] bg-white/[0.06] text-slate-300'
                   }`}
                 >
                   <span
@@ -307,7 +304,6 @@ export default function AutomationsPage() {
             return null;
           }}
         />
-        </div>
       )}
     </>
   );

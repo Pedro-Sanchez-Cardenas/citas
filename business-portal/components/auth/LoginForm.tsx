@@ -36,7 +36,7 @@ export default function LoginForm() {
 	};
 
 	return (
-		<div className="relative w-full max-w-md rounded-2xl border border-slate-700/80 bg-surface-elevated/90 px-6 py-8 shadow-(--shadow-modal) backdrop-blur-xl sm:px-8 sm:py-9">
+		<div className="relative w-full max-w-md rounded-2xl border border-white/[0.1] bg-slate-950/70 px-6 py-8 shadow-(--shadow-modal) backdrop-blur-2xl sm:px-8 sm:py-9">
 			<div className="mb-6 flex items-start justify-between gap-3">
 				<div>
 					<h2 className="text-xl font-semibold text-slate-50">Iniciar sesión</h2>
@@ -44,7 +44,7 @@ export default function LoginForm() {
 						Acceso privado para tu negocio de belleza.
 					</p>
 				</div>
-				<div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-500 to-cyan-500 text-xl shadow-lg shadow-teal-500/25 ring-1 ring-white/10">
+				<div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-teal-400 to-cyan-500 text-xl shadow-[0_12px_40px_-8px_rgba(20,184,166,0.45)] ring-1 ring-white/15 sm:flex">
 					🗓
 				</div>
 			</div>

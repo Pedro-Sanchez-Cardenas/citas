@@ -123,14 +123,14 @@ export default function FloatMenu({
   const menuContent = open && (
     <div
       ref={menuRef}
-      className="fixed z-100 min-w-40 rounded-xl border border-slate-700/80 bg-surface-overlay py-1 shadow-(--shadow-modal) backdrop-blur-xl"
+      className="fixed z-100 min-w-40 rounded-xl border border-white/[0.1] bg-slate-950/85 py-1 shadow-(--shadow-modal) backdrop-blur-2xl backdrop-saturate-150"
       style={{ top: position.top, left: position.left }}
       role="menu"
       aria-orientation="vertical"
     >
       {options.map((option, i) =>
         'divider' in option && option.divider ? (
-          <div key={i} className="my-1 border-t border-slate-700/70" role="separator" />
+          <div key={i} className="my-1 border-t border-white/[0.08]" role="separator" />
         ) : (
           <button
             key={i}
@@ -142,7 +142,7 @@ export default function FloatMenu({
               'flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition',
               'disabled' in option && option.disabled
                 ? 'cursor-not-allowed text-slate-500'
-                : 'text-slate-200 hover:bg-slate-800/80 hover:text-slate-50 active:bg-slate-800'
+                : 'text-slate-200 hover:bg-white/[0.08] hover:text-slate-50 active:bg-white/[0.06]'
             )}
           >
             {'icon' in option && option.icon && (

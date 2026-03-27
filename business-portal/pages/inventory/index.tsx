@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchInventoryStocks, adjustInventory } from '@/lib/api/inventory';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
+import {
+  Button,
+  Table,
+  FloatMenu,
+  EmptyState,
+  Alert,
+  PageHeader,
+  SearchBar,
+  PageLoading,
+} from '@/components/ui';
 import {
   InventoryAdjustModal,
   type StockRow,
@@ -143,25 +151,20 @@ export default function InventoryPage() {
         subtitle="Stock por sucursal y producto. Realiza ajustes cuando lo necesites."
       />
 
-      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar inventario">
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por producto o sucursal..."
-              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">
+      <div className="page-filters" role="search" aria-label="Filtrar inventario">
+        <SearchBar
+          id="inventory-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por producto o sucursal..."
+          className="min-w-0 flex-1"
+        />
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
           {search.trim()
             ? `${filteredStocks.length} de ${stocks.length} registros`
             : `${stocks.length} registro${stocks.length === 1 ? '' : 's'}`}
         </p>
-      </section>
+      </div>
 
       {error && (
         <div className="mb-4">
@@ -170,12 +173,7 @@ export default function InventoryPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-            <span className="text-sm">Cargando inventario...</span>
-          </div>
-        </div>
+        <PageLoading label="Cargando inventario..." />
       ) : filteredStocks.length === 0 ? (
         <EmptyState
           icon="📦"
@@ -187,7 +185,6 @@ export default function InventoryPage() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<StockRow>
           columns={[
             { key: 'product', header: 'Producto' },
@@ -252,7 +249,7 @@ export default function InventoryPage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="text-slate-400 hover:text-slate-200"
+                      className="text-slate-400 hover:text-slate-100"
                       aria-label="Acciones"
                     >
                       ⋮
@@ -264,7 +261,6 @@ export default function InventoryPage() {
             return null;
           }}
         />
-        </div>
       )}
     </>
   );

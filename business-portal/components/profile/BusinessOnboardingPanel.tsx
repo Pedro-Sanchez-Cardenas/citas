@@ -75,7 +75,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
   );
 
   return (
-    <section className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5 shadow-[0_18px_40px_rgba(15,23,42,0.8)] lg:col-span-2">
+    <section className="surface-panel p-5 lg:col-span-2">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-300">
@@ -87,7 +87,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
           </p>
         </div>
         {!isLoading && setup && totalSteps > 0 && (
-          <div className="w-full max-w-xs rounded-2xl border border-slate-800/80 bg-slate-900/80 px-3 py-2 text-xs text-slate-200">
+          <div className="surface-inset w-full max-w-xs px-3 py-2 text-xs text-slate-200">
             <div className="mb-1 flex items-center justify-between gap-2">
               <span className="font-medium">
                 {setup.completed ? 'Onboarding completado' : 'Configuración en progreso'}
@@ -96,7 +96,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
                 {completedSteps}/{totalSteps} pasos
               </span>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
               <div
                 className={`h-full rounded-full ${
                   setup.completed
@@ -116,7 +116,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
         !setup?.completed &&
         completedSteps === 0 &&
         activeStep && (
-        <div className="mb-4 rounded-2xl border border-slate-800/80 bg-slate-900/70 px-4 py-3 text-xs text-slate-200">
+        <div className="surface-inset mb-4 px-4 py-3 text-xs text-slate-200">
           <div className="mb-2 flex items-center justify-between gap-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -147,7 +147,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
                 return (
                   <Link
                     href={config.href}
-                    className="inline-flex items-center gap-1 rounded-full bg-teal-500 px-3 py-1 text-[11px] font-medium text-slate-950 shadow-sm hover:bg-teal-400"
+                    className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-teal-400 to-cyan-500 px-3 py-1 text-[11px] font-semibold text-slate-950 shadow-[0_8px_24px_-6px_rgba(20,184,166,0.45)] hover:brightness-110"
                   >
                     {config.cta} →
                   </Link>
@@ -159,7 +159,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
       )}
 
       {isLoading && (
-        <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-3 text-sm text-slate-300">
+        <div className="surface-muted px-4 py-3 text-sm text-slate-300">
           Cargando estado de configuración...
         </div>
       )}
@@ -188,18 +188,18 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
                     setActiveKey(step.key);
                   }
                 }}
-                className={`flex flex-col justify-between gap-3 rounded-xl border px-3.5 py-3 text-xs sm:text-sm transition-colors ${
+                className={`flex flex-col justify-between gap-3 rounded-xl border px-3.5 py-3 text-xs transition-shadow sm:text-sm ${
                   isActive
-                    ? 'border-teal-500/60 bg-slate-900'
-                    : 'border-slate-800/80 bg-slate-900/70 hover:border-slate-700'
+                    ? 'border-teal-400/45 bg-slate-950/70 shadow-[0_0_0_1px_rgba(45,212,191,0.15),0_12px_40px_-16px_rgba(0,0,0,0.45)]'
+                    : 'border-white/[0.08] bg-slate-950/35 hover:border-white/[0.12] hover:bg-slate-950/50'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl text-base ${
                       isDone
-                        ? 'bg-emerald-500/20 text-emerald-300'
-                        : 'bg-slate-800 text-slate-200'
+                        ? 'bg-emerald-500/20 text-emerald-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]'
+                        : 'bg-white/[0.06] text-slate-200 ring-1 ring-white/[0.06]'
                     }`}
                     aria-hidden
                   >
@@ -257,7 +257,7 @@ export function BusinessOnboardingPanel({ setup, isLoading }: BusinessOnboarding
       )}
 
       {!isLoading && setup && steps.length === 0 && (
-        <div className="rounded-xl border border-slate-800/80 bg-slate-900/70 px-4 py-3 text-sm text-slate-300">
+        <div className="surface-muted px-4 py-3 text-sm text-slate-300">
           El usuario aún no tiene un negocio asociado. Crea un negocio para empezar el
           onboarding.
         </div>

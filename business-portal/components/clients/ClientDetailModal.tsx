@@ -43,8 +43,8 @@ export function ClientDetailModal({ open, onClose, client }: ClientDetailModalPr
         <div className="py-8 text-center text-sm text-slate-400">Cargando...</div>
       ) : (
         <>
-          <div className="mb-4 flex items-center gap-4 rounded-xl border border-slate-800/80 bg-slate-900/60 p-3">
-            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-slate-700/80 bg-slate-800">
+          <div className="surface-inset mb-4 flex items-center gap-4 p-3">
+            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/[0.1] bg-slate-950/60 ring-1 ring-white/[0.06]">
               {clientData?.photo_url ? (
                 <img
                   src={clientPhotoUrl(clientData.photo_url) ?? ''}
@@ -75,12 +75,12 @@ export function ClientDetailModal({ open, onClose, client }: ClientDetailModalPr
               appointments.map((a) => (
                 <div
                   key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800/80 bg-slate-950/80 px-3 py-2 text-xs"
+                  className="surface-list-row flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-xs"
                 >
                   <span className="text-slate-200">{formatDateTime(a.start_at)}</span>
                   <span className="text-slate-400">{a.service?.name ?? a.combined_service?.name ?? '—'}</span>
                   <span className="text-slate-400">{a.professional?.name ?? '—'}</span>
-                  <span className={`rounded-full px-2 py-0.5 text-[11px] ${a.status === 'attended' ? 'bg-emerald-500/20 text-emerald-300' : a.status === 'cancelled' ? 'bg-red-500/20 text-red-300' : 'bg-slate-700 text-slate-300'}`}>
+                  <span className={`rounded-full px-2 py-0.5 text-[11px] ring-1 ring-inset ${a.status === 'attended' ? 'bg-emerald-500/15 text-emerald-300 ring-emerald-500/25' : a.status === 'cancelled' ? 'bg-red-500/15 text-red-300 ring-red-500/25' : 'bg-white/[0.08] text-slate-300 ring-white/[0.08]'}`}>
                     {a.status ?? '—'}
                   </span>
                 </div>

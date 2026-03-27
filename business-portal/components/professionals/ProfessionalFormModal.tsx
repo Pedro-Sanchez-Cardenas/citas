@@ -200,7 +200,7 @@ export function ProfessionalFormModal({
                         <div className="flex items-center gap-3">
                             <label
                                 htmlFor="professional-photo"
-                                className="flex h-16 w-16 cursor-pointer items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-slate-600 bg-slate-800/60 transition hover:border-slate-500 hover:bg-slate-800/80"
+                                className="avatar-upload"
                             >
                                 {photoDisplay ? (
                                     <img
@@ -352,8 +352,8 @@ export function ProfessionalFormModal({
                             value={color || '#22c55e'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setColor(e.target.value)}
 							className={clsx(
-								'h-9 w-12 cursor-pointer rounded-lg border bg-slate-900',
-								fieldErrors.color ? 'border-red-500/80 bg-red-950/30' : 'border-slate-700'
+								'h-9 w-12 cursor-pointer rounded-lg border border-white/[0.12] bg-slate-950/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+								fieldErrors.color ? 'border-red-500/80 bg-red-950/30' : ''
 							)}
                         />
                         <span className="text-xs text-slate-400">
@@ -411,7 +411,7 @@ export function ProfessionalFormModal({
 					)}
 				</div>
 
-                <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
+				<div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
                     <Button
                         type="button"
                         variant="subtle"

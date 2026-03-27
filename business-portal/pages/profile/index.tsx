@@ -8,7 +8,7 @@ import type { BusinessSetup } from '@/components/profile/types';
 import type { AxiosError } from 'axios';
 import { UserProfilePanel } from '@/components/profile/UserProfilePanel';
 import { BusinessOnboardingPanel } from '@/components/profile/BusinessOnboardingPanel';
-import { Button, Input, PageHeader } from '@/components/ui';
+import { Button, Input, PageHeader, Alert } from '@/components/ui';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -134,8 +134,8 @@ export default function ProfilePage() {
       />
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
@@ -160,11 +160,11 @@ export default function ProfilePage() {
         <BusinessOnboardingPanel setup={setup} isLoading={isLoading} />
       </div>
 
-      <section className="mt-6 rounded-2xl border border-slate-800/80 bg-slate-950/80 p-5">
-        <h2 className="text-base font-semibold text-slate-100">
+      <section className="surface-panel mt-6 p-5 sm:p-6">
+        <h2 className="text-base font-semibold tracking-tight text-slate-50">
           Branding del portal público de reservas
         </h2>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1 text-sm leading-relaxed text-slate-400">
           Configura el logo y los textos que se muestran en el portal público de reservas para login,
           registro y agendado.
         </p>

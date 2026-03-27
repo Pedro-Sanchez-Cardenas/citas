@@ -39,7 +39,7 @@ export interface WorkingHourFormModalProps {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
 	return (
-		<h3 className="col-span-full text-xs font-semibold uppercase tracking-wider text-slate-500">
+		<h3 className="col-span-full text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
 			{children}
 		</h3>
 	);
@@ -249,15 +249,15 @@ export function WorkingHourFormModal({
 								className={clsx(
 									'min-w-11 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors',
 									selectedWeekdays.includes(index)
-										? 'border-teal-500/60 bg-teal-500/20 text-teal-300'
-										: 'border-slate-700/80 bg-slate-800/60 text-slate-400 hover:border-slate-600 hover:text-slate-200',
+										? 'border-teal-400/50 bg-teal-500/20 text-teal-100 shadow-[0_0_20px_-8px_rgba(45,212,191,0.35)]'
+										: 'border-white/[0.1] bg-white/[0.05] text-slate-400 hover:border-white/[0.15] hover:text-slate-200',
 								)}
 							>
 								{label}
 							</button>
 						))}
 						<>
-							<span className="mx-1 text-slate-600" aria-hidden>|</span>
+							<span className="mx-1 text-slate-500" aria-hidden>|</span>
 							<Button
 								type="button"
 								variant="ghost"
@@ -410,7 +410,7 @@ export function WorkingHourFormModal({
 						Vigencia (opcional)
 					</button>
 					{showVigencia && (
-						<div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-700/60 bg-slate-900/40 p-4 md:grid-cols-2">
+						<div className="surface-inset grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
 							<DatePicker
 								label="Válido desde"
 								id="wh-effective-from"
@@ -433,7 +433,7 @@ export function WorkingHourFormModal({
 				</div>
 
 				{/* Activo */}
-				<div className="border-t border-slate-700/60 pt-4">
+				<div className="form-divider">
 					<Checkbox
 						id="wh-is-active"
 						checked={!!isActive}
@@ -447,7 +447,7 @@ export function WorkingHourFormModal({
 					)}
 				</div>
 
-				<div className="flex items-center justify-end gap-2 border-t border-slate-700/60 pt-4">
+				<div className="form-divider flex items-center justify-end gap-2">
 					<Button type="button" variant="subtle" size="sm" onClick={onClose}>
 						Cancelar
 					</Button>

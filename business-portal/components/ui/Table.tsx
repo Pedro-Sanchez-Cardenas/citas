@@ -42,11 +42,11 @@ export default function Table<T = unknown>({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border border-slate-700/80 bg-surface-elevated/60 shadow-(--shadow-card) ${className}`}
+      className={`overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-950/40 shadow-(--shadow-card) backdrop-blur-xl ${className}`}
     >
       <div className="hidden w-full overflow-x-auto md:block">
         <table className="w-full border-collapse text-sm">
-          <thead className="bg-surface/80 text-left text-xs uppercase tracking-[0.12em] text-slate-400">
+          <thead className="bg-white/[0.04] text-left text-xs uppercase tracking-[0.12em] text-slate-400 backdrop-blur-sm">
             <tr>
               {columns.map((col) => (
                 <th
@@ -78,7 +78,7 @@ export default function Table<T = unknown>({
               items.map((item, rowIndex) => (
                 <tr
                   key={getItemKey ? String(getItemKey(item, rowIndex)) : rowIndex}
-                  className="border-t border-slate-700/80 hover:bg-slate-800/50 transition"
+                  className="border-t border-white/[0.06] transition hover:bg-white/[0.04]"
                 >
                   {columns.map((col) => (
                     <td
@@ -103,19 +103,19 @@ export default function Table<T = unknown>({
 
       <div className="space-y-2 p-3 text-sm md:hidden">
         {!hasItems ? (
-          <div className="rounded-xl border border-slate-700/80 bg-surface/80 px-4 py-6 text-center text-xs text-slate-400">
+          <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-6 text-center text-xs text-slate-400">
             {emptyMessage}
           </div>
         ) : (
           items.map((item, rowIndex) => (
             <div
               key={getItemKey ? String(getItemKey(item, rowIndex)) : rowIndex}
-              className="rounded-xl border border-slate-700/80 bg-surface/80 px-4 py-3.5"
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3.5"
             >
               {columns.map((col) => (
                 <div
                   key={col.key}
-                  className="flex flex-col gap-0.5 py-2 first:pt-0 last:pb-0 border-b border-slate-700/80/50 last:border-0"
+                  className="flex flex-col gap-0.5 border-b border-white/[0.06] py-2 first:pt-0 last:border-0 last:pb-0"
                 >
                   <span className="text-[11px] font-medium uppercase tracking-[0.1em] text-slate-500">
                     {col.header}

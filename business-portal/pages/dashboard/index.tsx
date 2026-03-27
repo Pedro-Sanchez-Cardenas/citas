@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
 import { fetchDashboardCards } from '@/lib/api/dashboard';
 import type { DashboardCard } from '@/components/dashboard/types';
-import { PageHeader, Card, Alert } from '@/components/ui';
+import { PageHeader, Card, Alert, PageLoading } from '@/components/ui';
 import { swalError } from '@/lib/swal';
 
 export default function DashboardPage() {
@@ -42,14 +42,7 @@ export default function DashboardPage() {
 
   const isLoading = authLoading || loading;
   if (isLoading) {
-    return (
-      <div className="flex min-h-[40vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-slate-400">
-          <div className="h-10 w-10 animate-pulse rounded-2xl bg-slate-700/80" />
-          <span className="text-sm">Cargando dashboard...</span>
-        </div>
-      </div>
-    );
+    return <PageLoading label="Cargando tu panel..." className="min-h-[min(360px,55vh)]" />;
   }
 
   return (
@@ -65,14 +58,23 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        aria-label="Indicadores del negocio"
+      >
         {cards.map((card) => (
           <Card key={card.title} variant="elevated" padding="md">
-            <div className="flex flex-col justify-between gap-2">
-              <div className="text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">
-                {card.title}
+            <div className="flex flex-col justify-between gap-3">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  {card.title}
+                </div>
+                <div
+                  className="mt-2 h-0.5 w-1/4 min-w-[2.5rem] rounded-full bg-gradient-to-r from-teal-400/70 to-cyan-500/40"
+                  aria-hidden
+                />
               </div>
-              <div className="text-2xl font-semibold text-slate-50 tabular-nums">
+              <div className="text-2xl font-semibold tracking-tight text-slate-50 tabular-nums">
                 {card.value}
               </div>
             </div>

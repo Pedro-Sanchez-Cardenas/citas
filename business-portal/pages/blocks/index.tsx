@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/contexts/AuthContext';
+import { PageLoading } from '@/components/ui';
 
 /**
  * Redirige a Horarios y disponibilidad (pestaña Bloqueos).
@@ -19,9 +20,5 @@ export default function BlocksRedirectPage() {
     router.replace({ pathname: '/working-hours', query: { tab: 'blocks' } });
   }, [user, authLoading, router]);
 
-  return (
-    <div className="flex min-h-[200px] items-center justify-center text-sm text-slate-400">
-      Redirigiendo a Horarios...
-    </div>
-  );
+  return <PageLoading label="Redirigiendo a horarios y bloqueos..." className="min-h-[220px]" />;
 }

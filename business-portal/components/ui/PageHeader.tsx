@@ -24,12 +24,12 @@ export default function PageHeader({
         className
       )}
     >
-      <div className="min-w-0 flex-1">
-        <h1 className="text-xl font-semibold tracking-tight text-slate-50 sm:text-2xl">
+      <div className="min-w-0 flex-1 border-l-2 border-teal-500/50 pl-4">
+        <h1 className="bg-gradient-to-r from-slate-50 via-slate-100 to-slate-300/90 bg-clip-text text-xl font-semibold tracking-tight text-transparent sm:text-2xl">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-1 text-sm text-slate-400 sm:mt-1.5">
+          <p className="mt-1 text-sm leading-relaxed text-slate-400 sm:mt-1.5">
             {subtitle}
           </p>
         )}

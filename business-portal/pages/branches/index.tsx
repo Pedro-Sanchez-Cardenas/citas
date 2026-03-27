@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchBranches,
@@ -10,7 +9,16 @@ import {
   type BranchPayload,
 } from '@/lib/api/branches';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
+import {
+  Button,
+  Table,
+  FloatMenu,
+  EmptyState,
+  Alert,
+  PageHeader,
+  SearchBar,
+  PageLoading,
+} from '@/components/ui';
 import { BranchFormModal } from '@/components/branches/BranchFormModal';
 import type { Branch } from '@/types';
 import type { AxiosError } from 'axios';
@@ -174,25 +182,20 @@ export default function BranchesPage() {
         }
       />
 
-      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar sucursales">
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre, código o ciudad..."
-              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">
+      <div className="page-filters" role="search" aria-label="Filtrar sucursales">
+        <SearchBar
+          id="branches-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre, código o ciudad..."
+          className="min-w-0 flex-1"
+        />
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
           {search.trim()
             ? `${filteredBranches.length} de ${branches.length} sucursales`
             : `${branches.length} sucursal${branches.length === 1 ? '' : 'es'}`}
         </p>
-      </section>
+      </div>
 
       {error && (
         <div className="mb-4">
@@ -201,12 +204,7 @@ export default function BranchesPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-            <span className="text-sm">Cargando sucursales...</span>
-          </div>
-        </div>
+        <PageLoading label="Cargando sucursales..." />
       ) : filteredBranches.length === 0 ? (
         <EmptyState
           icon="📍"
@@ -218,14 +216,13 @@ export default function BranchesPage() {
           }
           action={
             !search.trim() ? (
-              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+              <Button type="button" variant="outline" size="sm" onClick={openCreateModal}>
                 Crear primera sucursal
               </Button>
             ) : null
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<Branch>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -279,7 +276,7 @@ export default function BranchesPage() {
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="min-h-[36px] text-slate-400 hover:text-slate-200"
+                      className="min-h-[36px] text-slate-400 hover:text-slate-100"
                       aria-label="Acciones"
                     >
                       ⋮
@@ -291,7 +288,6 @@ export default function BranchesPage() {
             return null;
           }}
         />
-        </div>
       )}
     </>
   );

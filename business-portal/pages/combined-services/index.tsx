@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchCombinedServices,
@@ -10,7 +9,16 @@ import {
 } from '@/lib/api/combinedServices';
 import { fetchServices } from '@/lib/api/services';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
+import {
+  Button,
+  Table,
+  FloatMenu,
+  EmptyState,
+  Alert,
+  PageHeader,
+  SearchBar,
+  PageLoading,
+} from '@/components/ui';
 import {
   CombinedServiceFormModal,
   type CombinedServiceRecord,
@@ -188,25 +196,20 @@ export default function CombinedServicesPage() {
         }
       />
 
-      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar combinados">
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre o código..."
-              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">
+      <div className="page-filters" role="search" aria-label="Filtrar combinados">
+        <SearchBar
+          id="combined-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o código..."
+          className="min-w-0 flex-1"
+        />
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
           {search.trim()
             ? `${filteredCombined.length} de ${combined.length} combinados`
             : `${combined.length} combinado${combined.length === 1 ? '' : 's'}`}
         </p>
-      </section>
+      </div>
 
       {error && (
         <div className="mb-4">
@@ -215,12 +218,7 @@ export default function CombinedServicesPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-            <span className="text-sm">Cargando servicios combinados...</span>
-          </div>
-        </div>
+        <PageLoading label="Cargando servicios combinados..." />
       ) : filteredCombined.length === 0 ? (
         <EmptyState
           icon="💫"
@@ -232,14 +230,13 @@ export default function CombinedServicesPage() {
           }
           action={
             !search.trim() ? (
-              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+              <Button type="button" variant="outline" size="sm" onClick={openCreateModal}>
                 Crear primer combinado
               </Button>
             ) : null
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<CombinedServiceRecord>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -286,7 +283,7 @@ export default function CombinedServicesPage() {
                   className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] ${
                     item.is_active
                       ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-                      : 'border-slate-700/80 bg-slate-800/80 text-slate-300'
+                      : 'border border-white/[0.1] bg-white/[0.06] text-slate-300'
                   }`}
                 >
                   <span
@@ -329,7 +326,6 @@ export default function CombinedServicesPage() {
             return null;
           }}
         />
-        </div>
       )}
     </>
   );

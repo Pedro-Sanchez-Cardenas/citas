@@ -29,7 +29,8 @@ export interface CombinedFormPayload {
   total_duration_minutes?: number | null;
   is_active: boolean;
   items: {
-    service_id: number;
+    /** Puede ser null en filas aún sin servicio seleccionado; el backend valida. */
+    service_id: number | null;
     position: number;
     offset_minutes: number;
     duration_minutes: number | null;

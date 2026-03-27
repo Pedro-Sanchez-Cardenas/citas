@@ -67,7 +67,7 @@ export function CategoryFormModal({
           error={fieldErrors.description}
         />
 
-        <div className="mt-4 flex items-center justify-end gap-2">
+        <div className="form-divider flex flex-wrap items-center justify-end gap-2">
           <Button
             type="button"
             variant="subtle"

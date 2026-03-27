@@ -134,11 +134,11 @@ export default function AgendaCalendar({
   );
 
   return (
-    <div className="relative rounded-2xl border border-slate-800/80 bg-slate-900/40 shadow-xl overflow-hidden">
+    <div className="relative overflow-hidden rounded-2xl border border-white/[0.08] bg-slate-950/35 shadow-(--shadow-card) backdrop-blur-xl">
       {loading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-slate-950/70 rounded-2xl">
-          <div className="text-sm text-slate-400 flex items-center gap-2">
-            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-slate-950/75 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-sm text-slate-400">
+            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-teal-400 border-t-transparent" />
             Cargando agenda...
           </div>
         </div>
@@ -182,16 +182,16 @@ export default function AgendaCalendar({
       </div>
       <style jsx global>{`
         .agenda-calendar-wrapper {
-          --fc-border-color: rgba(51, 65, 85, 0.6);
-          --fc-button-bg-color: rgba(15, 23, 42, 0.9);
-          --fc-button-border-color: rgba(71, 85, 105, 0.6);
-          --fc-button-hover-bg-color: rgba(30, 41, 59, 0.95);
-          --fc-button-hover-border-color: rgba(94, 234, 212, 0.4);
-          --fc-button-active-bg-color: rgba(45, 212, 191, 0.2);
-          --fc-today-bg-color: rgba(45, 212, 191, 0.06);
+          --fc-border-color: rgba(148, 163, 184, 0.12);
+          --fc-button-bg-color: rgba(2, 6, 23, 0.65);
+          --fc-button-border-color: rgba(255, 255, 255, 0.1);
+          --fc-button-hover-bg-color: rgba(255, 255, 255, 0.08);
+          --fc-button-hover-border-color: rgba(45, 212, 191, 0.45);
+          --fc-button-active-bg-color: rgba(45, 212, 191, 0.18);
+          --fc-today-bg-color: rgba(45, 212, 191, 0.08);
           --fc-page-bg-color: transparent;
-          --fc-neutral-bg-color: rgba(15, 23, 42, 0.4);
-          --fc-list-event-hover-bg-color: rgba(45, 212, 191, 0.1);
+          --fc-neutral-bg-color: rgba(2, 6, 23, 0.35);
+          --fc-list-event-hover-bg-color: rgba(45, 212, 191, 0.12);
         }
         .agenda-calendar-wrapper .fc {
           font-family: inherit;

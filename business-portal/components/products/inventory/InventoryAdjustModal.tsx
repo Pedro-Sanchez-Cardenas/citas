@@ -89,7 +89,7 @@ export function InventoryAdjustModal({
           error={fieldErrors.reason}
         />
 
-        <div className="mt-2 flex items-center justify-end gap-2">
+        <div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2">
           <Button type="button" variant="subtle" size="sm" onClick={onClose}>
             Cancelar
           </Button>

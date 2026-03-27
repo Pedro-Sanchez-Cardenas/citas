@@ -8,7 +8,16 @@ import { fetchAppointments } from '@/lib/api/appointments';
 import { fetchClients } from '@/lib/api/clients';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
 import { formatDate } from '@/lib/format';
-import { Button, Input, Select, Table, EmptyState, Alert, PageHeader } from '@/components/ui';
+import {
+  Button,
+  Select,
+  Table,
+  EmptyState,
+  Alert,
+  PageHeader,
+  SearchBar,
+  PageLoading,
+} from '@/components/ui';
 import {
   PaymentFormModal,
   formatMoney,
@@ -186,22 +195,21 @@ export default function PaymentsPage() {
         }
       />
 
-      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar pagos">
-        <div className="flex flex-1 flex-wrap items-center gap-3">
-          <div className="relative min-w-0 flex-1 max-w-md">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por cliente o referencia..."
-              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
-          </div>
+      <div className="page-filters" aria-label="Filtrar pagos">
+        <div className="flex w-full min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
+          <SearchBar
+            id="payments-search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por cliente o referencia..."
+            className="min-w-0 flex-1"
+          />
           <Select
+            label={null}
+            id="payments-method-filter"
             value={methodFilter}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setMethodFilter(e.target.value)}
-            className="w-full sm:w-auto"
+            className="w-full shrink-0 sm:w-52"
           >
             <option value="">Todos los métodos</option>
             {methods.map((method) => (
@@ -211,12 +219,12 @@ export default function PaymentsPage() {
             ))}
           </Select>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
           {(search.trim() || methodFilter)
             ? `${filteredPayments.length} de ${payments.length} pagos`
             : `${payments.length} pago${payments.length === 1 ? '' : 's'}`}
         </p>
-      </section>
+      </div>
 
       {error && (
         <div className="mb-4">
@@ -225,12 +233,7 @@ export default function PaymentsPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-            <span className="text-sm">Cargando pagos...</span>
-          </div>
-        </div>
+        <PageLoading label="Cargando pagos..." />
       ) : filteredPayments.length === 0 ? (
         <EmptyState
           icon="💳"
@@ -246,7 +249,6 @@ export default function PaymentsPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="border-slate-600 text-slate-200 hover:bg-slate-800"
                 onClick={() => {
                   setFieldErrors({});
                   setModalOpen(true);
@@ -258,7 +260,6 @@ export default function PaymentsPage() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<PaymentItem>
           columns={[
             { key: 'date', header: 'Fecha' },
@@ -308,7 +309,6 @@ export default function PaymentsPage() {
             return null;
           }}
         />
-        </div>
       )}
     </>
   );

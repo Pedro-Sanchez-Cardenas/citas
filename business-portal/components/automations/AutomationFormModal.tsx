@@ -116,7 +116,7 @@ export function AutomationFormModal({
           ))}
         </Select>
 
-        <div className="md:col-span-2">
+        <div className="surface-inset p-3 md:col-span-2">
           <Textarea
             label="Condiciones (JSON)"
             id="automation-conditions"
@@ -125,10 +125,11 @@ export function AutomationFormModal({
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setConditionsJson(e.target.value)}
             hint="Configura filtros como días de anticipación, tipos de servicio, etc."
             error={fieldErrors.conditions}
+            textareaClassName="font-mono text-[13px] leading-relaxed"
           />
         </div>
 
-        <div className="md:col-span-2">
+        <div className="surface-inset p-3 md:col-span-2">
           <Textarea
             label="Acción (JSON)"
             id="automation-action"
@@ -137,6 +138,7 @@ export function AutomationFormModal({
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setActionJson(e.target.value)}
             hint="Define mensajes, canales (SMS/email) y otros parámetros."
             error={fieldErrors.action}
+            textareaClassName="font-mono text-[13px] leading-relaxed"
           />
         </div>
 
@@ -153,7 +155,7 @@ export function AutomationFormModal({
           )}
         </div>
 
-        <div className="mt-2 flex items-center justify-end gap-2 md:col-span-2">
+        <div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
           <Button type="button" variant="subtle" size="sm" onClick={onClose}>
             Cancelar
           </Button>

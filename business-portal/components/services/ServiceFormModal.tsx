@@ -169,7 +169,7 @@ export function ServiceFormModal({
           )}
         </div>
 
-        <div className="md:col-span-2 mt-2 flex items-center justify-end gap-2">
+        <div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
           <Button
             type="button"
             variant="subtle"

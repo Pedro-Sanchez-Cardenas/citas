@@ -7,7 +7,7 @@ import {
   fetchProfessionalsReport,
   fetchServicesReport,
 } from '@/lib/api/reports';
-import { Select, Table } from '@/components/ui';
+import { Select, Table, PageHeader, Alert, PageLoading } from '@/components/ui';
 import type { BusinessSummary, ReportRow } from '@/components/reports/types';
 import type { AxiosError } from 'axios';
 
@@ -73,95 +73,101 @@ export default function ReportsPage() {
 
   return (
     <>
-      <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-            Reportes
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">
-            Revisa el rendimiento de tu negocio, de tu equipo y de tus servicios.
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-          <div className="inline-flex rounded-2xl border border-slate-800/80 bg-slate-950/70 p-1 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveTab('business')}
-              className={`flex-1 rounded-xl px-3 py-1.5 ${
-                activeTab === 'business'
-                  ? 'bg-slate-900 text-slate-50 shadow-[0_0_0_1px_rgba(148,163,184,0.6)]'
-                  : 'text-slate-400 hover:text-slate-100'
-              }`}
-            >
-              Negocio
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('professionals')}
-              className={`flex-1 rounded-xl px-3 py-1.5 ${
-                activeTab === 'professionals'
-                  ? 'bg-slate-900 text-slate-50 shadow-[0_0_0_1px_rgba(148,163,184,0.6)]'
-                  : 'text-slate-400 hover:text-slate-100'
-              }`}
-            >
-              Profesionales
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('services')}
-              className={`flex-1 rounded-xl px-3 py-1.5 ${
-                activeTab === 'services'
-                  ? 'bg-slate-900 text-slate-50 shadow-[0_0_0_1px_rgba(148,163,184,0.6)]'
-                  : 'text-slate-400 hover:text-slate-100'
-              }`}
-            >
-              Servicios
-            </button>
-          </div>
-          <Select
-            value={period}
-            onChange={(e: ChangeEvent<HTMLSelectElement>) => setPeriod(e.target.value)}
+      <PageHeader
+        title="Reportes"
+        subtitle="Compara ingresos, citas y equipo con los periodos que elijas."
+      />
+
+      <div className="surface-inset mb-6 flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <div
+          className="inline-flex rounded-2xl border border-white/[0.08] bg-slate-950/50 p-1 text-xs font-medium"
+          role="tablist"
+          aria-label="Tipo de reporte"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'business'}
+            onClick={() => setActiveTab('business')}
+            className={`rounded-xl px-3 py-2 transition-colors ${
+              activeTab === 'business'
+                ? 'bg-teal-500/20 text-teal-100 ring-1 ring-teal-400/35'
+                : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
+            }`}
           >
-            <option value="7">Últimos 7 días</option>
-            <option value="30">Últimos 30 días</option>
-            <option value="90">Últimos 90 días</option>
-          </Select>
+            Negocio
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'professionals'}
+            onClick={() => setActiveTab('professionals')}
+            className={`rounded-xl px-3 py-2 transition-colors ${
+              activeTab === 'professionals'
+                ? 'bg-teal-500/20 text-teal-100 ring-1 ring-teal-400/35'
+                : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
+            }`}
+          >
+            Profesionales
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeTab === 'services'}
+            onClick={() => setActiveTab('services')}
+            className={`rounded-xl px-3 py-2 transition-colors ${
+              activeTab === 'services'
+                ? 'bg-teal-500/20 text-teal-100 ring-1 ring-teal-400/35'
+                : 'text-slate-400 hover:bg-white/[0.06] hover:text-slate-100'
+            }`}
+          >
+            Servicios
+          </button>
         </div>
-      </header>
+        <Select
+          label="Periodo"
+          id="reports-period"
+          value={period}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setPeriod(e.target.value)}
+          className="w-full sm:w-56"
+        >
+          <option value="7">Últimos 7 días</option>
+          <option value="30">Últimos 30 días</option>
+          <option value="90">Últimos 90 días</option>
+        </Select>
+      </div>
 
       {error && (
-        <div className="mb-4 rounded-xl border border-red-500/45 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-100 shadow-[0_0_0_1px_rgba(248,113,113,0.25)]">
-          {error}
+        <div className="mb-4">
+          <Alert variant="error">{error}</Alert>
         </div>
       )}
 
       {isLoading ? (
-        <div className="mt-10 flex items-center justify-center text-sm text-slate-400">
-          Cargando reportes...
-        </div>
+        <PageLoading label="Generando reportes..." />
       ) : activeTab === 'business' ? (
-        <section className="grid grid-cols-1 gap-5 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.85)]">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-3" aria-label="Resumen del negocio">
+          <div className="surface-panel p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
               Ingresos
             </div>
-            <div className="mt-2 text-2xl font-semibold text-slate-50">
+            <div className="mt-3 text-2xl font-semibold tabular-nums text-slate-50">
               {businessSummary?.total_revenue_formatted ?? '—'}
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.85)]">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+          <div className="surface-panel p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
               Citas atendidas
             </div>
-            <div className="mt-2 text-2xl font-semibold text-slate-50">
+            <div className="mt-3 text-2xl font-semibold tabular-nums text-slate-50">
               {businessSummary?.appointments_attended ?? '—'}
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-800/80 bg-slate-950/80 p-4 shadow-[0_10px_30px_rgba(15,23,42,0.85)]">
-            <div className="text-[11px] uppercase tracking-[0.16em] text-slate-400">
+          <div className="surface-panel p-5">
+            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
               Nuevos clientes
             </div>
-            <div className="mt-2 text-2xl font-semibold text-slate-50">
+            <div className="mt-3 text-2xl font-semibold tabular-nums text-slate-50">
               {businessSummary?.new_clients ?? '—'}
             </div>
           </div>

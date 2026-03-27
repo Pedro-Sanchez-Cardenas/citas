@@ -21,14 +21,14 @@ export default function EmptyState({
   return (
     <div
       className={clsx(
-        'flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-700/70 bg-slate-900/30',
+        'flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.12] bg-slate-950/35 backdrop-blur-sm',
         'px-5 py-10 sm:px-8 sm:py-12 text-center',
         className
       )}
     >
       {icon && (
         <div
-          className="mb-4 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-800/80 text-2xl sm:h-16 sm:w-16 sm:text-3xl"
+          className="mb-4 flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.05] text-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] sm:h-16 sm:w-16 sm:text-3xl"
           aria-hidden
         >
           {icon}

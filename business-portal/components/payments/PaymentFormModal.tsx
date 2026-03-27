@@ -118,7 +118,7 @@ export function PaymentFormModal({
           <option value="">Sin asociar a cita</option>
           {appointments.slice(0, 100).map((a) => (
             <option key={a.id} value={a.id}>
-              {a.client_name} — {a.start_at ? formatDateTime(a.start_at) : ''}
+              {String(a.client_name ?? '')} — {a.start_at ? formatDateTime(a.start_at) : ''}
             </option>
           ))}
         </Select>
@@ -209,7 +209,7 @@ export function PaymentFormModal({
           error={fieldErrors.provider_payment_id}
         />
 
-        <div className="mt-2 flex items-center justify-end gap-2 md:col-span-2">
+        <div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
           <Button type="button" variant="subtle" size="sm" onClick={onClose}>
             Cancelar
           </Button>

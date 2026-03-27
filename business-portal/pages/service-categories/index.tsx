@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import type { ChangeEvent } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   fetchServiceCategories,
@@ -9,7 +8,16 @@ import {
   deleteServiceCategory,
 } from '@/lib/api/serviceCategories';
 import { extractFieldErrors, type FormFieldErrors } from '@/lib/formErrors';
-import { Button, Input, Table, FloatMenu, EmptyState, Alert, PageHeader } from '@/components/ui';
+import {
+  Button,
+  Table,
+  FloatMenu,
+  EmptyState,
+  Alert,
+  PageHeader,
+  SearchBar,
+  PageLoading,
+} from '@/components/ui';
 import {
   CategoryFormModal,
   type ServiceCategoryRecord,
@@ -189,25 +197,20 @@ export default function ServiceCategoriesPage() {
         }
       />
 
-      <section className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Filtrar categorías">
-        <div className="flex-1 max-w-md">
-          <div className="relative">
-            <Input
-              type="text"
-              value={search}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre o descripción..."
-              inputClassName="pl-10 rounded-xl border-slate-700/80 bg-slate-950/50"
-            />
-            <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-500" aria-hidden>🔍</span>
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">
+      <div className="page-filters" role="search" aria-label="Filtrar categorías">
+        <SearchBar
+          id="categories-search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o descripción..."
+          className="min-w-0 flex-1"
+        />
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
           {search.trim()
             ? `${filteredCategories.length} de ${categories.length} categorías`
             : `${categories.length} categoría${categories.length === 1 ? '' : 's'}`}
         </p>
-      </section>
+      </div>
 
       {error && (
         <div className="mb-4">
@@ -216,12 +219,7 @@ export default function ServiceCategoriesPage() {
       )}
 
       {isLoading ? (
-        <div className="flex min-h-[280px] items-center justify-center rounded-2xl border border-slate-700/60 bg-slate-900/30">
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-teal-500/50 border-t-teal-400" />
-            <span className="text-sm">Cargando categorías...</span>
-          </div>
-        </div>
+        <PageLoading label="Cargando categorías..." />
       ) : filteredCategories.length === 0 ? (
         <EmptyState
           icon="🧩"
@@ -233,14 +231,13 @@ export default function ServiceCategoriesPage() {
           }
           action={
             !search.trim() ? (
-              <Button type="button" variant="outline" size="sm" className="border-slate-600 text-slate-200 hover:bg-slate-800" onClick={openCreateModal}>
+              <Button type="button" variant="outline" size="sm" onClick={openCreateModal}>
                 Crear primera categoría
               </Button>
             ) : null
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-900/40">
         <Table<ServiceCategoryRecord>
           columns={[
             { key: 'name', header: 'Nombre' },
@@ -292,7 +289,6 @@ export default function ServiceCategoriesPage() {
             return null;
           }}
         />
-        </div>
       )}
     </>
   );
