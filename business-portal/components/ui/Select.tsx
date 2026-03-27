@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import {
   Children,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -11,6 +12,7 @@ import {
   isValidElement,
 } from 'react';
 import type { SelectHTMLAttributes } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string | null;
@@ -39,9 +41,20 @@ export default function Select({
   const [open, setOpen] = useState(false);
   const [internalValue, setInternalValue] = useState(() => String(props.defaultValue ?? ''));
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listboxRef = useRef<HTMLDivElement>(null);
+  const generatedId = useId();
+  const fieldId = id ?? `select-${generatedId}`;
+  const listboxId = `${fieldId}-listbox`;
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number; width: number; maxHeight: number }>({
+    top: 0,
+    left: 0,
+    width: 0,
+    maxHeight: 256,
+  });
   const effectiveError = error ?? nativeError;
-  const hintId = hint ? `${id}-hint` : undefined;
-  const errorId = effectiveError ? `${id}-error` : undefined;
+  const hintId = hint ? `${fieldId}-hint` : undefined;
+  const errorId = effectiveError ? `${fieldId}-error` : undefined;
   const controlledValue = props.value;
   const currentValue = controlledValue != null ? String(controlledValue) : internalValue;
 
@@ -108,19 +121,63 @@ export default function Select({
 
   useEffect(() => {
     if (!open) return;
+
+    const updateMenuPosition = () => {
+      const trigger = triggerRef.current;
+      if (!trigger) return;
+
+      const rect = trigger.getBoundingClientRect();
+      const safeMargin = 8;
+      const gap = 8;
+      const viewportHeight = window.innerHeight;
+      const viewportWidth = window.innerWidth;
+      const spaceBelow = viewportHeight - rect.bottom - gap - safeMargin;
+      const spaceAbove = rect.top - gap - safeMargin;
+      const contentHeight = Math.min(listboxRef.current?.scrollHeight ?? 256, 256);
+      const openUp = spaceBelow < contentHeight && spaceAbove > spaceBelow;
+      const availableSpace = openUp ? spaceAbove : spaceBelow;
+      const maxHeight = Math.max(120, Math.min(256, availableSpace));
+      const renderedHeight = Math.min(contentHeight, maxHeight);
+      const width = Math.min(rect.width, viewportWidth - safeMargin * 2);
+      const unclampedLeft = rect.left;
+      const left = Math.max(safeMargin, Math.min(unclampedLeft, viewportWidth - safeMargin - width));
+      const top = openUp
+        ? Math.max(safeMargin, rect.top - gap - renderedHeight)
+        : Math.min(viewportHeight - safeMargin - renderedHeight, rect.bottom + gap);
+
+      setMenuPosition({
+        top,
+        left,
+        width,
+        maxHeight,
+      });
+    };
+
     const handleClickOutside = (event: MouseEvent) => {
-      if (!wrapperRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (!wrapperRef.current?.contains(target) && !listboxRef.current?.contains(target)) {
         setOpen(false);
       }
     };
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
+    const handleScroll = () => {
+      setOpen(false);
+    };
+
+    updateMenuPosition();
+    const rafId = window.requestAnimationFrame(updateMenuPosition);
     document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleEscape);
+    window.addEventListener('resize', updateMenuPosition);
+    window.addEventListener('scroll', handleScroll, true);
     return () => {
+      window.cancelAnimationFrame(rafId);
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('resize', updateMenuPosition);
+      window.removeEventListener('scroll', handleScroll, true);
     };
   }, [open]);
 
@@ -135,7 +192,7 @@ export default function Select({
       {label && (
         <label
           className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400"
-          htmlFor={id}
+          htmlFor={fieldId}
         >
           {label}
           {required && <span className="ml-0.5 text-red-400">*</span>}
@@ -143,7 +200,7 @@ export default function Select({
       )}
       <div ref={wrapperRef} className="group relative">
         <select
-          id={id}
+          id={fieldId}
           name={props.name}
           value={currentValue}
           required={required}
@@ -176,9 +233,10 @@ export default function Select({
           )}
           aria-haspopup="listbox"
           aria-expanded={open}
-          aria-controls={id ? `${id}-listbox` : undefined}
+          aria-controls={listboxId}
           disabled={props.disabled}
           onClick={() => setOpen((prev) => !prev)}
+          ref={triggerRef}
         >
           <span className="block truncate">{selectedLabel}</span>
           <span
@@ -200,50 +258,60 @@ export default function Select({
           </span>
         </button>
 
-        {open && (
-          <div
-            id={id ? `${id}-listbox` : undefined}
-            role="listbox"
-            className="absolute z-30 mt-2 max-h-64 w-full overflow-y-auto rounded-xl border border-white/10 bg-slate-900/90 p-1 shadow-(--shadow-modal) backdrop-blur-xl"
-          >
-            {options.map((item, idx) =>
-              item.type === 'group' ? (
-                <div
-                  key={`group-${idx}`}
-                  className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500"
-                >
-                  {item.label}
-                </div>
-              ) : (
-                <button
-                  key={`${item.value}-${idx}`}
-                  type="button"
-                  role="option"
-                  aria-selected={item.value === currentValue}
-                  disabled={item.disabled}
-                  onClick={() => {
-                    if (item.disabled) return;
-                    emitChange(item.value);
-                    setOpen(false);
-                  }}
-                  className={clsx(
-                    'flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-sm transition',
-                    item.disabled
-                      ? 'cursor-not-allowed text-slate-600'
-                      : item.value === currentValue
-                        ? 'bg-teal-500/15 text-teal-100 ring-1 ring-teal-500/30'
-                        : 'text-slate-200 hover:bg-white/8'
-                  )}
-                >
-                  <span className="truncate">{item.label}</span>
-                  {item.value === currentValue && (
-                    <span className="ml-2 text-xs text-teal-300" aria-hidden>✓</span>
-                  )}
-                </button>
-              )
-            )}
-          </div>
-        )}
+        {open &&
+          typeof document !== 'undefined' &&
+          createPortal(
+            <div
+              id={listboxId}
+              ref={listboxRef}
+              role="listbox"
+              className="fixed z-120 overflow-y-auto rounded-xl border border-white/10 bg-slate-900/90 p-1 shadow-(--shadow-modal) backdrop-blur-xl"
+              style={{
+                top: `${menuPosition.top}px`,
+                left: `${menuPosition.left}px`,
+                width: `${menuPosition.width}px`,
+                maxHeight: `${menuPosition.maxHeight}px`,
+              }}
+            >
+              {options.map((item, idx) =>
+                item.type === 'group' ? (
+                  <div
+                    key={`group-${idx}`}
+                    className="px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500"
+                  >
+                    {item.label}
+                  </div>
+                ) : (
+                  <button
+                    key={`${item.value}-${idx}`}
+                    type="button"
+                    role="option"
+                    aria-selected={item.value === currentValue}
+                    disabled={item.disabled}
+                    onClick={() => {
+                      if (item.disabled) return;
+                      emitChange(item.value);
+                      setOpen(false);
+                    }}
+                    className={clsx(
+                      'flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-sm transition',
+                      item.disabled
+                        ? 'cursor-not-allowed text-slate-600'
+                        : item.value === currentValue
+                          ? 'bg-teal-500/15 text-teal-100 ring-1 ring-teal-500/30'
+                          : 'text-slate-200 hover:bg-white/8'
+                    )}
+                  >
+                    <span className="truncate">{item.label}</span>
+                    {item.value === currentValue && (
+                      <span className="ml-2 text-xs text-teal-300" aria-hidden>✓</span>
+                    )}
+                  </button>
+                )
+              )}
+            </div>,
+            document.body
+          )}
       </div>
       {hint && !effectiveError && (
         <p id={hintId} className="text-[11px] text-slate-500">{hint}</p>
