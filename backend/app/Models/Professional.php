@@ -9,6 +9,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ * @property int $business_id
+ * @property int $branch_id
+ * @property string $name
+ * @property string|null $email Requerido solo al crear cuenta worker (login); opcional en otro caso.
+ * @property string|null $phone
+ * @property string|null $color
+ * @property float $commission_rate
+ * @property int $base_salary_cents
+ * @property bool $is_active
+ * @property string|null $photo_path
+ */
 class Professional extends Model
 {
     use HasFactory;
@@ -26,7 +39,12 @@ class Professional extends Model
         'photo_path',
     ];
 
-    protected $appends = ['photo_url'];
+    protected $appends = ['photo_url', 'has_worker_user'];
+
+    /** @var list<string> */
+    protected $hidden = [
+        'user_exists',
+    ];
 
     protected $casts = [
         'commission_rate' => 'float',
@@ -76,7 +94,15 @@ class Professional extends Model
             return null;
         }
 
-        return '/storage/' . ltrim($this->photo_path, '/');
+        return '/storage/'.ltrim($this->photo_path, '/');
+    }
+
+    public function getHasWorkerUserAttribute(): bool
+    {
+        if (array_key_exists('user_exists', $this->attributes)) {
+            return (bool) $this->attributes['user_exists'];
+        }
+
+        return $this->user()->exists();
     }
 }
-

@@ -16,8 +16,7 @@ class ProfessionalController extends Controller
 
     public function __construct(
         protected ProfessionalService $professionalService
-    ) {
-    }
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -43,6 +42,8 @@ class ProfessionalController extends Controller
     public function show(Request $request, Professional $professional): JsonResponse
     {
         $this->assertModelBelongsToRequestBusiness($professional, $request);
+
+        $professional->loadExists('user');
 
         return response()->json($professional);
     }

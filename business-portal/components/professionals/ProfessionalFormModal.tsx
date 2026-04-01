@@ -26,6 +26,8 @@ type ProfessionalWithExtras = Professional & {
     is_active?: boolean;
     branch_id?: number;
     photo_url?: string | null;
+    /** True si existe usuario worker ligado (login con este correo). */
+    has_worker_user?: boolean;
 };
 
 export function ProfessionalFormModal({
@@ -45,7 +47,9 @@ export function ProfessionalFormModal({
     const [phone, setPhone] = useState(data?.phone ?? '');
     const [color, setColor] = useState(data?.color ?? '#22c55e');
     const [createWorkerUser, setCreateWorkerUser] = useState(!initialData?.id);
-    const [updateWorkerPassword, setUpdateWorkerPassword] = useState(false);
+    const [updateWorkerCredentials, setUpdateWorkerCredentials] = useState(
+        () => Boolean(initialData?.id && (initialData as ProfessionalWithExtras).has_worker_user)
+    );
     const [workerPassword, setWorkerPassword] = useState('');
     const [commissionRate, setCommissionRate] = useState(
         data?.commission_rate != null ? String(data.commission_rate) : ''
@@ -67,7 +71,7 @@ export function ProfessionalFormModal({
             setPhone(data?.phone ?? '');
             setColor(data?.color ?? '#22c55e');
             setCreateWorkerUser(!initialData?.id);
-            setUpdateWorkerPassword(false);
+            setUpdateWorkerCredentials(!!data?.has_worker_user);
             setWorkerPassword('');
             setCommissionRate(
                 data?.commission_rate != null ? String(data.commission_rate) : ''
@@ -85,6 +89,7 @@ export function ProfessionalFormModal({
     }, [open, initialData, branches]);
 
     const isEdit = !!initialData?.id;
+    const hasWorkerUser = Boolean(data?.has_worker_user);
 
     const generatePassword = () => {
         const charset =
@@ -129,7 +134,13 @@ export function ProfessionalFormModal({
         const payload: ProfessionalFormPayload = {
             branch_id: effectiveBranchId,
             name,
-            email: email || null,
+            email: !isEdit
+                ? createWorkerUser
+                    ? email.trim() || null
+                    : null
+                : updateWorkerCredentials
+                  ? email.trim() || null
+                  : undefined,
             phone: phone || null,
             color: color || null,
             commission_rate:
@@ -142,9 +153,9 @@ export function ProfessionalFormModal({
                     : null,
             is_active: !!isActive,
             create_worker_user: !isEdit ? createWorkerUser : undefined,
-            update_worker_password: isEdit ? updateWorkerPassword : undefined,
+            update_worker_credentials: isEdit ? updateWorkerCredentials : undefined,
             worker_password:
-                (!isEdit && createWorkerUser) || (isEdit && updateWorkerPassword)
+                (!isEdit && createWorkerUser) || (isEdit && updateWorkerCredentials)
                     ? workerPassword
                     : undefined,
         };
@@ -227,45 +238,50 @@ export function ProfessionalFormModal({
                                     {photoDisplay ? 'Cambiar foto' : 'Subir foto'}
                                 </label>
                                 <p className="text-[11px] text-slate-500">JPG, PNG o WebP. Máx. 5 MB</p>
-								{fieldErrors.photo && (
-									<p className="text-[11px] text-red-300" role="alert">
-										{fieldErrors.photo}
-									</p>
-								)}
+                                {fieldErrors.photo && (
+                                    <p className="text-[11px] text-red-300" role="alert">
+                                        {fieldErrors.photo}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <Input
-                    label="Correo electrónico"
-                    id="professional-email"
-                    type="email"
-                    value={email}
-                    required
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                    placeholder="equipo@salon.com"
-                    error={fieldErrors.email}
-                />
-
                 {!isEdit && (
                     <div className="md:col-span-2 flex flex-col gap-3">
                         <Checkbox
                             checked={createWorkerUser}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                setCreateWorkerUser(e.target.checked)
-                            }
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                const checked = e.target.checked;
+                                setCreateWorkerUser(checked);
+                                if (!checked) {
+                                    setEmail('');
+                                    setWorkerPassword('');
+                                }
+                            }}
                             label="Crear cuenta worker para este profesional"
                         />
 
                         {createWorkerUser && (
                             <div className="flex flex-col gap-3">
                                 <Input
+                                    label="Correo electrónico"
+                                    id="professional-email"
+                                    type="email"
+                                    value={email}
+                                    required={createWorkerUser}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                                    placeholder="equipo@salon.com"
+                                    error={fieldErrors.email}
+                                />
+
+                                <Input
                                     label="Contraseña del worker"
                                     id="professional-worker-password"
                                     type="text"
                                     value={workerPassword}
-                                    required
+                                    required={createWorkerUser}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                         setWorkerPassword(e.target.value)
                                     }
@@ -292,29 +308,49 @@ export function ProfessionalFormModal({
                 {isEdit && (
                     <div className="md:col-span-2 flex flex-col gap-3">
                         <Checkbox
-                            checked={updateWorkerPassword}
+                            checked={updateWorkerCredentials}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 const checked = e.target.checked;
-                                setUpdateWorkerPassword(checked);
+                                setUpdateWorkerCredentials(checked);
                                 if (!checked) setWorkerPassword('');
                             }}
-                            label="Actualizar/reemplazar contraseña del worker"
+                            label={
+                                hasWorkerUser
+                                    ? 'Actualizar credenciales del worker (correo y contraseña)'
+                                    : 'Definir credenciales del worker (correo y contraseña)'
+                            }
                         />
 
-                        {updateWorkerPassword && (
+                        {updateWorkerCredentials && (
                             <div className="flex flex-col gap-3">
                                 <Input
-                                    label="Nueva contraseña del worker"
+                                    label="Correo electrónico (login worker)"
+                                    id="professional-email-edit"
+                                    type="email"
+                                    value={email}
+                                    required={hasWorkerUser}
+                                    onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                                    placeholder="equipo@salon.com"
+                                    error={fieldErrors.email}
+                                    hint={
+                                        hasWorkerUser
+                                            ? 'Este correo es el usuario de acceso del worker; es obligatorio mientras exista la cuenta.'
+                                            : 'Opcional si aún no hay cuenta worker; necesario si crearás o enlazarás el acceso.'
+                                    }
+                                />
+
+                                <Input
+                                    label="Contraseña del worker"
                                     id="professional-worker-password-edit"
                                     type="text"
                                     value={workerPassword}
-                                    required
+                                    required={updateWorkerCredentials}
                                     onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                         setWorkerPassword(e.target.value)
                                     }
                                     error={fieldErrors.worker_password}
                                     placeholder="Escribe una contraseña o genérala"
-                                    hint="Solo se actualizará si activas esta opción."
+                                    hint="Se guarda junto con el correo cuando esta sección está activa."
                                 />
 
                                 <div className="flex items-center justify-end gap-2">
@@ -351,20 +387,20 @@ export function ProfessionalFormModal({
                             type="color"
                             value={color || '#22c55e'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setColor(e.target.value)}
-							className={clsx(
-								'h-9 w-12 cursor-pointer rounded-lg border border-white/[0.12] bg-slate-950/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
-								fieldErrors.color ? 'border-red-500/80 bg-red-950/30' : ''
-							)}
+                            className={clsx(
+                                'h-9 w-12 cursor-pointer rounded-lg border border-white/[0.12] bg-slate-950/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+                                fieldErrors.color ? 'border-red-500/80 bg-red-950/30' : ''
+                            )}
                         />
                         <span className="text-xs text-slate-400">
                             Usa un color distintivo para identificar rápidamente a la persona en la agenda.
                         </span>
                     </div>
-					{fieldErrors.color && (
-						<p className="mt-1 text-[11px] text-red-300" role="alert">
-							{fieldErrors.color}
-						</p>
-					)}
+                    {fieldErrors.color && (
+                        <p className="mt-1 text-[11px] text-red-300" role="alert">
+                            {fieldErrors.color}
+                        </p>
+                    )}
                 </div>
 
                 <Input
@@ -388,7 +424,7 @@ export function ProfessionalFormModal({
                     type="number"
                     min={0}
                     step="0.01"
-                    value={baseSalary}  
+                    value={baseSalary}
                     required
                     onChange={(e: ChangeEvent<HTMLInputElement>) => setBaseSalary(e.target.value)}
                     placeholder="Ej. 8000.00"
@@ -396,22 +432,22 @@ export function ProfessionalFormModal({
                     error={fieldErrors.base_salary_cents}
                 />
 
-				<div className="md:col-span-2 flex flex-col gap-1 pt-2">
-					<div className="flex items-center justify-between">
-						<Checkbox
-							checked={!!isActive}
-							onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
-							label="Profesional activo (aparece para agendar citas)"
-						/>
-					</div>
-					{fieldErrors.is_active && (
-						<p className="text-[11px] text-red-300" role="alert">
-							{fieldErrors.is_active}
-						</p>
-					)}
-				</div>
+                <div className="md:col-span-2 flex flex-col gap-1 pt-2">
+                    <div className="flex items-center justify-between">
+                        <Checkbox
+                            checked={!!isActive}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setIsActive(e.target.checked)}
+                            label="Profesional activo (aparece para agendar citas)"
+                        />
+                    </div>
+                    {fieldErrors.is_active && (
+                        <p className="text-[11px] text-red-300" role="alert">
+                            {fieldErrors.is_active}
+                        </p>
+                    )}
+                </div>
 
-				<div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
+                <div className="form-divider mt-2 flex flex-wrap items-center justify-end gap-2 md:col-span-2">
                     <Button
                         type="button"
                         variant="subtle"

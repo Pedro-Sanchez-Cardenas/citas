@@ -15,18 +15,36 @@ class UpdateProfessionalRequest extends FormRequest
         return $user?->hasPermissionTo('manage_professionals') ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $email = $this->input('email');
+        if ($email === '' || $email === null) {
+            $this->merge(['email' => null]);
+        } elseif (is_string($email)) {
+            $this->merge(['email' => trim($email)]);
+        }
+    }
+
     public function rules(): array
     {
         $param = $this->route('professional');
         $professionalId = $param instanceof Professional ? $param->getKey() : $param;
-        $updateWorkerPassword = (bool) $this->boolean('update_worker_password');
+        $updateWorkerCredentials = (bool) $this->boolean('update_worker_credentials')
+            || (bool) $this->boolean('update_worker_password');
+
+        $professional = $param instanceof Professional ? $param : null;
+        if ($professional instanceof Professional) {
+            $professional->loadMissing('user');
+        }
+        $hasWorkerUser = $professional instanceof Professional && $professional->user !== null;
 
         return [
             'branch_id' => ['sometimes', 'integer', 'exists:branches,id'],
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => [
+                Rule::excludeIf(fn () => ! $this->boolean('update_worker_credentials') && ! $this->boolean('update_worker_password')),
                 'sometimes',
-                'nullable',
+                $hasWorkerUser ? 'required' : 'nullable',
                 'string',
                 'email',
                 'max:255',
@@ -38,9 +56,10 @@ class UpdateProfessionalRequest extends FormRequest
             'base_salary_cents' => ['sometimes', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
             'photo' => ['sometimes', 'nullable', 'image', 'max:5120'],
+            'update_worker_credentials' => ['sometimes', 'boolean'],
             'update_worker_password' => ['sometimes', 'boolean'],
             'worker_password' => [
-                $updateWorkerPassword ? 'required' : 'nullable',
+                $updateWorkerCredentials ? 'required' : 'nullable',
                 'string',
                 'min:8',
                 'max:255',

@@ -12,8 +12,7 @@ class ProfessionalService
 {
     public function __construct(
         protected ProfessionalRepositoryInterface $professionals
-    ) {
-    }
+    ) {}
 
     public function listForBusiness(int $businessId, ?int $branchId = null, int $perPage = 15): LengthAwarePaginator
     {
@@ -25,6 +24,10 @@ class ProfessionalService
         return $this->professionals->filterIdsForBusiness($businessId, $ids);
     }
 
+    /**
+     * @param  array<string, mixed>  $data  Debe incluir create_worker_user / worker_password cuando aplique.
+     *                                      El correo solo es obligatorio si create_worker_user es true (validación en StoreProfessionalRequest).
+     */
     public function createForBusiness(int $businessId, array $data): Professional
     {
         return $this->professionals->createForBusiness($businessId, $data);
@@ -92,4 +95,3 @@ class ProfessionalService
         return [$workerProfessionalId, $workerBranchId];
     }
 }
-

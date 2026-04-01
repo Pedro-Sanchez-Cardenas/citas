@@ -9,6 +9,7 @@ class StoreProfessionalRequest extends FormRequest
     public function authorize(): bool
     {
         $user = $this->user();
+
         return $user?->hasPermissionTo('manage_professionals') ?? false;
     }
 
@@ -43,4 +44,3 @@ class StoreProfessionalRequest extends FormRequest
         ];
     }
 }
-

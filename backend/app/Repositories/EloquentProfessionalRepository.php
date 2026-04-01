@@ -2,8 +2,8 @@
 
 namespace App\Repositories;
 
-use App\Models\User;
 use App\Models\Professional;
+use App\Models\User;
 use App\Repositories\Contracts\ProfessionalRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -30,6 +30,7 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
         return Professional::query()
             ->where('business_id', $businessId)
             ->when($branchId, fn ($q) => $q->where('branch_id', $branchId))
+            ->withExists('user')
             ->orderBy('name')
             ->paginate($perPage);
     }
@@ -38,6 +39,7 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
     {
         return Professional::query()
             ->where('business_id', $businessId)
+            ->withExists('user')
             ->find($id);
     }
 
@@ -49,6 +51,14 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
         unset($data['create_worker_user'], $data['worker_password']);
 
         $data['business_id'] = $businessId;
+
+        if (isset($data['email']) && $data['email'] === '') {
+            $data['email'] = null;
+        }
+
+        if (! $createWorkerUser) {
+            $data['email'] = null;
+        }
 
         $professional = Professional::create($data);
 
@@ -75,9 +85,13 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
 
     public function update(Professional $professional, array $data): Professional
     {
-        $updateWorkerPassword = (bool) ($data['update_worker_password'] ?? false);
+        $updateWorkerCredentials = (bool) ($data['update_worker_credentials'] ?? $data['update_worker_password'] ?? false);
         $workerPassword = $data['worker_password'] ?? null;
-        unset($data['update_worker_password'], $data['worker_password']);
+        unset($data['update_worker_credentials'], $data['update_worker_password'], $data['worker_password']);
+
+        if (array_key_exists('email', $data) && $data['email'] === '') {
+            $data['email'] = null;
+        }
 
         $professional->fill($data);
         $professional->save();
@@ -93,7 +107,7 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
                 $user->email = $data['email'];
             }
 
-            if ($updateWorkerPassword && ! empty($workerPassword)) {
+            if ($updateWorkerCredentials && ! empty($workerPassword)) {
                 $user->password = Hash::make((string) $workerPassword);
             }
 
@@ -128,8 +142,8 @@ class EloquentProfessionalRepository implements ProfessionalRepositoryInterface
         return Professional::query()
             ->where('business_id', $businessId)
             ->where('is_active', true)
+            ->withExists('user')
             ->orderBy('name')
             ->get(['id', 'name', 'branch_id']);
     }
 }
-

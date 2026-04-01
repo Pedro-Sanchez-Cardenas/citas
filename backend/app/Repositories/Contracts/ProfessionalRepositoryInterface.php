@@ -15,11 +15,15 @@ interface ProfessionalRepositoryInterface
     /**
      * Filtra cuáles ids de profesionales pertenecen al negocio.
      *
-     * @param int[] $ids
+     * @param  int[]  $ids
      * @return int[] ids válidos (únicos)
      */
     public function filterIdsForBusiness(int $businessId, array $ids): array;
 
+    /**
+     * @param  array<string, mixed>  $data  Incluye create_worker_user / worker_password cuando aplique.
+     *                                      El correo solo es obligatorio si create_worker_user es true.
+     */
     public function createForBusiness(int $businessId, array $data): Professional;
 
     public function update(Professional $professional, array $data): Professional;
@@ -38,4 +42,3 @@ interface ProfessionalRepositoryInterface
      */
     public function listActiveForPublicBooking(int $businessId): Collection;
 }
-

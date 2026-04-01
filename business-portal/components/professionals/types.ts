@@ -14,6 +14,7 @@ export interface ProfessionalFormPayload {
     is_active?: boolean;
 
     create_worker_user?: boolean;
-    update_worker_password?: boolean;
+    /** Si true, se envían correo y contraseña del worker al actualizar. */
+    update_worker_credentials?: boolean;
     worker_password?: string;
 }

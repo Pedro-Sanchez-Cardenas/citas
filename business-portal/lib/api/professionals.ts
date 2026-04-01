@@ -23,7 +23,7 @@ export interface CreateProfessionalPayload {
   name: string;
   branch_id?: number | null;
   create_worker_user?: boolean;
-  update_worker_password?: boolean;
+  update_worker_credentials?: boolean;
   worker_password?: string;
   [key: string]: unknown;
 }
@@ -38,7 +38,7 @@ const FORM_KEYS = [
   'base_salary_cents',
   'is_active',
   'create_worker_user',
-  'update_worker_password',
+  'update_worker_credentials',
   'worker_password',
 ] as const;
 
@@ -67,7 +67,7 @@ function buildProfessionalFormData(
       form.append(key, v ? '1' : '0');
       return;
     }
-    if (key === 'update_worker_password') {
+    if (key === 'update_worker_credentials') {
       form.append(key, v ? '1' : '0');
       return;
     }
