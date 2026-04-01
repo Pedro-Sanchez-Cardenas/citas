@@ -1,31 +1,31 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\BillingController;
-use App\Http\Controllers\StripeWebhookController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\ServiceCategoryController;
-use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ProfessionalController;
-use App\Http\Controllers\ClientController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AutomationController;
-use App\Http\Controllers\PublicBookingController;
-use App\Http\Controllers\PublicCustomerAuthController;
-use App\Http\Controllers\WorkingHourController;
-use App\Http\Controllers\CombinedServiceController;
-use App\Http\Controllers\ServiceProfessionalController;
-use App\Http\Controllers\ServiceMaterialController;
-use App\Http\Controllers\ClientMediaController;
-use App\Http\Controllers\TimeBlockController;
-use App\Http\Controllers\ReportController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BusinessSetupController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClientMediaController;
+use App\Http\Controllers\CombinedServiceController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfessionalController;
+use App\Http\Controllers\PublicBookingController;
+use App\Http\Controllers\PublicCustomerAuthController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\ServiceCategoryController;
+use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\ServiceMaterialController;
+use App\Http\Controllers\ServiceProfessionalController;
+use App\Http\Controllers\StripeWebhookController;
+use App\Http\Controllers\TimeBlockController;
+use App\Http\Controllers\WorkingHourController;
+use Illuminate\Support\Facades\Route;
 
 // Webhook Stripe (sin auth, Cashier valida firma con STRIPE_WEBHOOK_SECRET)
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
@@ -39,7 +39,7 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
 
     Route::get('/dashboard', [DashboardController::class, 'index']);
     Route::get('/business-setup', [BusinessSetupController::class, 'show'])->middleware('role:business_owner');
-    Route::patch('/business-setup/branding', [BusinessSetupController::class, 'updateBranding'])->middleware('role:business_owner');
+    Route::match(['patch', 'post'], '/business-setup/branding', [BusinessSetupController::class, 'updateBranding'])->middleware('role:business_owner');
     Route::get('/branches', [BranchController::class, 'index']);
 
     // Billing (Stripe Cashier): planes visibles para autenticados; resto solo propietario (Spatie)
@@ -53,8 +53,8 @@ Route::middleware(['auth', 'throttle:60,1', 'tenant.isolation'])->group(function
         Route::put('/billing/extra-users', [BillingController::class, 'setExtraUsers']);
     });
 
-	Route::apiResource('working-hours', WorkingHourController::class);
-	Route::apiResource('blocks', TimeBlockController::class);
+    Route::apiResource('working-hours', WorkingHourController::class);
+    Route::apiResource('blocks', TimeBlockController::class);
 
     Route::prefix('agenda')->group(function () {
         Route::get('/day', [AgendaController::class, 'day']);

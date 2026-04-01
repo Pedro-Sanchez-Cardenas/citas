@@ -11,14 +11,15 @@ use App\Models\ServiceCategory;
 use App\Models\User;
 use App\Models\WorkingHour;
 use App\Repositories\Contracts\BusinessRepositoryInterface;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Storage;
 
 class BusinessSetupService
 {
     public function __construct(
         protected BusinessRepositoryInterface $businesses
-    ) {
-    }
+    ) {}
 
     /**
      * Devuelve el estado de onboarding/configuración inicial del negocio del usuario.
@@ -123,8 +124,8 @@ class BusinessSetupService
                 'name' => $business?->name,
                 'slug' => $business?->slug,
                 'branding' => [
-                    'logo_url' => $branding['logo_url'] ?? null,
-                    'hero_image_url' => $branding['hero_image_url'] ?? null,
+                    'logo_url' => $this->resolveBrandingUrl($branding, 'logo'),
+                    'hero_image_url' => $this->resolveBrandingUrl($branding, 'hero_image'),
                     'primary_color' => $branding['primary_color'] ?? null,
                     'public_booking_title' => $branding['public_booking_title'] ?? null,
                     'public_booking_subtitle' => $branding['public_booking_subtitle'] ?? null,
@@ -139,23 +140,42 @@ class BusinessSetupService
      *
      * @return array{logo_url: string|null, hero_image_url: string|null, primary_color: string|null, public_booking_title: string|null, public_booking_subtitle: string|null}
      */
-    public function updateBranding(Business $business, array $validated): array
+    public function updateBranding(Business $business, array $validated, ?UploadedFile $logoFile = null, ?UploadedFile $heroImageFile = null): array
     {
         $settings = is_array($business->settings) ? $business->settings : [];
+        $branding = is_array($settings['branding'] ?? null) ? $settings['branding'] : [];
 
-        Arr::set($settings, 'branding.logo_url', $validated['logo_url'] ?? null);
-        Arr::set($settings, 'branding.hero_image_url', $validated['hero_image_url'] ?? null);
-        Arr::set($settings, 'branding.primary_color', $validated['primary_color'] ?? null);
-        Arr::set($settings, 'branding.public_booking_title', $validated['public_booking_title'] ?? null);
-        Arr::set($settings, 'branding.public_booking_subtitle', $validated['public_booking_subtitle'] ?? null);
+        if ($logoFile) {
+            $oldPath = $branding['logo_path'] ?? null;
+            if (is_string($oldPath) && $oldPath !== '') {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $branding['logo_path'] = $logoFile->store(sprintf('business-branding/%d/logo', $business->id), 'public');
+        }
+
+        if ($heroImageFile) {
+            $oldPath = $branding['hero_image_path'] ?? null;
+            if (is_string($oldPath) && $oldPath !== '') {
+                Storage::disk('public')->delete($oldPath);
+            }
+            $branding['hero_image_path'] = $heroImageFile->store(sprintf('business-branding/%d/hero', $business->id), 'public');
+        }
+
+        foreach (['primary_color', 'public_booking_title', 'public_booking_subtitle'] as $field) {
+            if (array_key_exists($field, $validated)) {
+                $branding[$field] = $validated[$field];
+            }
+        }
+
+        Arr::set($settings, 'branding', $branding);
 
         $this->businesses->updateSettings($business, $settings);
 
-        $branding = $settings['branding'] ?? [];
+        $branding = is_array($settings['branding'] ?? null) ? $settings['branding'] : [];
 
         return [
-            'logo_url' => $branding['logo_url'] ?? null,
-            'hero_image_url' => $branding['hero_image_url'] ?? null,
+            'logo_url' => $this->resolveBrandingUrl($branding, 'logo'),
+            'hero_image_url' => $this->resolveBrandingUrl($branding, 'hero_image'),
             'primary_color' => $branding['primary_color'] ?? null,
             'public_booking_title' => $branding['public_booking_title'] ?? null,
             'public_booking_subtitle' => $branding['public_booking_subtitle'] ?? null,
@@ -166,8 +186,12 @@ class BusinessSetupService
      * @param  array<string, mixed>  $validated
      * @return array{logo_url: string|null, hero_image_url: string|null, primary_color: string|null, public_booking_title: string|null, public_booking_subtitle: string|null}
      */
-    public function updateBrandingForAuthenticatedUser(User $user, array $validated): array
-    {
+    public function updateBrandingForAuthenticatedUser(
+        User $user,
+        array $validated,
+        ?UploadedFile $logoFile = null,
+        ?UploadedFile $heroImageFile = null
+    ): array {
         $businessId = $user->business_id ? (int) $user->business_id : null;
 
         if ($businessId === null) {
@@ -180,7 +204,21 @@ class BusinessSetupService
             abort(404, 'No se encontró negocio asociado al usuario.');
         }
 
-        return $this->updateBranding($business, $validated);
+        return $this->updateBranding($business, $validated, $logoFile, $heroImageFile);
+    }
+
+    /**
+     * @param  array<string, mixed>  $branding
+     */
+    protected function resolveBrandingUrl(array $branding, string $prefix): ?string
+    {
+        $pathKey = $prefix.'_path';
+        $urlKey = $prefix.'_url';
+
+        if (! empty($branding[$pathKey]) && is_string($branding[$pathKey])) {
+            return Storage::disk('public')->url($branding[$pathKey]);
+        }
+
+        return isset($branding[$urlKey]) && is_string($branding[$urlKey]) ? $branding[$urlKey] : null;
     }
 }
-

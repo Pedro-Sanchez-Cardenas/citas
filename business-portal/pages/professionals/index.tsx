@@ -230,7 +230,7 @@ export default function ProfessionalsPage() {
           placeholder="Buscar por nombre, correo o teléfono..."
           className="min-w-0 flex-1"
         />
-        <p className="text-xs text-slate-500 tabular-nums sm:max-w-[12rem] sm:text-right">
+        <p className="text-xs text-slate-500 tabular-nums sm:max-w-48 sm:text-right">
           {search.trim()
             ? `${filteredProfessionals.length} de ${professionals.length} profesionales`
             : `${professionals.length} profesional${professionals.length === 1 ? '' : 'es'}`}
@@ -279,7 +279,7 @@ export default function ProfessionalsPage() {
             if (key === 'professional') {
               return (
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/[0.1] bg-slate-950/60 ring-1 ring-white/[0.06]">
+                  <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/10 bg-slate-950/60 ring-1 ring-white/6">
                     {row.photo_url ? (
                       <img
                         src={clientPhotoUrl(row.photo_url) ?? ''}
@@ -288,7 +288,7 @@ export default function ProfessionalsPage() {
                       />
                     ) : (
                       <span
-                        className="flex h-full w-full items-center justify-center rounded-full border border-white/[0.08]"
+                        className="flex h-full w-full items-center justify-center rounded-full border border-white/8"
                         style={{ backgroundColor: row.color || '#0f172a' }}
                       />
                     )}
@@ -330,7 +330,7 @@ export default function ProfessionalsPage() {
                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] ${
                     row.is_active
                       ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40'
-                      : 'border border-white/[0.1] bg-white/[0.06] text-slate-300'
+                      : 'border border-white/10 bg-white/6 text-slate-300'
                   }`}
                 >
                   <span

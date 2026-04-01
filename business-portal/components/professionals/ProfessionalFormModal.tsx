@@ -388,7 +388,7 @@ export function ProfessionalFormModal({
                             value={color || '#22c55e'}
                             onChange={(e: ChangeEvent<HTMLInputElement>) => setColor(e.target.value)}
                             className={clsx(
-                                'h-9 w-12 cursor-pointer rounded-lg border border-white/[0.12] bg-slate-950/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
+                                'h-9 w-12 cursor-pointer rounded-lg border border-white/12 bg-slate-950/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]',
                                 fieldErrors.color ? 'border-red-500/80 bg-red-950/30' : ''
                             )}
                         />
