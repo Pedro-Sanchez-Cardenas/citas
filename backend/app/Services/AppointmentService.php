@@ -4,14 +4,14 @@ namespace App\Services;
 
 use App\Models\Appointment;
 use App\Models\Business;
+use App\Models\Product;
+use App\Models\ProductMovement;
 use App\Models\TimeBlock;
 use App\Models\WorkingHour;
 use App\Repositories\Contracts\AppointmentRepositoryInterface;
-use App\Services\InventoryService;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Validation\ValidationException;
 
 class AppointmentService
@@ -20,8 +20,7 @@ class AppointmentService
         protected AppointmentRepositoryInterface $appointmentRepository,
         protected InventoryService $inventoryService,
         protected ProfessionalService $professionalService
-    ) {
-    }
+    ) {}
 
     public function create(array $data): Appointment
     {
@@ -45,7 +44,7 @@ class AppointmentService
             $autoConfirm = true;
             if (! empty($data['business_id'])) {
                 $business = Business::find($data['business_id']);
-                $autoConfirm = (bool) Arr::get($business?->settings ?? [], 'auto_confirm_appointments', true);
+                $autoConfirm = (bool) ($business?->auto_confirm_appointments ?? true);
             }
 
             $data['status'] = $autoConfirm ? 'confirmed' : 'scheduled';
@@ -288,7 +287,7 @@ class AppointmentService
             return 1;
         }
 
-        $max = (int) Arr::get($business->settings ?? [], 'max_overbooking_per_slot', 1);
+        $max = (int) ($business->max_overbooking_per_slot ?? 1);
 
         return $max < 1 ? 1 : $max;
     }
@@ -304,7 +303,7 @@ class AppointmentService
         }
 
         // Evitar consumo duplicado
-        if (\App\Models\ProductMovement::query()
+        if (ProductMovement::query()
             ->where('appointment_id', $appointment->id)
             ->where('reason', 'appointment_consumption')
             ->exists()) {
@@ -341,7 +340,7 @@ class AppointmentService
         }
 
         foreach ($materials as $productId => $quantity) {
-            $product = \App\Models\Product::find($productId);
+            $product = Product::find($productId);
             if (! $product) {
                 continue;
             }
@@ -358,4 +357,3 @@ class AppointmentService
         }
     }
 }
-

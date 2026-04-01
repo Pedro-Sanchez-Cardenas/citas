@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Business;
 use App\Models\Branch;
+use App\Models\Business;
 use App\Models\Product;
 use App\Models\Professional;
 use App\Models\Service;
@@ -11,7 +11,6 @@ use App\Models\ServiceCategory;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class BusinessSeeder extends Seeder
 {
@@ -26,9 +25,8 @@ class BusinessSeeder extends Seeder
                 'owner_email' => 'test@example.com',
                 'phone' => '+520000000000',
                 'industry' => 'beauty',
-                'settings' => [
-                    'currency' => 'USD',
-                ],
+                'auto_confirm_appointments' => true,
+                'max_overbooking_per_slot' => 1,
             ]
         );
 
@@ -216,4 +214,3 @@ class BusinessSeeder extends Seeder
         }
     }
 }
-

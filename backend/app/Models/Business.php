@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
 
 class Business extends Model
@@ -18,11 +19,13 @@ class Business extends Model
         'owner_email',
         'phone',
         'industry',
-        'settings',
+        'auto_confirm_appointments',
+        'max_overbooking_per_slot',
     ];
 
     protected $casts = [
-        'settings' => 'array',
+        'auto_confirm_appointments' => 'boolean',
+        'max_overbooking_per_slot' => 'integer',
         'trial_ends_at' => 'datetime',
     ];
 
@@ -46,6 +49,11 @@ class Business extends Model
         return $this->hasMany(Bill::class);
     }
 
+    public function branding(): HasOne
+    {
+        return $this->hasOne(BusinessBranding::class);
+    }
+
     /**
      * Email usado por Cashier para el cliente en Stripe (owner_email).
      */
@@ -54,4 +62,3 @@ class Business extends Model
         return $this->owner_email;
     }
 }
-

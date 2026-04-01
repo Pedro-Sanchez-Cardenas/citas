@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Business;
+use App\Models\BusinessBranding;
 use App\Repositories\Contracts\BusinessRepositoryInterface;
 
 class EloquentBusinessRepository implements BusinessRepositoryInterface
@@ -22,11 +23,11 @@ class EloquentBusinessRepository implements BusinessRepositoryInterface
         return Business::query()->where('slug', $slug)->firstOrFail();
     }
 
-    public function updateSettings(Business $business, array $settings): Business
+    public function upsertBranding(Business $business, array $attributes): BusinessBranding
     {
-        $business->settings = $settings;
-        $business->save();
-
-        return $business;
+        return BusinessBranding::query()->updateOrCreate(
+            ['business_id' => $business->id],
+            $attributes
+        );
     }
 }

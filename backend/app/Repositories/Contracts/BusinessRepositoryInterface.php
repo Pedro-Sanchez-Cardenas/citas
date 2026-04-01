@@ -3,6 +3,7 @@
 namespace App\Repositories\Contracts;
 
 use App\Models\Business;
+use App\Models\BusinessBranding;
 
 interface BusinessRepositoryInterface
 {
@@ -13,7 +14,7 @@ interface BusinessRepositoryInterface
     public function findBySlugOrFail(string $slug): Business;
 
     /**
-     * @param  array<string, mixed>  $settings
+     * @param  array<string, mixed>  $attributes
      */
-    public function updateSettings(Business $business, array $settings): Business;
+    public function upsertBranding(Business $business, array $attributes): BusinessBranding;
 }

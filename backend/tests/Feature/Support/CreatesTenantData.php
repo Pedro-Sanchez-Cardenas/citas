@@ -26,7 +26,8 @@ trait CreatesTenantData
             'owner_name' => 'Owner '.$suffix,
             'owner_email' => $suffix.'@example.com',
             'industry' => 'beauty',
-            'settings' => [],
+            'auto_confirm_appointments' => true,
+            'max_overbooking_per_slot' => 1,
         ], $overrides));
     }
 

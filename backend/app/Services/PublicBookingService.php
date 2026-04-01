@@ -7,8 +7,8 @@ use App\Repositories\Contracts\BusinessRepositoryInterface;
 use App\Repositories\Contracts\ProfessionalRepositoryInterface;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class PublicBookingService
 {
@@ -17,14 +17,13 @@ class PublicBookingService
         protected BranchRepositoryInterface $branches,
         protected ProfessionalRepositoryInterface $professionals,
         protected CalendarService $calendarService
-    ) {
-    }
+    ) {}
 
     public function getCatalog(string $businessSlug): array
     {
-        $business = $this->businesses->findBySlugOrFail($businessSlug);
+        $business = $this->businesses->findBySlugOrFail($businessSlug)->loadMissing('branding');
         $branches = $this->branches->getBranchesWithActiveServices($business->id);
-        $branding = Arr::get($business->settings ?? [], 'branding', []);
+        $branding = $business->branding;
 
         return [
             'business' => [
@@ -32,11 +31,11 @@ class PublicBookingService
                 'name' => $business->name,
                 'slug' => $business->slug,
                 'branding' => [
-                    'logo_url' => Arr::get($branding, 'logo_url'),
-                    'hero_image_url' => Arr::get($branding, 'hero_image_url'),
-                    'primary_color' => Arr::get($branding, 'primary_color'),
-                    'public_booking_title' => Arr::get($branding, 'public_booking_title'),
-                    'public_booking_subtitle' => Arr::get($branding, 'public_booking_subtitle'),
+                    'logo_url' => $branding?->logo_path ? Storage::disk('public')->url($branding->logo_path) : null,
+                    'hero_image_url' => $branding?->hero_image_path ? Storage::disk('public')->url($branding->hero_image_path) : null,
+                    'primary_color' => $branding?->primary_color,
+                    'public_booking_title' => $branding?->public_booking_title,
+                    'public_booking_subtitle' => $branding?->public_booking_subtitle,
                 ],
             ],
             'branches' => $branches,
