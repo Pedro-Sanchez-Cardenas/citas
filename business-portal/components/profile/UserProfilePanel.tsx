@@ -37,7 +37,7 @@ export function UserProfilePanel({
   onSubmit,
 }: UserProfilePanelProps) {
   return (
-    <section className="surface-panel p-5 lg:col-span-1">
+    <section className="rounded-2xl border border-white/10 bg-slate-900/70 p-5 shadow-(--shadow-modal) backdrop-blur-2xl lg:col-span-1">
       <div className="mb-4 flex items-center gap-3">
         <div className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-teal-400 to-cyan-500 text-lg font-semibold text-slate-950 shadow-[0_10px_28px_-6px_rgba(20,184,166,0.45)] ring-2 ring-white/15">
           {user?.name?.[0]?.toUpperCase() ?? 'U'}

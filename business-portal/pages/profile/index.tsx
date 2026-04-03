@@ -8,11 +8,12 @@ import type { BusinessSetup } from '@/components/profile/types';
 import type { AxiosError } from 'axios';
 import { UserProfilePanel } from '@/components/profile/UserProfilePanel';
 import { BusinessOnboardingPanel } from '@/components/profile/BusinessOnboardingPanel';
-import { Button, Input, PageHeader, Alert, PageLoading } from '@/components/ui';
+import { BusinessBrandingPanel } from '@/components/profile/BusinessBrandingPanel';
+import { PageHeader, Alert } from '@/components/ui';
 
 export default function ProfilePage() {
 	const router = useRouter();
-	const { user, loading: authLoading, logout, setUser } = useAuth();
+	const { user, loading: authLoading, setUser } = useAuth();
 	const [setup, setSetup] = useState<BusinessSetup | null>(null);
 	const [loadingSetup, setLoadingSetup] = useState(true);
 	const [error, setError] = useState('');
@@ -25,8 +26,8 @@ export default function ProfilePage() {
 	const [profileSuccess, setProfileSuccess] = useState(false);
 	const [brandingLogoUrl, setBrandingLogoUrl] = useState('');
 	const [brandingHeroImageUrl, setBrandingHeroImageUrl] = useState('');
-  const [brandingLogoFile, setBrandingLogoFile] = useState<File | null>(null);
-  const [brandingHeroImageFile, setBrandingHeroImageFile] = useState<File | null>(null);
+	const [brandingLogoFile, setBrandingLogoFile] = useState<File | null>(null);
+	const [brandingHeroImageFile, setBrandingHeroImageFile] = useState<File | null>(null);
 	const [brandingPrimaryColor, setBrandingPrimaryColor] = useState('#14b8a6');
 	const [bookingTitle, setBookingTitle] = useState('');
 	const [bookingSubtitle, setBookingSubtitle] = useState('');
@@ -45,11 +46,13 @@ export default function ProfilePage() {
 			try {
 				const data = (await fetchBusinessSetup()) as BusinessSetup;
 				setSetup(data);
-				const branding = (data?.business as { branding?: Record<string, string | null> } | undefined)?.branding;
+				const branding = (
+					data?.business as { branding?: Record<string, string | null> } | undefined
+				)?.branding;
 				setBrandingLogoUrl(String(branding?.logo_url ?? ''));
 				setBrandingHeroImageUrl(String(branding?.hero_image_url ?? ''));
-        setBrandingLogoFile(null);
-        setBrandingHeroImageFile(null);
+				setBrandingLogoFile(null);
+				setBrandingHeroImageFile(null);
 				setBrandingPrimaryColor(String(branding?.primary_color ?? '#14b8a6'));
 				setBookingTitle(String(branding?.public_booking_title ?? ''));
 				setBookingSubtitle(String(branding?.public_booking_subtitle ?? ''));
@@ -114,16 +117,18 @@ export default function ProfilePage() {
 				primary_color: brandingPrimaryColor.trim() || null,
 				public_booking_title: bookingTitle.trim() || null,
 				public_booking_subtitle: bookingSubtitle.trim() || null,
-        logo_file: brandingLogoFile,
-        hero_image_file: brandingHeroImageFile,
+				logo_file: brandingLogoFile,
+				hero_image_file: brandingHeroImageFile,
 			});
-      const refreshed = (await fetchBusinessSetup()) as BusinessSetup;
-      const branding = (refreshed?.business as { branding?: Record<string, string | null> } | undefined)?.branding;
-      setSetup(refreshed);
-      setBrandingLogoUrl(String(branding?.logo_url ?? ''));
-      setBrandingHeroImageUrl(String(branding?.hero_image_url ?? ''));
-      setBrandingLogoFile(null);
-      setBrandingHeroImageFile(null);
+			const refreshed = (await fetchBusinessSetup()) as BusinessSetup;
+			const branding = (
+				refreshed?.business as { branding?: Record<string, string | null> } | undefined
+			)?.branding;
+			setSetup(refreshed);
+			setBrandingLogoUrl(String(branding?.logo_url ?? ''));
+			setBrandingHeroImageUrl(String(branding?.hero_image_url ?? ''));
+			setBrandingLogoFile(null);
+			setBrandingHeroImageFile(null);
 			setBrandingSuccess(true);
 		} catch (err) {
 			const ax = err as AxiosError<{ message?: string }>;
@@ -171,78 +176,23 @@ export default function ProfilePage() {
 				<BusinessOnboardingPanel setup={setup} isLoading={isLoading} />
 			</div>
 
-			<section className="surface-panel mt-6 p-5 sm:p-6">
-				<h2 className="text-base font-semibold tracking-tight text-slate-50">
-					Branding del portal público de reservas
-				</h2>
-				<p className="mt-1 text-sm leading-relaxed text-slate-400">
-					Configura el logo y los textos que se muestran en el portal público de reservas para login,
-					registro y agendado.
-				</p>
-				<form className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={handleSubmitBranding}>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400" htmlFor="branding-logo-file">
-                  Logo
-                </label>
-                <input
-                  id="branding-logo-file"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                  onChange={(e) => setBrandingLogoFile(e.target.files?.[0] ?? null)}
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/45 px-4 py-2.5 text-sm text-slate-50 file:mr-3 file:rounded-lg file:border file:border-white/10 file:bg-slate-900/70 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-200"
-                />
-                <p className="mt-1 text-[11px] text-slate-500">
-                  PNG, JPG, WEBP o SVG. {brandingLogoUrl ? `Actual: ${brandingLogoUrl}` : 'Sin logo cargado.'}
-                </p>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400" htmlFor="branding-hero-file">
-                  Imagen hero/fondo
-                </label>
-                <input
-                  id="branding-hero-file"
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  onChange={(e) => setBrandingHeroImageFile(e.target.files?.[0] ?? null)}
-                  className="block w-full rounded-xl border border-white/10 bg-slate-950/45 px-4 py-2.5 text-sm text-slate-50 file:mr-3 file:rounded-lg file:border file:border-white/10 file:bg-slate-900/70 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-slate-200"
-                />
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Opcional. {brandingHeroImageUrl ? `Actual: ${brandingHeroImageUrl}` : 'Sin imagen cargada.'}
-                </p>
-              </div>
-					<Input
-						label="Color primario"
-						id="branding-primary-color"
-						type="text"
-						value={brandingPrimaryColor}
-						onChange={(e) => setBrandingPrimaryColor(e.target.value)}
-						placeholder="#14b8a6"
-						hint="Formato HEX, por ejemplo #14b8a6"
-					/>
-					<Input
-						label="Título público"
-						id="branding-booking-title"
-						value={bookingTitle}
-						onChange={(e) => setBookingTitle(e.target.value)}
-						placeholder="Reserva tu próxima cita"
-					/>
-					<div className="md:col-span-2">
-						<Input
-							label="Subtítulo público"
-							id="branding-booking-subtitle"
-							value={bookingSubtitle}
-							onChange={(e) => setBookingSubtitle(e.target.value)}
-							placeholder="Inicia sesión para reservar con tu salón"
-						/>
-					</div>
-					<div className="form-divider md:col-span-2 flex items-center gap-2">
-						<Button type="submit" size="sm" disabled={brandingSaving}>
-							{brandingSaving ? 'Guardando...' : 'Guardar branding'}
-						</Button>
-						{brandingSuccess && <span className="text-xs text-emerald-300">Cambios guardados</span>}
-					</div>
-				</form>
-			</section>
+			<BusinessBrandingPanel
+				brandingLogoUrl={brandingLogoUrl}
+				brandingHeroImageUrl={brandingHeroImageUrl}
+				brandingLogoFile={brandingLogoFile}
+				brandingHeroImageFile={brandingHeroImageFile}
+				brandingPrimaryColor={brandingPrimaryColor}
+				bookingTitle={bookingTitle}
+				bookingSubtitle={bookingSubtitle}
+				brandingSaving={brandingSaving}
+				brandingSuccess={brandingSuccess}
+				onChangeBrandingLogoFile={setBrandingLogoFile}
+				onChangeBrandingHeroImageFile={setBrandingHeroImageFile}
+				onChangeBrandingPrimaryColor={setBrandingPrimaryColor}
+				onChangeBookingTitle={setBookingTitle}
+				onChangeBookingSubtitle={setBookingSubtitle}
+				onSubmit={handleSubmitBranding}
+			/>
 		</>
 	);
 }

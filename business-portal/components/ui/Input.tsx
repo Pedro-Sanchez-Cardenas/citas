@@ -3,76 +3,76 @@ import { useState } from 'react';
 import type { InputHTMLAttributes } from 'react';
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string | null;
-  hint?: string | null;
-  error?: string | null;
-  className?: string;
-  inputClassName?: string;
-  required?: boolean;
+	label?: string | null;
+	hint?: string | null;
+	error?: string | null;
+	className?: string;
+	inputClassName?: string;
+	required?: boolean;
 }
 
 export default function Input({
-  label,
-  hint,
-  error,
-  className,
-  inputClassName,
-  required,
-  id,
-  onInvalid,
-  onInput,
-  ...props
+	label,
+	hint,
+	error,
+	className,
+	inputClassName,
+	required,
+	id,
+	onInvalid,
+	onInput,
+	...props
 }: InputProps) {
-  const [nativeError, setNativeError] = useState<string | null>(null);
-  const effectiveError = error ?? nativeError;
-  const hintId = hint ? `${id}-hint` : undefined;
-  const errorId = effectiveError ? `${id}-error` : undefined;
+	const [nativeError, setNativeError] = useState<string | null>(null);
+	const effectiveError = error ?? nativeError;
+	const hintId = hint ? `${id}-hint` : undefined;
+	const errorId = effectiveError ? `${id}-error` : undefined;
 
-  return (
-    <div className={clsx('space-y-1.5', className)}>
-      {label && (
-        <label
-          className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400"
-          htmlFor={id}
-        >
-          {label}
-          {required && <span className="ml-0.5 text-red-400">*</span>}
-        </label>
-      )}
-      <input
-        id={id}
-        className={clsx(
-          'w-full min-h-(--touch-min) rounded-xl border border-white/[0.1] bg-slate-950/45 px-4 py-2.5 text-sm text-slate-50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none ring-0 backdrop-blur-sm transition placeholder:text-slate-500 focus:border-teal-400/70 focus:ring-2 focus:ring-teal-400/25 disabled:cursor-not-allowed disabled:opacity-60',
-          inputClassName,
-          effectiveError &&
-            'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30'
-        )}
-        aria-invalid={!!effectiveError}
-        aria-describedby={errorId ?? hintId}
-        onInvalid={(e) => {
-          if (error) return;
-          setNativeError(e.currentTarget.validationMessage || 'Campo inválido.');
-          onInvalid?.(e);
-        }}
-        onInput={(e) => {
-          if (nativeError && e.currentTarget.validity.valid) {
-            setNativeError(null);
-          }
-          onInput?.(e);
-        }}
-        required={required}
-        {...props}
-      />
-      {hint && !effectiveError && (
-        <p id={hintId} className="text-[11px] text-slate-500">
-          {hint}
-        </p>
-      )}
-      {effectiveError && (
-        <p id={errorId} className="text-[11px] text-red-300">
-          {effectiveError}
-        </p>
-      )}
-    </div>
-  );
+	return (
+		<div className={clsx('space-y-1.5', className)}>
+			{label && (
+				<label
+					className="mb-1.5 block text-xs font-medium uppercase tracking-[0.12em] text-slate-400"
+					htmlFor={id}
+				>
+					{label}
+					{required && <span className="ml-0.5 text-red-400">*</span>}
+				</label>
+			)}
+			<input
+				id={id}
+				className={clsx(
+					'w-full min-h-(--touch-min) rounded-xl border border-white/1 bg-slate-950/45 px-4 py-2.5 text-sm text-slate-50 shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)] outline-none ring-0 backdrop-blur-sm transition placeholder:text-slate-500 focus:border-teal-400/70 focus:ring-2 focus:ring-teal-400/25 disabled:cursor-not-allowed disabled:opacity-60',
+					inputClassName,
+					effectiveError &&
+						'border-red-500/80 bg-red-950/30 focus:border-red-500 focus:ring-red-500/30'
+				)}
+				aria-invalid={!!effectiveError}
+				aria-describedby={errorId ?? hintId}
+				onInvalid={(e) => {
+					if (error) return;
+					setNativeError(e.currentTarget.validationMessage || 'Campo inválido.');
+					onInvalid?.(e);
+				}}
+				onInput={(e) => {
+					if (nativeError && e.currentTarget.validity.valid) {
+						setNativeError(null);
+					}
+					onInput?.(e);
+				}}
+				required={required}
+				{...props}
+			/>
+			{hint && !effectiveError && (
+				<p id={hintId} className="text-[11px] text-slate-500">
+					{hint}
+				</p>
+			)}
+			{effectiveError && (
+				<p id={errorId} className="text-[11px] text-red-300">
+					{effectiveError}
+				</p>
+			)}
+		</div>
+	);
 }
