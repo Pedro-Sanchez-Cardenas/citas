@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         php8.3-mysql \
         php8.3-curl \
         php8.3-bcmath \
+        php8.3-intl \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && apt-get install -y --no-install-recommends docker.io \
     && rm -rf /var/lib/apt/lists/*

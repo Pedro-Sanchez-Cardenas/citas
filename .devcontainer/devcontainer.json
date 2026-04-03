@@ -1,31 +1,114 @@
 {
-	"name": "Appointments App - Workspace",
+  "name": "Appointments App - Workspace",
 
-	"dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
+  "dockerComposeFile": ["../compose.yml", "../compose.overwrite.yml"],
 
-	"service": "workspace",
+  "service": "workspace",
 
-	"workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspace",
 
-	"runServices": [
-		"mysql",
-		"backend",
-		"business-portal",
-		"customer-portal",
-		"nginx"
-	],
-	"forwardPorts": [8080, 3306],
-	"shutdownAction": "stopCompose",
-	"remoteUser": "root",
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-azuretools.vscode-docker",
-				"bmewburn.vscode-intelephense-client",
-				"dbaeumer.vscode-eslint",
-				"esbenp.prettier-vscode",
-				"bradlc.vscode-tailwindcss"
-			]
-		}
-	}
+  "runServices": [
+    "mysql",
+    "backend",
+    "business-portal",
+    "customer-portal",
+    "nginx"
+  ],
+
+  "forwardPorts": [8080, 3306, 8000, 3000, 3001],
+  "portsAttributes": {
+    "8080": { "label": "Nginx (app + API)" },
+    "3306": { "label": "MySQL" },
+    "8000": { "label": "Laravel (backend directo)" },
+    "3000": { "label": "Next business-portal" },
+    "3001": { "label": "Next customer-portal" }
+  },
+
+  "shutdownAction": "stopCompose",
+
+  "remoteUser": "root",
+
+  "containerEnv": {
+    "COMPOSER_ALLOW_SUPERUSER": "1",
+    "NODE_OPTIONS": "--max-old-space-size=4096"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "EditorConfig.EditorConfig",
+        "bmewburn.vscode-intelephense-client",
+        "xdebug.php-debug",
+        "amiralizadeh9480.laravel-extra-intellisense",
+        "onecentlin.laravel-blade",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "formulahendry.auto-rename-tag",
+        "christian-kohler.path-intellisense",
+        "usernamehw.errorlens"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[php]": {
+          "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+          "editor.formatOnSave": true
+        },
+        "[blade]": {
+          "editor.defaultFormatter": "onecentlin.laravel-blade"
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[javascriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[jsonc]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "eslint.workingDirectories": [
+          { "pattern": "./business-portal" },
+          { "pattern": "./customer-portal" }
+        ],
+        "tailwindCSS.experimental.classRegex": [
+          ["cva\\(([^)]*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
+          ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"],
+          ["cn\\(([^)]*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+        ],
+        "php.validate.executablePath": "/usr/bin/php",
+        "intelephense.environment.phpVersion": "8.3.0",
+        "intelephense.files.maxSize": 5000000,
+        "files.associations": {
+          "*.blade.php": "blade"
+        },
+        "search.exclude": {
+          "**/node_modules": true,
+          "**/vendor": true,
+          "**/.next": true,
+          "**/storage/framework": true,
+          "**/storage/logs": true
+        },
+        "files.watcherExclude": {
+          "**/node_modules/**": true,
+          "**/vendor/**": true,
+          "**/.next/**": true
+        }
+      }
+    }
+  }
 }
